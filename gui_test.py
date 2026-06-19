@@ -9,7 +9,7 @@ class K_OnManagerApp(ctk.CTk):
         super().__init__()
 
         # ウィンドウ基本設定
-        self.title("軽音サークル管理システム - 幹部専用コンソール")
+        self.title("ロック部出欠管理システム")
         self.geometry("1100x650")
 
         # -------------------------------------------------------------
@@ -23,28 +23,31 @@ class K_OnManagerApp(ctk.CTk):
         # =============================================================
         self.sidebar_frame = ctk.CTkFrame(self, width=220, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(5, weight=1)  # 設定ボタンを下に押し下げるため
+        self.sidebar_frame.grid_rowconfigure(6, weight=1)  # 設定ボタンを下に押し下げるため
 
         # アプリタイトルロゴ風
-        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="🎸 Keion System", font=ctk.CTkFont(size=20, weight="bold"))
+        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="🎸 ロック部出欠管理システム", font=ctk.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=20)
 
         # メニューボタン群
         self.btn_dash = ctk.CTkButton(self.sidebar_frame, text="🏠 ダッシュボード", fg_color="gray30", anchor="w")
         self.btn_dash.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
-        self.btn_live = ctk.CTkButton(self.sidebar_frame, text="📅 ライブ管理", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
-        self.btn_live.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_member = ctk.CTkButton(self.sidebar_frame, text="👥 出欠管理", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
+        self.btn_member.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
-        self.btn_member = ctk.CTkButton(self.sidebar_frame, text="👥 出欠一覧", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
-        self.btn_member.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_live = ctk.CTkButton(self.sidebar_frame, text="📅 ライブ管理", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
+        self.btn_live.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
         self.btn_band = ctk.CTkButton(self.sidebar_frame, text="🎤 バンド登録・選出", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
         self.btn_band.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        
+        self.btn_timetable = ctk.CTkButton(self.sidebar_frame, text="⏱️ タイムテーブル", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
+        self.btn_timetable.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
 
         # 下部の設定ボタン
         self.btn_settings = ctk.CTkButton(self.sidebar_frame, text="⚙️ 設定", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
-        self.btn_settings.grid(row=5, column=0, padx=20, pady=20, sticky="s")
+        self.btn_settings.grid(row=6, column=0, padx=20, pady=20, sticky="s")
 
         # =============================================================
         # 3. 右側：メインコンテンツエリア
