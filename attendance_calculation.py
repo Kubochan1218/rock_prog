@@ -149,6 +149,7 @@ def calculate_attendance_rate(start_date, end_date, file_path, sheet_name):
             absent_with_contact = 0  # 連絡あり欠席（△）
             absent_without_contact = 0  # 無断欠席（×）
             
+            # 連絡あり欠席：-1、無断欠席：-2として計算、オンライン・忌引きは出席扱い
             for col in target_columns:
                 value = str(row.get(col, '')).strip()
                 if value in ['出席', '連絡あり', '無断欠席', 'オ', '忌引', '']:
