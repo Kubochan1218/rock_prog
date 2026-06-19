@@ -3,6 +3,7 @@ import customtkinter as ctk
 # 全体のテーマとカラーの設定
 ctk.set_appearance_mode("Light")  # "System", "Dark", "Light"
 ctk.set_default_color_theme("blue")
+FONT_NAME = 'Yu Gothic UI'
 
 class K_OnManagerApp(ctk.CTk):
     def __init__(self):
@@ -26,27 +27,27 @@ class K_OnManagerApp(ctk.CTk):
         self.sidebar_frame.grid_rowconfigure(6, weight=1)  # 設定ボタンを下に押し下げるため
 
         # アプリタイトルロゴ風
-        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="🎸 ロック部出欠管理システム", font=ctk.CTkFont(size=20, weight="bold"))
+        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="🎸 出欠管理システム", font=ctk.CTkFont(family=FONT_NAME, size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=20)
 
         # メニューボタン群
-        self.btn_dash = ctk.CTkButton(self.sidebar_frame, text="🏠 ダッシュボード", fg_color="gray30", anchor="w")
-        self.btn_dash.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_dash = ctk.CTkButton(self.sidebar_frame, text="🏠 ダッシュボード", fg_color="gray30", anchor="w", font=ctk.CTkFont(family=FONT_NAME, size=14))
+        self.btn_dash.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
 
-        self.btn_member = ctk.CTkButton(self.sidebar_frame, text="👥 出欠管理", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
-        self.btn_member.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_member = ctk.CTkButton(self.sidebar_frame, text="👥 出欠管理", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w", font=ctk.CTkFont(family=FONT_NAME, size=14))
+        self.btn_member.grid(row=2, column=0, padx=20, pady=5, sticky="ew")
 
-        self.btn_live = ctk.CTkButton(self.sidebar_frame, text="📅 ライブ管理", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
-        self.btn_live.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_live = ctk.CTkButton(self.sidebar_frame, text="📅 ライブ管理", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w", font=ctk.CTkFont(family=FONT_NAME, size=14))
+        self.btn_live.grid(row=3, column=0, padx=20, pady=5, sticky="ew")
 
-        self.btn_band = ctk.CTkButton(self.sidebar_frame, text="🎤 バンド登録・選出", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
-        self.btn_band.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
-        
-        self.btn_timetable = ctk.CTkButton(self.sidebar_frame, text="⏱️ タイムテーブル", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
-        self.btn_timetable.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_band = ctk.CTkButton(self.sidebar_frame, text="🎤 バンド登録・選出", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w", font=ctk.CTkFont(family=FONT_NAME, size=14))
+        self.btn_band.grid(row=4, column=0, padx=20, pady=5, sticky="ew")
+
+        self.btn_timetable = ctk.CTkButton(self.sidebar_frame, text="⏱️ タイムテーブル", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w", font=ctk.CTkFont(family=FONT_NAME, size=14))
+        self.btn_timetable.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
 
         # 下部の設定ボタン
-        self.btn_settings = ctk.CTkButton(self.sidebar_frame, text="⚙️ 設定", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w")
+        self.btn_settings = ctk.CTkButton(self.sidebar_frame, text="⚙️ 設定", fg_color="transparent", text_color=("gray10", "gray90"), anchor="w", font=ctk.CTkFont(family=FONT_NAME, size=14))
         self.btn_settings.grid(row=6, column=0, padx=20, pady=20, sticky="s")
 
         # =============================================================
