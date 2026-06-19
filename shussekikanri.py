@@ -223,7 +223,7 @@ class AttendanceApp:
         end_combo = ctk.CTkComboBox(date_frame, font=(FONT_NAME, 16), width=130, values=date_candidates)
         end_combo.pack(side='left', padx=5, pady=10)
         
-        btn_check = ctk.CTkButton(self.main_frame, text='👁 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=(FONT_NAME, 16, 'bold'), command=lambda: ac.calculate_attendance_rate(start_combo.get(), end_combo.get(), FILE_PATH, SHEET_NAME))
+        btn_check = ctk.CTkButton(self.main_frame, text='👁 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=(FONT_NAME, 16, 'bold'), command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), FILE_PATH, SHEET_NAME))
         btn_check.pack(pady=10)
         self.add_tooltip(btn_check, '出欠状況をテキストファイルに出力し、確認します')
         
