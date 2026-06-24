@@ -1,10 +1,10 @@
-# 2026年6月19日更新 (CustomTkinterモダンデザイン版)
+# 2026年6月21日更新 (CustomTkinterモダンデザイン版)
 
-import datetime, openpyxl, re, os, sys, json
+import datetime, openpyxl, re, os, sys, json, difflib
 import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog, ttk
 import tkinter.font as tkfont
-import customtkinter as ctk  # CustomTkinterの導入
+import customtkinter as ctk
 import pandas as pd
 import band_selection as bs
 import attendance_calculation as ac
@@ -16,7 +16,7 @@ FONT_NAME = 'Yu Gothic UI'
 
 # アプリ全体のテーマカラー設定
 ctk.set_appearance_mode("System")  # "System", "Dark", "Light"
-ctk.set_default_color_theme("green")  # "blue", "green", "dark-blue", "light-blue"
+ctk.set_default_color_theme("green")  # "blue", "green", "dark-blue"
 
 class AttendanceApp:
     def __init__(self, master):
@@ -34,9 +34,7 @@ class AttendanceApp:
         # 設定読み込み（操作支援など）
         self.load_settings()
         
-        # -------------------------------------------------------------
         # 全体レイアウト：2カラム構成（左：固定サイドメニュー、右：動的画面）
-        # -------------------------------------------------------------
         self.master.grid_columnconfigure(1, weight=1)
         self.master.grid_rowconfigure(0, weight=1)
         
@@ -226,8 +224,8 @@ class AttendanceApp:
         btn_check.pack(pady=10)
         self.add_tooltip(btn_check, '出欠状況をテキストファイルに出力し、確認します')
         
-        btn_top = ctk.CTkButton(self.main_frame, text='トップに戻る', fg_color='#ff0000', text_color='white', font=(FONT_NAME, 16), command=self.show_top)
-        btn_top.place(relx=1.0, rely=1.0, anchor='se', x=-20, y=-20)
+        btn_top = ctk.CTkButton(self.main_frame, text='キャンセル', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 16), command=self.show_top)
+        btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def start_attendance_today(self):
         today = datetime.datetime.now().strftime('%m/%d').lstrip('0').replace('/0', '/')
@@ -278,7 +276,7 @@ class AttendanceApp:
         faculty = safe_str(row['学部']) if '学部' in self.df.columns else ''
 
         info = f'No. {self.current_idx+1} / 全 {len(self.df)} 名\n氏名: {name}\n学籍番号: {student_id}\n学年: {grade}  学部: {faculty}\n対象日: {self.date}'
-        ctk.CTkLabel(self.main_frame, text=info, font=ctk.CTkFont(family=FONT_NAME, size=14, weight='bold'), justify='left', anchor="w").pack(pady=15, fill="x")
+        ctk.CTkLabel(self.main_frame, text=info, font=ctk.CTkFont(family=FONT_NAME, size=16, weight='bold'), justify='left', anchor="w").pack(pady=15, fill="x")
 
         mark_defs = [
             ('出席', '〇 出席', '#66ff66'),
@@ -294,26 +292,26 @@ class AttendanceApp:
         btn_frame2.pack(pady=5)
         
         for mark, label, color in mark_defs[:3]:
-            b = ctk.CTkButton(btn_frame1, text=label, width=140, height=40, fg_color=color, text_color='black', font=(FONT_NAME, 13, 'bold'), command=lambda m=mark: self.set_attendance(m))
+            b = ctk.CTkButton(btn_frame1, text=label, width=140, height=40, fg_color=color, text_color='black', font=(FONT_NAME, 14, 'bold'), command=lambda m=mark: self.set_attendance(m))
             b.pack(side='left', padx=6)
             self.add_tooltip(b, f'{label} を記録します')
             
         for mark, label, color in mark_defs[3:]:
-            b2 = ctk.CTkButton(btn_frame2, text=label, width=140, height=40, fg_color=color, text_color='black', font=(FONT_NAME, 13, 'bold'), command=lambda m=mark: self.set_attendance(m))
+            b2 = ctk.CTkButton(btn_frame2, text=label, width=140, height=40, fg_color=color, text_color='black', font=(FONT_NAME, 14, 'bold'), command=lambda m=mark: self.set_attendance(m))
             b2.pack(side='left', padx=6)
             self.add_tooltip(b2, f'{label} を記録します')
 
         nav_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         nav_frame.pack(pady=20)
         
-        btn_prev = ctk.CTkButton(nav_frame, text='◀ 前の人へ', fg_color='#ff9900', text_color='black', font=(FONT_NAME, 12), command=self.prev_person)
+        btn_prev = ctk.CTkButton(nav_frame, text='◀ 前の人へ', fg_color='#ff9900', text_color='black', font=(FONT_NAME, 14, 'bold'), command=self.prev_person)
         btn_prev.pack(side='left', padx=10)
         
-        btn_next_nav = ctk.CTkButton(nav_frame, text='次の人へ ▶', fg_color='#66ff66', text_color='black', font=(FONT_NAME, 12), command=self.next_person)
+        btn_next_nav = ctk.CTkButton(nav_frame, text='次の人へ ▶', fg_color='#66ff66', text_color='black', font=(FONT_NAME, 14, 'bold'), command=self.next_person)
         btn_next_nav.pack(side='left', padx=10)
 
-        btn_top = ctk.CTkButton(self.main_frame, text='保存して終了', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 12, 'bold'), command=self.save_and_back_to_top)
-        btn_top.place(relx=1.0, rely=1.0, anchor='se', x=-20, y=-20)
+        btn_top = ctk.CTkButton(self.main_frame, text='保存して終了', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 14), command=self.save_and_back_to_top)
+        btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def set_attendance(self, mark):
         self.df.at[self.current_idx, self.date] = mark
@@ -442,12 +440,13 @@ class AttendanceApp:
 
         # ヘッダー
         ctk.CTkLabel(self.main_frame, text='🎸 ライブ情報の登録・編集', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
+        ctk.CTkLabel(self.main_frame, text='ライブ名と日程を登録します。既存のライブを選択して編集も可能です。', font=(FONT_NAME, 14), text_color='gray50').pack(pady=5, anchor="w")
 
         # ライブ名 入力エリア（コンボボックスで既存データの呼び出し対応）
         name_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         name_frame.pack(pady=10, fill='x', padx=10)
         
-        ctk.CTkLabel(name_frame, text='ライブ名:', font=(FONT_NAME, 16, 'bold')).pack(side='left', padx=10)
+        ctk.CTkLabel(name_frame, text='ライブ名を入力して新規作成するか選択して編集:', font=(FONT_NAME, 16, 'bold')).pack(side='left', padx=0)
         
         # 既存のライブ名をリストアップ
         live_names_list = list(existing_lives.keys())
@@ -471,7 +470,7 @@ class AttendanceApp:
             width=300,
             command=on_live_select
         )
-        live_name_combo.set("ライブ名を入力するか選択") # 初期値は空
+        live_name_combo.set("") # 初期値は空
         live_name_combo.pack(side='left', padx=10)
         self.add_tooltip(live_name_combo, "新しい名前を入力するか、過去のライブを選んで編集できます")
 
@@ -528,7 +527,7 @@ class AttendanceApp:
             # 開演時刻（コンボボックス）
             ctk.CTkLabel(row, text="開始:", font=(FONT_NAME, 16)).pack(side='left')
             start_combo = ctk.CTkComboBox(row, values=time_options, width=80, font=(FONT_NAME, 16))
-            start_combo.set(start_val if start_val else "13:00")
+            start_combo.set(start_val if start_val else "10:00")
             start_combo.pack(side='left', padx=5)
             
             # 終演時刻（コンボボックス）
@@ -557,6 +556,9 @@ class AttendanceApp:
         # アクションボタン群（下部）
         btn_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         btn_frame.pack(pady=15, fill='x', padx=10)
+
+        btn_top = ctk.CTkButton(btn_frame, text='キャンセル', font=(FONT_NAME, 16), fg_color='#ff0000', text_color='white', width=120, command=self.show_top)
+        btn_top.pack(side='left', padx=15)
         
         btn_add = ctk.CTkButton(btn_frame, text='➕ 日程を追加', font=(FONT_NAME, 16, 'bold'), fg_color='#80d4ff', text_color='black', command=lambda: add_date_row())
         btn_add.pack(side='left', padx=5)
@@ -612,92 +614,637 @@ class AttendanceApp:
         btn_save = ctk.CTkButton(btn_frame, text='💾 ライブ情報を保存', font=(FONT_NAME, 16, 'bold'), fg_color='#bfff80', text_color='black', width=160, height=40, command=save_live_info)
         btn_save.pack(side='right', padx=5)
 
-        btn_top = ctk.CTkButton(btn_frame, text='キャンセル', font=(FONT_NAME, 16), fg_color='#ff4444', text_color='white', width=100, command=self.show_top)
-        btn_top.pack(side='right', padx=15)
+    def setup_band_selection_tab(self, tabview):
+        """バンド選出タブを追加し、UIを構築する"""
+        # 1. 新しいタブ「バンド選出」を追加
+        tab = tabview.add("バンド選出")
+        
+        # 全体をスクロール可能にするフレーム（すべてpackで配置）
+        scroll_frame = ctk.CTkScrollableFrame(tab)
+        scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # タイトル
+        title_lbl = ctk.CTkLabel(scroll_frame, text="🎸 バンド選出 条件設定", font=(FONT_NAME, 18, "bold"))
+        title_lbl.pack(pady=15, anchor="w", padx=10)
+        
+        # 各行のラベル幅を「240ピクセル」に固定し、入力欄の左端を綺麗に揃える
+        LBL_WIDTH = 240
+        
+        # --- 1. 出席率計算 開始日 ---
+        row_start = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        row_start.pack(fill="x", pady=6, padx=10)
+        lbl_start = ctk.CTkLabel(row_start, text="⏰ 出席率計算 開始日 (YYYYMMDD):", font=(FONT_NAME, 15), width=LBL_WIDTH, anchor="w")
+        lbl_start.pack(side="left")
+        self.entry_start_date = ctk.CTkEntry(row_start, width=180, font=(FONT_NAME, 14))
+        self.entry_start_date.pack(side="left", padx=5)
+        
+        # --- 2. 出席率計算 終了日 ---
+        row_end = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        row_end.pack(fill="x", pady=6, padx=10)
+        lbl_end = ctk.CTkLabel(row_end, text="⏰ 出席率計算 終了日 (YYYYMMDD):", font=(FONT_NAME, 15), width=LBL_WIDTH, anchor="w")
+        lbl_end.pack(side="left")
+        self.entry_end_date = ctk.CTkEntry(row_end, width=180, font=(FONT_NAME, 14))
+        self.entry_end_date.pack(side="left", padx=5)
+        
+        # --- 3. 募集バンド数 ---
+        row_bands = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        row_bands.pack(fill="x", pady=6, padx=10)
+        lbl_bands = ctk.CTkLabel(row_bands, text="👥 募集バンド数 (空欄で上限なし):", font=(FONT_NAME, 15), width=LBL_WIDTH, anchor="w")
+        lbl_bands.pack(side="left")
+        self.entry_max_bands = ctk.CTkEntry(row_bands, width=180, font=(FONT_NAME, 14))
+        self.entry_max_bands.pack(side="left", padx=5)
+        
+        # --- 4. ライブの総時間 ---
+        row_time = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        row_time.pack(fill="x", pady=6, padx=10)
+        lbl_time = ctk.CTkLabel(row_time, text="⏳ ライブの総時間 (分・空欄で上限なし):", font=(FONT_NAME, 15), width=LBL_WIDTH, anchor="w")
+        lbl_time.pack(side="left")
+        self.entry_total_time = ctk.CTkEntry(row_time, width=180, font=(FONT_NAME, 14))
+        self.entry_total_time.pack(side="left", padx=5)
+        
+        # --- 5. リハーサル時間 ---
+        row_reh = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        row_reh.pack(fill="x", pady=6, padx=10)
+        lbl_reh = ctk.CTkLabel(row_reh, text="🔄 リハーサル時間 (分):", font=(FONT_NAME, 15), width=LBL_WIDTH, anchor="w")
+        lbl_reh.pack(side="left")
+        self.entry_rehearsal_time = ctk.CTkEntry(row_reh, width=180, font=(FONT_NAME, 14))
+        self.entry_rehearsal_time.insert(0, "20")  # デフォルト値 20分
+        self.entry_rehearsal_time.pack(side="left", padx=5)
+        
+        # --- 6. 選出ボタン ---
+        btn_select = ctk.CTkButton(
+            scroll_frame, 
+            text="✨ この条件でバンドを選出する", 
+            font=(FONT_NAME, 16, "bold"), 
+            fg_color="#00ff62", 
+            text_color="black", 
+            height=40,
+            command=self.execute_band_selection
+        )
+        btn_select.pack(pady=20, padx=10, fill="x")
+        
+        # --- 7. 結果表示エリア ---
+        result_lbl = ctk.CTkLabel(scroll_frame, text="📋 選出結果出力", font=(FONT_NAME, 16, "bold"))
+        result_lbl.pack(pady=5, anchor="w", padx=10)
+        
+        self.result_textbox = ctk.CTkTextbox(scroll_frame, height=250, font=(FONT_NAME, 14))
+        self.result_textbox.pack(fill="both", expand=True, pady=5, padx=10)
+
+    def execute_band_selection(self):
+        """UIの入力値を解析し、bs.select_bandを実行する"""
+        start_date = self.entry_start_date.get().strip()
+        end_date = self.entry_end_date.get().strip()
+        
+        # 期間は必須バリデーション
+        if not start_date or not end_date:
+            messagebox.showwarning("入力エラー", "出席率計算の期間（開始日・終了日）を入力してください。")
+            return
+            
+        # 募集バンド数（未入力時は上限なし -> None）
+        max_bands_val = self.entry_max_bands.get().strip()
+        max_bands = int(max_bands_val) if max_bands_val else None
+        
+        # ライブ総時間（未入力時は上限なし -> None）
+        total_time_val = self.entry_total_time.get().strip()
+        total_time = int(total_time_val) if total_time_val else None
+        
+        # リハーサル時間（未入力時はデフォルト20分）
+        rehearsal_val = self.entry_rehearsal_time.get().strip()
+        rehearsal_time = int(rehearsal_val) if rehearsal_val else 20
+        
+        # 画面のテキストエリアをリセット
+        self.result_textbox.delete("1.0", "end")
+        self.result_textbox.insert("end", "⏳ バンド選出アルゴリズムを実行中...\n\n")
+        
+        try:
+            # インポートされている band_selection (bs) の select_band メソッドを呼び出し
+            if hasattr(bs, 'select_band'):
+                results = bs.select_band(
+                    start_date=start_date,
+                    end_date=end_date,
+                    max_bands=max_bands,
+                    total_time=total_time,
+                    rehearsal_time=rehearsal_time
+                )
+                
+                self.result_textbox.delete("1.0", "end")
+                if results:
+                    # 戻り値がリスト形式で返ってきた場合を想定した綺麗目の出力整形
+                    if isinstance(results, list):
+                        self.result_textbox.insert("end", f"🎉 条件に合致する {len(results)} つのバンドが選出されました：\n\n")
+                        for idx, band in enumerate(results, 1):
+                            self.result_textbox.insert("end", f"【{idx}】 {band}\n")
+                    else:
+                        self.result_textbox.insert("end", str(results))
+                else:
+                    self.result_textbox.insert("end", "❌ 条件に一致する、または選出枠に入るバンドが見つかりませんでした。")
+            else:
+                # band_selection.py 側に該当メソッドがまだ準備されていない場合のデバッグ用表示
+                self.result_textbox.insert("end", "⚠️ 'band_selection' モジュール内に 'select_band' メソッドが見つかりません。\n")
+                self.result_textbox.insert("end", f"【UIから取得したパラメータ】\n")
+                self.result_textbox.insert("end", f"・計算期間: {start_date} ～ {end_date}\n")
+                self.result_textbox.insert("end", f"・募集バンド数: {max_bands if max_bands else '上限なし'}\n")
+                self.result_textbox.insert("end", f"・ライブ総時間: {total_time if total_time else '上限なし'} 分\n")
+                self.result_textbox.insert("end", f"・リハーサル時間: {rehearsal_time} 分\n")
+                
+        except Exception as e:
+            self.result_textbox.delete("1.0", "end")
+            messagebox.showerror("実行エラー", f"選出処理中にエラーが発生しました:\n{str(e)}")
 
     def register_band(self):
-        """バンド登録画面を表示"""
-        try:
-            self.settings['last_startup'] = datetime.date.today().isoformat()
-            self.save_settings()
-        except Exception:
-            pass
-            
-        def show_date_assign_dialog():
-            from tkcalendar import Calendar
-            assign_win = ctk.CTkToplevel(self.master)
-            assign_win.title('出演日割り当て')
-            assign_win.geometry('360x650')
-            assign_win.attributes("-topmost", True)  # ダイアログを最前面に表示
-            
-            ctk.CTkLabel(assign_win, text='ライブの日程（枠番号）を設定', font=ctk.CTkFont(family=FONT_NAME, size=14, weight='bold')).pack(pady=10)
-            ctk.CTkLabel(assign_win, text='※日付部分をクリックするとカレンダーが開きます', font=(FONT_NAME, 11), text_color="gray").pack(pady=2)
-            
-            date_vars = {}
-            label_vars = {}
-            
-            def open_calendar(num):
-                cal_win = ctk.CTkToplevel(assign_win)
-                cal_win.title(f'[{num}]の日付選択')
-                cal_win.attributes("-topmost", True)
-                cal = Calendar(cal_win, selectmode='day', date_pattern='yyyy-mm-dd')
-                cal.pack(padx=15, pady=15)
-                
-                def set_date():
-                    date_vars[num].set(cal.get_date())
-                    label_vars[num].configure(text=f'{num}日目:  {cal.get_date()}')
-                    cal_win.destroy()
-                    
-                btn_cal_ok = ctk.CTkButton(cal_win, text='決定', command=set_date)
-                btn_cal_ok.pack(pady=10)
-                
-            frame = ctk.CTkScrollableFrame(assign_win, height=420)
-            frame.pack(pady=10, fill='x', padx=15)
-            
-            for i in range(1, 11):
-                date_vars[i] = tk.StringVar(value='')
-                label = ctk.CTkLabel(frame, text=f'{i}日目:  [クリックして日付選択]', font=(FONT_NAME, 12), width=260, anchor='w', fg_color=("gray85", "gray25"), corner_radius=6)
-                label.grid(row=i-1, column=0, padx=10, pady=5, ipady=4)
-                label.bind('<Button-1>', lambda e, n=i: open_calendar(n))
-                label_vars[i] = label
-                
-            def save_dates():
-                self._date_assign_map = {}
-                self.date_assignments = {}
-                for i in range(1, 11):
-                    self._date_assign_map[str(i)] = date_vars[i].get()
-                    self.date_assignments[f'[{i}]'] = date_vars[i].get()
-                assign_win.destroy()
-                proceed_band_register()
-                
-            btn_assign_save = ctk.CTkButton(assign_win, text='この日程で保存', font=(FONT_NAME, 12, 'bold'), fg_color='#bfff80', text_color='black', width=140, command=save_dates)
-            btn_assign_save.pack(pady=15)
+        """バンド登録画面を表示 (タブ切り替え・一括一覧表示＆ライブ名紐付け版)"""
+        # ライブ情報の読み込み
+        LIVE_JSON_PATH = self.get_config_path('live_info.json')
+        existing_lives = {}
+        if os.path.exists(LIVE_JSON_PATH):
+            try:
+                with open(LIVE_JSON_PATH, 'r', encoding='utf-8') as f:
+                    existing_lives = json.load(f)
+            except Exception:
+                pass
 
-        def proceed_band_register():
-            file_path = filedialog.askopenfilename(title='応募バンド情報のExcelファイルを選択', filetypes=[('Excelファイル', '*.xlsx;*.xls')])
-            if not file_path:
-                return
+        if not existing_lives:
+            messagebox.showerror('エラー', '登録済みのライブ情報がありません。\n先に「ライブ情報の登録・編集」からライブを作成してください。')
+            return
+
+        self.clear()
+
+        # 上部に切り替え用のタブビューを作成
+        tabview = ctk.CTkTabview(self.main_frame)
+        tabview.pack(fill="both", expand=True, padx=0, pady=0)
+
+        tab_import = tabview.add("📥 新規一括インポート")
+        tab_manage = tabview.add("📝 登録済みバンドの管理")
+        self.setup_band_selection_tab(tabview)
+
+        # 【タブ1】 新規一括インポート 処理群
+        
+        def show_setup_screen(parent_tab):
+            """STEP 1: ライブの選択とExcelファイルの読み込み画面"""
+            for widget in parent_tab.winfo_children():
+                widget.destroy()
+
+            ctk.CTkLabel(parent_tab, text='🎤 バンド応募データの一括インポート', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
+
+            form_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
+            form_frame.pack(pady=10, fill='x', padx=10)
+
+            # 1. ライブ名選択
+            ctk.CTkLabel(form_frame, text='対象のライブを選択:', font=(FONT_NAME, 16, 'bold')).pack(anchor='w', pady=5)
+            live_combo = ctk.CTkComboBox(form_frame, values=list(existing_lives.keys()), width=300, font=(FONT_NAME, 16))
+            live_combo.pack(anchor='w', pady=(0, 15))
+
+            # 2. ファイル選択
+            ctk.CTkLabel(form_frame, text='応募フォームのExcelファイル:', font=(FONT_NAME, 16, 'bold')).pack(anchor='w', pady=5)
+            file_path_var = tk.StringVar()
+            
+            file_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
+            file_frame.pack(anchor='w', fill='x')
+            
+            file_entry = ctk.CTkEntry(file_frame, textvariable=file_path_var, width=350, font=(FONT_NAME, 16), state='disabled')
+            file_entry.pack(side='left', padx=(0, 10))
+
+            def select_file():
+                f_path = filedialog.askopenfilename(title='応募バンド情報のExcelを選択', filetypes=[('Excelファイル', '*.xlsx;*.xls')])
+                if f_path:
+                    file_path_var.set(f_path)
+            
+            btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color='#80d4ff', text_color='black', font=(FONT_NAME, 16), command=select_file)
+            btn_file.pack(side='left')
+
+            # 3. 実行ボタン
+            def process_excel():
+                target_live = live_combo.get()
+                target_file = file_path_var.get()
+                if not target_live or not target_file:
+                    messagebox.showerror('エラー', 'ライブとファイルの両方を選択してください。')
+                    return
+                parse_and_match(target_live, target_file, parent_tab)
+
+            btn_next = ctk.CTkButton(parent_tab, text='🚀 データの読み込みを開始', font=(FONT_NAME, 16, 'bold'), fg_color='#bfff80', text_color='black', width=300, height=45, command=process_excel)
+            btn_next.pack(pady=40)
+            
+            # キャンセルボタン（左下に配置）
+            btn_top = ctk.CTkButton(parent_tab, text='キャンセル', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 16), command=self.show_top)
+            btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
+
+        def parse_and_match(live_name, file_path, parent_tab):
+            """STEP 2: Excelのパースと自動名寄せ処理"""
+            live_data = existing_lives[live_name]
             try:
                 df_all = pd.read_excel(file_path)
                 df_band = df_all.iloc[:, 2:]
+                
+                df_roster = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME, header=1)
+                roster_names = list(df_roster['氏名'].dropna().astype(str))
             except Exception as e:
-                messagebox.showerror('エラー', f'Excelファイルの読み込みに失敗しました:\n{e}')
+                messagebox.showerror('エラー', f'ファイルの読み込みに失敗しました:\n{e}')
                 return
-            self._band_register_queue = []
+
+            parsed_bands = []
+
             for idx, row in df_band.iterrows():
                 band_name = str(row.iloc[0])
+                play_time = str(row.iloc[1]) if len(row) > 1 else ''
                 members_raw = str(row.iloc[2]) if len(row) > 2 else ''
-                self._band_register_queue.append((band_name, members_raw, row))
-            if self._band_register_queue:
-                next_band = self._band_register_queue.pop(0)
-                self.show_band_member_check(*next_band)
+                dates_raw = str(row.iloc[3]) if len(row) > 3 else ''
 
-        if not hasattr(self, '_date_assign_map'):
-            show_date_assign_dialog()
-        else:
-            proceed_band_register()
+                n_val = o_val = p_val = q_val = ''
+                opt_cols1 = [i for i, col in enumerate(row.index) if '[opt1]' in str(col)]
+                if opt_cols1: n_val = str(row.iloc[opt_cols1[0]])
+                opt_cols2 = [i for i, col in enumerate(row.index) if '[opt2]' in str(col)]
+                if opt_cols2: o_val = str(row.iloc[opt_cols2[0]])
+                opt_cols3 = [i for i, col in enumerate(row.index) if '[opt3]' in str(col)]
+                if opt_cols3: p_val = str(row.iloc[opt_cols3[0]])
+                
+                for i, col in enumerate(row.index[4:], 4):
+                    if not any(f'[opt{n}]' in str(col) for n in range(1, 4)):
+                        q_val = str(row.iloc[i])
+                        break
+
+                members_str = re.sub(r'[ \u3000]', '', members_raw)
+                member_lines = [line for line in members_str.splitlines() if line.strip()]
+                matched_members = []
+                
+                for mline in member_lines:
+                    best_match, best_score = None, 0
+                    for name in roster_names:
+                        score = difflib.SequenceMatcher(None, mline, name).ratio()
+                        if score > best_score:
+                            best_score, best_match = score, name
+                    if best_score >= 0.3:
+                        matched_members.append(best_match)
+
+                parsed_bands.append({
+                    'band_name': band_name,
+                    'members_raw': members_raw,
+                    'matched_members': matched_members,
+                    'play_time': play_time,
+                    'dates_raw': dates_raw,
+                    'options': [n_val, o_val, p_val, q_val]
+                })
+
+            show_list_screen(parsed_bands, live_name, live_data, roster_names, parent_tab)
+
+        def convert_perform_dates(perform_date_str, live_data):
+            """希望日[1]などを実際の日付に変換（[0]なら全日程）"""
+            schedules = {str(s['day']): s['date'] for s in live_data.get('schedules', [])}
+            tokens = re.findall(r'\[\d+\]', str(perform_date_str))
+            if not tokens:
+                return ''
+            
+            out_dates = []
+            for tok in tokens:
+                num = tok.strip('[]')
+                if num == '0':
+                    out_dates.extend([date for date in schedules.values() if date])
+                elif num in schedules:
+                    out_dates.append(schedules[num])
+            
+            return ';'.join(dict.fromkeys(out_dates))
+
+        def show_list_screen(parsed_bands, live_name, live_data, roster_names, parent_tab):
+            """STEP 3: 読み込み結果の一覧表示と手動修正画面"""
+            for widget in parent_tab.winfo_children():
+                widget.destroy()
+            
+            header_text = f'📋 バンド登録内容確認 - 対象: {live_name} (全{len(parsed_bands)}バンド)'
+            ctk.CTkLabel(parent_tab, text=header_text, font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=(15, 5), anchor="w")
+            ctk.CTkLabel(parent_tab, text='バンドメンバー自動判定の結果です。漏れや間違いがある場合は「修正」ボタンから手動で追加してください。', font=(FONT_NAME, 14), text_color='gray').pack(anchor="w", pady=(0, 10))
+
+            # 下部固定ボタンと被らないよう、スクロール領域の下マージン(pady)を多めに確保
+            scroll_frame = ctk.CTkScrollableFrame(parent_tab)
+            scroll_frame.pack(fill='both', expand=True, padx=5, pady=(5, 65))
+
+            # バンド一覧の描画
+            for b_data in parsed_bands:
+                row_frame = ctk.CTkFrame(scroll_frame, fg_color=("gray90", "gray15"))
+                row_frame.pack(fill='x', pady=4, padx=5, ipady=5)
+
+                # バンド名 (縦並びに合わせて上揃え anchor='n')
+                name_lbl = ctk.CTkLabel(row_frame, text=b_data['band_name'], font=(FONT_NAME, 14, 'bold'), width=360, anchor='w')
+                name_lbl.pack(side='left', padx=10, anchor='n', pady=6, expand=False)
+
+                # メンバー表示（一人一行で縦に並べる: \n で結合し justify='left'）
+                members_txt = "\n".join(b_data['matched_members']) if b_data['matched_members'] else "（メンバーなし・要確認）"
+                mem_lbl = ctk.CTkLabel(row_frame, text=members_txt, font=(FONT_NAME, 14), anchor='w', justify='left')
+                mem_lbl.pack(side='left', padx=10, fill='x', expand=True, anchor='n', pady=6)
+
+                # 修正ボタン (上揃え anchor='n')
+                def open_edit_popup(current_band=b_data, update_label=mem_lbl):
+                    popup = ctk.CTkToplevel(self.master)
+                    popup.title(f"メンバー手動修正: {current_band['band_name']}")
+                    popup.resizable(False, False)
+                    popup.geometry("600x480")
+                    popup.attributes("-topmost", True)
+                    popup.grab_set()
+
+                    ctk.CTkLabel(popup, text='元の応募テキスト:', font=(FONT_NAME, 16, 'bold')).pack(pady=(10, 0), anchor='w', padx=15)
+                    ctk.CTkLabel(popup, text=current_band['members_raw'], font=(FONT_NAME, 14), justify='left', fg_color=("gray85", "gray25"), corner_radius=5).pack(fill='x', padx=15, pady=5, ipady=5)
+
+                    ctk.CTkLabel(popup, text='メンバー設定 (最大10名):', font=(FONT_NAME, 16, 'bold')).pack(pady=(10, 0), anchor='w', padx=15)
+
+                    edit_scroll = ctk.CTkScrollableFrame(popup, height=180)
+                    edit_scroll.pack(fill='both', expand=True, padx=15, pady=5)
+
+                    combos = []
+                    for i in range(10):
+                        cb = ctk.CTkComboBox(edit_scroll, values=[''] + roster_names, width=200, font=(FONT_NAME, 16))
+                        cb.pack(pady=4, anchor='w', padx=10)
+                        if i < len(current_band['matched_members']):
+                            cb.set(current_band['matched_members'][i])
+                        else:
+                            cb.set('')
+                        combos.append(cb)
+
+                    def save_popup():
+                        new_members = []
+                        for cb in combos:
+                            val = cb.get()
+                            if val and val not in new_members:
+                                new_members.append(val)
+                        
+                        current_band['matched_members'] = new_members
+                        # 反映後の文字も縦に並ぶよう修正
+                        new_text = "\n".join(new_members) if new_members else "（メンバーなし・要確認）"
+                        update_label.configure(text=new_text)
+                        
+                        popup.grab_release()
+                        popup.destroy()
+
+                    btn_save_pop = ctk.CTkButton(popup, text='決定して閉じる', font=(FONT_NAME, 16, 'bold'), fg_color='#bfff80', text_color='black', command=save_popup)
+                    btn_save_pop.pack(pady=15)
+
+                # クロージャ対策を施したインポート除外（削除）コマンドの生成
+                def make_import_delete_cmd(target_data=b_data):
+                    return lambda: delete_import_band(target_data)
+
+                def delete_import_band(target_data):
+                    if messagebox.askyesno('確認', f'このバンド「{target_data["band_name"]}」をインポート対象から除外しますか？'):
+                        parsed_bands.remove(target_data) # リストから削除
+                        # 件数表示も含めて画面全体をリフレッシュ（再描画）
+                        show_list_screen(parsed_bands, live_name, live_data, roster_names, parent_tab)
+
+                # 削除ボタンをコンテナの右側に配置
+                btn_del = ctk.CTkButton(row_frame, text='× 削除', width=70, font=(FONT_NAME, 16), fg_color='#ff8080', text_color='black', command=make_import_delete_cmd())
+                btn_del.pack(side='right', padx=10, anchor='n', pady=6)
+
+                btn_edit = ctk.CTkButton(row_frame, text='✏ 修正', width=70, font=(FONT_NAME, 16), fg_color='#ffd480', text_color='black', command=open_edit_popup)
+                btn_edit.pack(side='right', padx=5, anchor='n', pady=6)
+
+            # Excelへの一括書き込み処理
+            def register_all_to_excel():
+                try:
+                    wb = openpyxl.load_workbook(FILE_PATH)
+                    sheet_name = '登録済みバンド'
+                    if sheet_name not in wb.sheetnames:
+                        ws = wb.create_sheet(sheet_name)
+                    else:
+                        ws = wb[sheet_name]
+
+                    row_idx = 1
+                    while ws.cell(row=row_idx, column=1).value is not None:
+                        row_idx += 1
+                    
+                    for b_data in parsed_bands:
+                        mem_list = b_data['matched_members'].copy()
+                        while len(mem_list) < 10:
+                            mem_list.append('')
+                            
+                        mapped_dates = convert_perform_dates(b_data['dates_raw'], live_data)
+                        
+                        band_row = [b_data['band_name']]
+                        band_row.extend(mem_list)
+                        band_row.append(b_data['play_time'])
+                        band_row.append(mapped_dates)
+                        band_row.extend(b_data['options'])
+                        
+                        while len(band_row) < 17:
+                            band_row.append('')
+                            
+                        band_row.append(0)           # 18列目: 選出ステータス
+                        band_row.append(live_name)   # 19列目: 対象ライブ名
+
+                        for col, val in enumerate(band_row, 1):
+                            ws.cell(row=row_idx, column=col).value = val
+                        
+                        row_idx += 1
+
+                    wb.save(FILE_PATH)
+                    try:
+                        self.settings['last_startup'] = __import__('datetime').date.today().isoformat()
+                        self.save_settings()
+                    except Exception:
+                        pass            
+                    messagebox.showinfo('一括登録完了', f'計 {len(parsed_bands)} バンドを「{live_name}」として登録しました。')
+                    self.show_top()
+                except Exception as e:
+                    messagebox.showerror('保存エラー', f'Excel保存に失敗しました:\n{e}')
+
+            # 登録実行ボタン（右下に配置）
+            btn_register = ctk.CTkButton(parent_tab, text='✨ この内容で全て登録', font=(FONT_NAME, 16, 'bold'), fg_color='#00ff62', text_color='black', height=40, command=register_all_to_excel)
+            btn_register.place(relx=1.0, rely=1.0, anchor='se', x=-25, y=-21)
+
+            # キャンセルボタン（左下に配置）
+            btn_cancel = ctk.CTkButton(parent_tab, text='キャンセル', font=(FONT_NAME, 16), fg_color='#ff0000', text_color='white', width=120, command=self.show_top)
+            btn_cancel.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
+
+        # 【タブ2】 登録済みバンドの管理 処理群
+        
+        def show_management_screen(parent_tab):
+            """STEP 1: 登録済みバンドの抽出と編集・削除画面"""
+            for widget in parent_tab.winfo_children():
+                widget.destroy()
+
+            ctk.CTkLabel(parent_tab, text='📝 登録済みバンドの管理（編集・削除）', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
+
+            filter_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
+            filter_frame.pack(pady=5, fill='x', padx=10)
+
+            ctk.CTkLabel(filter_frame, text='表示するライブを選択:', font=(FONT_NAME, 16, 'bold')).pack(side='left', padx=(0, 10))
+            live_selector = ctk.CTkComboBox(filter_frame, values=list(existing_lives.keys()), width=250, font=(FONT_NAME, 16))
+            live_selector.pack(side='left', padx=5)
+
+            # リスト描画用のコンテナフレーム
+            list_container = ctk.CTkFrame(parent_tab, fg_color="transparent")
+            list_container.pack(fill='both', expand=True, padx=5, pady=(10, 65))
+
+            def refresh_managed_bands(*args):
+                """選択されたライブに紐づくバンドを再読み込みして描画"""
+                for widget in list_container.winfo_children():
+                    widget.destroy()
+
+                selected_live = live_selector.get()
+                if not selected_live:
+                    return
+
+                try:
+                    wb = openpyxl.load_workbook(FILE_PATH, data_only=True)
+                    if '登録済みバンド' not in wb.sheetnames:
+                        ctk.CTkLabel(list_container, text='登録されているバンドはありません。', font=(FONT_NAME, 16)).pack(pady=20)
+                        return
+                    ws = wb['登録済みバンド']
+                except Exception as e:
+                    ctk.CTkLabel(list_container, text=f'Excelの読み込みに失敗しました: {e}', font=(FONT_NAME, 16), text_color='red').pack(pady=20)
+                    return
+
+                managed_scroll = ctk.CTkScrollableFrame(list_container)
+                managed_scroll.pack(fill='both', expand=True, padx=0, pady=0)
+
+                # メンバー再編集用の名簿データ取得
+                try:
+                    df_roster = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME, header=1)
+                    roster_names = list(df_roster['氏名'].dropna().astype(str))
+                except Exception:
+                    roster_names = []
+
+                has_bands = False
+                
+                # Excelの全行を走査して対象ライブのデータを抽出
+                for r_idx in range(1, ws.max_row + 1):
+                    b_name = ws.cell(row=r_idx, column=1).value
+                    l_name = ws.cell(row=r_idx, column=19).value # 19列目がライブ名
+
+                    if b_name is None or l_name != selected_live:
+                        continue
+
+                    has_bands = True
+                    
+                    # メンバー10人分の枠から登録名を取得
+                    m_list = []
+                    for c_idx in range(2, 12):
+                        val = ws.cell(row=r_idx, column=c_idx).value
+                        if val:
+                            m_list.append(str(val))
+
+                    b_frame = ctk.CTkFrame(managed_scroll, fg_color=("gray90", "gray15"))
+                    b_frame.pack(fill='x', pady=4, padx=5, ipady=5)
+
+                    # バンド名
+                    ctk.CTkLabel(b_frame, text=str(b_name), font=(FONT_NAME, 14, 'bold'), width=360, anchor='w').pack(side='left', padx=10, anchor='n', pady=6, expand=False)
+
+                    # メンバー表示（一人一行で縦に並べる）
+                    m_txt = "\n".join(m_list) if m_list else "（メンバーなし）"
+                    ctk.CTkLabel(b_frame, text=m_txt, font=(FONT_NAME, 14), anchor='w', justify='left').pack(side='left', padx=10, fill='x', expand=True, anchor='n', pady=6)
+
+                    # クロージャ対策を施した削除/編集コマンドの生成
+                    def make_delete_cmd(target_row=r_idx, name=b_name):
+                        return lambda: delete_band(target_row, name)
+
+                    def make_edit_cmd(target_row=r_idx, name=b_name, current_m=m_list):
+                        return lambda: open_manage_edit_popup(target_row, name, current_m)
+
+                    def delete_band(target_row, name):
+                        if messagebox.askyesno('確認', f'本当にバンド「{name}」を削除しますか？'):
+                            try:
+                                edit_wb = openpyxl.load_workbook(FILE_PATH)
+                                edit_ws = edit_wb['登録済みバンド']
+                                edit_ws.delete_rows(target_row) # 該当行を丸ごと削除
+                                edit_wb.save(FILE_PATH)
+                                messagebox.showinfo('成功', f'「{name}」を削除しました。')
+                                refresh_managed_bands() # 画面リフレッシュ
+                            except Exception as e:
+                                messagebox.showerror('エラー', f'削除に失敗しました: {e}')
+
+                    def open_manage_edit_popup(target_row, name, current_m):
+                        popup = ctk.CTkToplevel(self.master)
+                        popup.title(f"バンド編集: {name}")
+                        popup.geometry("500x520")
+                        popup.attributes("-topmost", True)
+                        popup.grab_set()
+
+                        ctk.CTkLabel(popup, text=f'🎤 バンド名: {name}', font=(FONT_NAME, 16, 'bold')).pack(pady=10, anchor='w', padx=15)
+                        
+                        try:
+                            p_time = ws.cell(row=target_row, column=12).value or ''
+                            p_date = ws.cell(row=target_row, column=13).value or ''
+                        except Exception:
+                            p_time = p_date = ''
+
+                        ctk.CTkLabel(popup, text='演奏時間:', font=(FONT_NAME, 14)).pack(anchor='w', padx=15)
+                        time_entry = ctk.CTkEntry(popup, font=(FONT_NAME, 16), width=200)
+                        time_entry.pack(anchor='w', padx=15, pady=2)
+                        time_entry.insert(0, str(p_time))
+
+                        ctk.CTkLabel(popup, text='出演日:', font=(FONT_NAME, 14)).pack(anchor='w', padx=15)
+                        date_entry = ctk.CTkEntry(popup, font=(FONT_NAME, 16), width=200)
+                        date_entry.pack(anchor='w', padx=15, pady=2)
+                        date_entry.insert(0, str(p_date))
+
+                        ctk.CTkLabel(popup, text='メンバー設定 (最大10名):', font=(FONT_NAME, 16, 'bold')).pack(pady=(10, 0), anchor='w', padx=15)
+                        
+                        edit_scroll = ctk.CTkScrollableFrame(popup, height=180)
+                        edit_scroll.pack(fill='both', expand=True, padx=15, pady=5)
+
+                        combos = []
+                        for i in range(10):
+                            cb = ctk.CTkComboBox(edit_scroll, values=[''] + roster_names, width=200, font=(FONT_NAME, 16))
+                            cb.pack(pady=4, anchor='w', padx=10)
+                            if i < len(current_m):
+                                cb.set(current_m[i])
+                            else:
+                                cb.set('')
+                            combos.append(cb)
+
+                        def save_managed_edit():
+                            new_members = []
+                            for cb in combos:
+                                val = cb.get()
+                                if val and val not in new_members:
+                                    new_members.append(val)
+                            
+                            while len(new_members) < 10:
+                                new_members.append('')
+
+                            try:
+                                edit_wb = openpyxl.load_workbook(FILE_PATH)
+                                edit_ws = edit_wb['登録済みバンド']
+                                
+                                # メンバー上書き (2~11列目)
+                                for idx, m_name in enumerate(new_members, 2):
+                                    edit_ws.cell(row=target_row, column=idx).value = m_name
+                                
+                                # 演奏時間(12列目)・出演日(13列目)の上書き
+                                edit_ws.cell(row=target_row, column=12).value = time_entry.get()
+                                edit_ws.cell(row=target_row, column=13).value = date_entry.get()
+
+                                edit_wb.save(FILE_PATH)
+                                messagebox.showinfo('成功', 'バンド情報を更新しました。')
+                                popup.grab_release()
+                                popup.destroy()
+                                refresh_managed_bands() # 画面リフレッシュ
+                            except Exception as e:
+                                messagebox.showerror('エラー', f'更新に失敗しました: {e}')
+
+                        btn_save_pop = ctk.CTkButton(popup, text='💾 変更を保存', font=(FONT_NAME, 16, 'bold'), fg_color='#bfff80', text_color='black', command=save_managed_edit)
+                        btn_save_pop.pack(pady=15)
+
+                    # 右端配置ボタン（削除と編集）
+                    btn_del = ctk.CTkButton(b_frame, text='× 削除', width=70, font=(FONT_NAME, 16), fg_color='#ff8080', text_color='black', command=make_delete_cmd())
+                    btn_del.pack(side='right', padx=10, anchor='n', pady=6)
+
+                    btn_edt = ctk.CTkButton(b_frame, text='✏️ 編集', width=70, font=(FONT_NAME, 16), fg_color='#ffd480', text_color='black', command=make_edit_cmd())
+                    btn_edt.pack(side='right', padx=5, anchor='n', pady=6)
+
+                if not has_bands:
+                    ctk.CTkLabel(list_container, text='選択されたライブに登録されているバンドはありません。', font=(FONT_NAME, 16)).pack(pady=20)
+
+            live_selector.configure(command=refresh_managed_bands)
+            if list(existing_lives.keys()):
+                live_selector.set(list(existing_lives.keys())[0])
+                refresh_managed_bands()
+
+            # キャンセルボタン（左下に配置）
+            btn_manage_back = ctk.CTkButton(parent_tab, text='キャンセル', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 16), command=self.show_top)
+            btn_manage_back.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
+
+
+        # 各タブの初期描画を実行
+        show_setup_screen(tab_import)
+        show_management_screen(tab_manage)
 
     def _convert_perform_dates(self, perform_date_str):
+        """希望日[1]などを実際の日付に変換（[0]なら全日程）"""
         date_assignments = getattr(self, 'date_assignments', {})
         tokens = re.findall(r'\[\d+\]', str(perform_date_str))
         if not tokens:
@@ -713,190 +1260,8 @@ class AttendanceApp:
                     out_dates.append(date)
         return ';'.join(out_dates)
 
-    def show_band_member_check(self, band_name, members_raw, row_obj=None):
-        """バンド登録のメンバー確認画面を表示"""
-        if hasattr(self, '_band_member_frame') and self._band_member_frame:
-            self._band_member_frame.destroy()
-            
-        self.clear()
-        self._band_member_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self._band_member_frame.pack(fill='both', expand=True)
-        win = self._band_member_frame
-
-        ctk.CTkLabel(win, text=f'🎤 応募バンド名簿確認: {band_name}', font=ctk.CTkFont(family=FONT_NAME, size=16, weight='bold')).pack(pady=10, anchor="w")
-
-        members_str = re.sub(r'[ \u3000]', '', members_raw)
-        member_lines = [line for line in members_str.splitlines() if line.strip()]
-
-        try:
-            df_roster = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME, header=1)
-        except Exception as e:
-            messagebox.showerror('エラー', f'名簿データの取得に失敗しました:\n{e}')
-            return
-        roster_names = list(df_roster['氏名'].dropna().astype(str))
-
-        def similarity(a, b):
-            from difflib import SequenceMatcher
-            return SequenceMatcher(None, a, b).ratio()
-
-        matched_members = []
-        for mline in member_lines:
-            best_match = None
-            best_score = 0
-            for name in roster_names:
-                score = similarity(mline, name)
-                if score > best_score:
-                    best_score = score
-                    best_match = name
-            if best_score >= 0.3:
-                matched_members.append(best_match)
-
-        # 3カラム構造のデータ確認エリア
-        h_frame = ctk.CTkFrame(win, fg_color="transparent")
-        h_frame.pack(pady=10, fill='both', expand=True)
-
-        # 左：インポート情報
-        left_frame = ctk.CTkFrame(h_frame)
-        left_frame.pack(side='left', padx=8, fill='both', expand=True)
-        ctk.CTkLabel(left_frame, text='元の読込テキスト', font=(FONT_NAME, 12, 'bold')).pack(pady=5)
-        ctk.CTkLabel(left_frame, text=members_raw, font=(FONT_NAME, 11), justify='left', wraplength=200).pack(pady=5, padx=10)
-
-        # 中：自動名寄せ結果
-        center_frame = ctk.CTkFrame(h_frame)
-        center_frame.pack(side='left', padx=8, fill='both', expand=True)
-        ctk.CTkLabel(center_frame, text='自動判定部員', font=(FONT_NAME, 12, 'bold')).pack(pady=5)
-        for name in matched_members:
-            ctk.CTkLabel(center_frame, text=f"👤 {name}", font=(FONT_NAME, 11)).pack(pady=2, anchor="w", padx=15)
-
-        # 右：手動補正用コンボボックス
-        right_frame = ctk.CTkFrame(h_frame)
-        right_frame.pack(side='left', padx=8, fill='both', expand=True)
-        max_members = 10
-        remain = max_members - len(matched_members)
-        add_combos = []
-        
-        if remain > 0:
-            ctk.CTkLabel(right_frame, text=f'手動追加 (枠数:{remain})', font=(FONT_NAME, 12, 'bold')).pack(pady=5)
-            candidate_names = [n for n in roster_names if n not in matched_members]
-            scroll_right = ctk.CTkScrollableFrame(right_frame, fg_color="transparent", height=180)
-            scroll_right.pack(fill='both', expand=True, padx=5, pady=5)
-            
-            for i in range(remain):
-                cb = ctk.CTkComboBox(scroll_right, values=[''] + candidate_names, font=(FONT_NAME, 11), width=160)
-                cb.pack(pady=2)
-                cb.set('')
-                add_combos.append(cb)
-
-        def save_band_to_excel():
-            members_final = matched_members + [cb.get() for cb in add_combos if cb.get()]
-            while len(members_final) < 10:
-                members_final.append('')
-            l_val = str(row_obj.iloc[1]) if row_obj is not None and len(row_obj) > 1 else ''
-            m_val_raw = str(row_obj.iloc[3]) if row_obj is not None and len(row_obj) > 3 else ''
-            bracket_nums = re.findall(r'\[\d+\]', m_val_raw)
-            converted_dates = [self._convert_perform_dates(bn) for bn in bracket_nums]
-            m_val = ';'.join([d for d in converted_dates if d])
-            
-            n_val = o_val = p_val = ''
-            if row_obj is not None:
-                opt_cols = [i for i, col in enumerate(row_obj.index) if '[opt1]' in str(col)]
-                n_val = str(row_obj.iloc[opt_cols[0]]) if len(opt_cols) > 0 else ''
-                opt_cols2 = [i for i, col in enumerate(row_obj.index) if '[opt2]' in str(col)]
-                o_val = str(row_obj.iloc[opt_cols2[0]]) if len(opt_cols2) > 0 else ''
-                opt_cols3 = [i for i, col in enumerate(row_obj.index) if '[opt3]' in str(col)]
-                p_val = str(row_obj.iloc[opt_cols3[0]]) if len(opt_cols3) > 0 else ''
-            q_val = ''
-            if row_obj is not None:
-                for i, col in enumerate(row_obj.index[4:], 4):
-                    if not any(f'[opt{n}]' in str(col) for n in range(1, 4)):
-                        q_val = str(row_obj.iloc[i])
-                        break
-                        
-            band_row = [band_name]
-            band_row.extend(members_final)
-            band_row.extend([l_val, m_val, n_val, o_val, p_val, q_val])
-            while len(band_row) < 17:
-                band_row.append('')
-            band_row.append(0)
-            
-            try:
-                wb = openpyxl.load_workbook(FILE_PATH)
-                sheet_name = '登録済みバンド'
-                if sheet_name not in wb.sheetnames:
-                    ws = wb.create_sheet(sheet_name)
-                else:
-                    ws = wb[sheet_name]
-                row_idx = None
-                for r in range(1, ws.max_row + 2):
-                    if ws.cell(row=r, column=1).value in (None, ''):
-                        row_idx = r
-                        break
-                if row_idx is None:
-                    row_idx = ws.max_row + 1
-                for col, val in enumerate(band_row, 1):
-                    ws.cell(row=row_idx, column=col).value = val
-                wb.save(FILE_PATH)
-                messagebox.showinfo('保存完了', f'「{band_name}」を登録しました。')
-                
-                if hasattr(self, '_band_register_queue') and self._band_register_queue:
-                    next_band = self._band_register_queue.pop(0)
-                    self.show_band_member_check(*next_band)
-                else:
-                    self.show_top()
-            except Exception as e:
-                messagebox.showerror('保存エラー', f'Excel保存に失敗しました:\n{e}')
-
-        # 警告表示＆補助メタ情報
-        bottom_frame = ctk.CTkFrame(win, fg_color="transparent")
-        bottom_frame.pack(pady=5, fill='x')
-        
-        duplicate_band = False
-        try:
-            wb = openpyxl.load_workbook(FILE_PATH)
-            sheet_name = '登録済みバンド'
-            if sheet_name in wb.sheetnames:
-                ws = wb[sheet_name]
-                for r in ws.iter_rows(min_row=1, max_col=1, values_only=True):
-                    if r[0] == band_name:
-                        duplicate_band = True
-                        break
-        except Exception:
-            pass
-
-        if duplicate_band:
-            ctk.CTkLabel(bottom_frame, text='⚠️ 同名のバンドがすでに登録されています。上書き保存にご注意ください。', font=(FONT_NAME, 11, 'bold'), fg_color='#ffff66', text_color='black', corner_radius=6).pack(pady=4, fill="x")
-        else:
-            ctk.CTkLabel(bottom_frame, text='✨ バンド名の重複はありません。', font=(FONT_NAME, 11, 'bold'), fg_color='#ccffcc', text_color='black', corner_radius=6).pack(pady=4, fill="x")
-
-        info_frame = ctk.CTkFrame(win)
-        info_frame.pack(pady=5, fill='x', padx=5)
-        
-        l_val = str(row_obj.iloc[1]) if row_obj is not None and len(row_obj) > 1 else ''
-        m_val = self._convert_perform_dates(str(row_obj.iloc[3]) if row_obj is not None and len(row_obj) > 3 else '')
-        
-        ctk.CTkLabel(info_frame, text=f'⏱ 演奏希望時間: {l_val}分  📅 変換後出演希望日: {m_val}', font=(FONT_NAME, 11, 'bold')).pack(anchor='w', padx=10, pady=4)
-
-        # アクションボタン群
-        btn_frame = ctk.CTkFrame(win, fg_color="transparent")
-        btn_frame.pack(pady=10)
-
-        btn_save = ctk.CTkButton(btn_frame, text='この内容で登録', font=(FONT_NAME, 12, 'bold'), fg_color='#bfff80', text_color='black', width=130, command=save_band_to_excel)
-        btn_save.pack(side='left', padx=6)
-
-        def skip_to_next_band():
-            if hasattr(self, '_band_register_queue') and self._band_register_queue:
-                next_band = self._band_register_queue.pop(0)
-                self.show_band_member_check(*next_band)
-            else:
-                self.show_top()
-
-        btn_next = ctk.CTkButton(btn_frame, text='スキップして次へ', font=(FONT_NAME, 12), fg_color='#ffe680', text_color='black', width=130, command=skip_to_next_band)
-        btn_next.pack(side='left', padx=6)
-
-        btn_top = ctk.CTkButton(win, text='中断して戻る', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 12), command=self.show_top)
-        btn_top.place(relx=1.0, rely=1.0, anchor='se', x=-20, y=-20)
-
     def clear_registered_bands(self):
+        """登録済みバンド情報をすべて削除（現在未使用）"""
         try:
             if not messagebox.askyesno('確認', '登録済みのバンド情報をすべて削除します。よろしいですか？', parent=self.master):
                 return
@@ -945,7 +1310,7 @@ class AttendanceApp:
         period_combo.grid(row=0, column=1, padx=8, pady=8, sticky='w')
         period_combo.set(period_list[0])
         
-        btn_calc = ctk.CTkButton(frm, text='期間計算へ', font=(FONT_NAME, 11), fg_color='#80d4ff', text_color='black', width=90, command=self.show_attendance_check)
+        btn_calc = ctk.CTkButton(frm, text='<期間計算へ>', font=(FONT_NAME, 11), fg_color='#80d4ff', text_color='black', width=90)
         btn_calc.grid(row=0, column=2, padx=8, pady=8, sticky='w')
         
         slots_var = tk.IntVar(value=8)
@@ -1055,14 +1420,14 @@ class AttendanceApp:
         self.clear()
         ctk.CTkLabel(self.main_frame, text='システム環境設定', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=20, anchor="w")
         
-        btn_excel = ctk.CTkButton(self.main_frame, text='📁 Excelデータソースの設定', font=(FONT_NAME, 13), text_color='white', width=220, height=42, command=self.show_excel_file_settings, fg_color="#00bb44")
+        btn_excel = ctk.CTkButton(self.main_frame, text='📁 Excelデータソースの設定', font=(FONT_NAME, 16), text_color='white', width=220, height=42, command=self.show_excel_file_settings, fg_color="#00bb44")
         btn_excel.pack(pady=10, anchor="w")
         
-        btn_op = ctk.CTkButton(self.main_frame, text='💡 操作支援・ガイド設定', font=(FONT_NAME, 13), text_color='white', width=220, height=42, command=self.show_operation_support_settings, fg_color="#35cbfd")
+        btn_op = ctk.CTkButton(self.main_frame, text='💡 操作支援・ガイド設定', font=(FONT_NAME, 16), text_color='white', width=220, height=42, command=self.show_operation_support_settings, fg_color="#35cbfd")
         btn_op.pack(pady=10, anchor="w")
         
-        btn_top = ctk.CTkButton(self.main_frame, text='トップに戻る', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 12), command=self.show_top)
-        btn_top.place(relx=1.0, rely=1.0, anchor='se', x=-20, y=-20)
+        btn_top = ctk.CTkButton(self.main_frame, text='トップに戻る', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 16), command=self.show_top)
+        btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def show_excel_file_settings(self):
         settings_win = ctk.CTkToplevel(self.master)
@@ -1070,11 +1435,11 @@ class AttendanceApp:
         settings_win.geometry('420x220')
         settings_win.attributes("-topmost", True)
         
-        ctk.CTkLabel(settings_win, text='Excelターゲットパス設定', font=ctk.CTkFont(family=FONT_NAME, size=13, weight="bold")).pack(pady=10)
-        ctk.CTkLabel(settings_win, text='※アプリと同じディレクトリ内の相対パス、またはフルパスを指定', font=(FONT_NAME, 11), text_color='gray').pack(pady=2)
+        ctk.CTkLabel(settings_win, text='Excelターゲットパス設定', font=ctk.CTkFont(family=FONT_NAME, size=16, weight="bold")).pack(pady=10)
+        ctk.CTkLabel(settings_win, text='※アプリと同じディレクトリ内の相対パス、またはフルパスを指定', font=(FONT_NAME, 14), text_color='gray').pack(pady=2)
         
         file_var = tk.StringVar(value=globals().get('FILE_PATH', 'attend_data.xlsx'))
-        entry = ctk.CTkEntry(settings_win, textvariable=file_var, font=(FONT_NAME, 12), width=320)
+        entry = ctk.CTkEntry(settings_win, textvariable=file_var, font=(FONT_NAME, 16), width=320)
         entry.pack(pady=10)
 
         def save_file_path():
@@ -1086,7 +1451,7 @@ class AttendanceApp:
             else:
                 messagebox.showerror('エラー', '有効なファイル名を入力してください。', parent=settings_win)
 
-        btn_save = ctk.CTkButton(settings_win, text='適用して保存', font=(FONT_NAME, 12, 'bold'), command=save_file_path, width=120, fg_color='#bfff80', text_color='black')
+        btn_save = ctk.CTkButton(settings_win, text='適用して保存', font=(FONT_NAME, 16, 'bold'), command=save_file_path, width=120, fg_color='#bfff80', text_color='black')
         btn_save.pack(pady=15)
 
     def show_operation_support_settings(self):
@@ -1095,10 +1460,10 @@ class AttendanceApp:
         settings_win.geometry('450x220')
         settings_win.attributes("-topmost", True)
         
-        ctk.CTkLabel(settings_win, text='操作支援・ナビゲーションシステム', font=ctk.CTkFont(family=FONT_NAME, size=14, weight='bold')).pack(pady=12)
+        ctk.CTkLabel(settings_win, text='操作支援・ナビゲーションシステム', font=ctk.CTkFont(family=FONT_NAME, size=16, weight='bold')).pack(pady=12)
         
         op_var = tk.BooleanVar(value=self.settings.get('operation_support', True))
-        chk = ctk.CTkCheckBox(settings_win, text='ボタンホバー時の操作支援（ツールチップ）を有効化', variable=op_var, font=(FONT_NAME, 12))
+        chk = ctk.CTkCheckBox(settings_win, text='ボタンホバー時の操作支援（ツールチップ）を有効化', variable=op_var, font=(FONT_NAME, 16))
         chk.pack(pady=10)
 
         def save_op_setting():
@@ -1114,7 +1479,7 @@ class AttendanceApp:
         btn_frame_ops = ctk.CTkFrame(settings_win, fg_color="transparent")
         btn_frame_ops.pack(pady=15)
 
-        btn_save = ctk.CTkButton(btn_frame_ops, text='設定を保存', font=(FONT_NAME, 12, 'bold'), command=save_op_setting, width=110, fg_color='#bfff80', text_color='black')
+        btn_save = ctk.CTkButton(btn_frame_ops, text='設定を保存', font=(FONT_NAME, 16, 'bold'), command=save_op_setting, width=110, fg_color='#bfff80', text_color='black')
         btn_save.pack(side='left', padx=10)
 
         def rerun_walkthrough():
@@ -1127,7 +1492,7 @@ class AttendanceApp:
             settings_win.destroy()
             self.show_walkthrough()
 
-        btn_rerun = ctk.CTkButton(btn_frame_ops, text='チュートリアル再表示', font=(FONT_NAME, 12), command=rerun_walkthrough, width=150, fg_color='#ffd480', text_color='black')
+        btn_rerun = ctk.CTkButton(btn_frame_ops, text='チュートリアル再表示', font=(FONT_NAME, 16), command=rerun_walkthrough, width=150, fg_color='#ffd480', text_color='black')
         btn_rerun.pack(side='left', padx=10)
 
     def on_close(self):
