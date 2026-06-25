@@ -691,7 +691,7 @@ class AttendanceApp:
         self.result_textbox.pack(fill="both", expand=True, pady=5, padx=10)
 
     def execute_band_selection(self):
-        """UIの入力値を解析し、bs.select_bandを実行する"""
+        """UIの入力値を解析し、bs.select_bandsを実行する"""
         start_date = self.entry_start_date.get().strip()
         end_date = self.entry_end_date.get().strip()
         
@@ -717,9 +717,9 @@ class AttendanceApp:
         self.result_textbox.insert("end", "⏳ バンド選出アルゴリズムを実行中...\n\n")
         
         try:
-            # インポートされている band_selection (bs) の select_band メソッドを呼び出し
-            if hasattr(bs, 'select_band'):
-                results = bs.select_band(
+            # インポートされている band_selection (bs) の select_bands メソッドを呼び出し
+            if hasattr(bs, 'select_bands'):
+                results = bs.select_bands(
                     start_date=start_date,
                     end_date=end_date,
                     max_bands=max_bands,
@@ -740,7 +740,7 @@ class AttendanceApp:
                     self.result_textbox.insert("end", "❌ 条件に一致する、または選出枠に入るバンドが見つかりませんでした。")
             else:
                 # band_selection.py 側に該当メソッドがまだ準備されていない場合のデバッグ用表示
-                self.result_textbox.insert("end", "⚠️ 'band_selection' モジュール内に 'select_band' メソッドが見つかりません。\n")
+                self.result_textbox.insert("end", "⚠️ 'band_selection' モジュール内に 'select_bands' メソッドが見つかりません。\n")
                 self.result_textbox.insert("end", f"【UIから取得したパラメータ】\n")
                 self.result_textbox.insert("end", f"・計算期間: {start_date} ～ {end_date}\n")
                 self.result_textbox.insert("end", f"・募集バンド数: {max_bands if max_bands else '上限なし'}\n")

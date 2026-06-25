@@ -5,7 +5,7 @@ import openpyxl
 from tkinter import messagebox
 
 # 応募順で表示ボタン
-def select_bands(period, slots, total_time, change_time, file_path, master):
+def select_bands(period, slots, total_time, change_time, file_path):
     try:
         slots = int(slots)
         total_time = int(total_time)
