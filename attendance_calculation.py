@@ -251,7 +251,7 @@ def calculate_rate_and_export(start_date, end_date, file_path, sheet_name):
             f.write(f"出席率 - 対象期間: {start_date}～{end_date}\n")
             for result in results:
                 f.write(f"{result['氏名']} ({result['学籍番号']}): {result['出席率']}%\n")
-            f.write(f"\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 出力\n")
+            f.write(f"\n出力: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         
         messagebox.showinfo('完了', f'出席率を計算しました。\n対象期間: {start_date}～{end_date}\n対象人数: {len(results)}人')
         
