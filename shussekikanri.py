@@ -1,6 +1,6 @@
 # 2026年6月21日更新 (CustomTkinterモダンデザイン版)
 
-import datetime, openpyxl, re, os, sys, json, difflib
+import datetime, openpyxl, re, os, sys, json, difflib, config
 import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog, ttk
 import tkinter.font as tkfont
@@ -10,13 +10,13 @@ import band_selection as bs
 import attendance_calculation as ac
 from top import TopWindow
 
-FILE_PATH = 'attend_data.xlsx'
-SHEET_NAME = '出欠状況'
-FONT_NAME = 'Yu Gothic UI'
+FILE_PATH = config.FILE_PATH
+SHEET_NAME = config.SHEET_NAME
+FONT_NAME = config.FONT_NAME
 
 # アプリ全体のテーマカラー設定
-ctk.set_appearance_mode("System")  # "System", "Dark", "Light"
-ctk.set_default_color_theme("green")  # "blue", "green", "dark-blue"
+ctk.set_appearance_mode(config.APP_MODE)  # "System", "Dark", "Light"
+ctk.set_default_color_theme(config.APP_COLOR)  # "blue", "green", "dark-blue"
 
 class AttendanceApp:
     def __init__(self, master):
@@ -48,23 +48,23 @@ class AttendanceApp:
         self.logo_label.grid(row=0, column=0, padx=20, pady=25)
         
         # 常駐ナビゲーションボタン群
-        self.btn_nav_top = ctk.CTkButton(self.sidebar_frame, text="🏠 トップ画面", fg_color="transparent", text_color=("gray10", "gray90"), font=(FONT_NAME, 16), anchor="w", command=self.show_top)
+        self.btn_nav_top = ctk.CTkButton(self.sidebar_frame, text="🏠 トップ画面", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.show_top)
         self.btn_nav_top.grid(row=1, column=0, padx=20, pady=8, sticky="ew")
         
-        self.btn_nav_attend = ctk.CTkButton(self.sidebar_frame, text="👥 出欠管理・確認", fg_color="transparent", text_color=("gray10", "gray90"), font=(FONT_NAME, 16), anchor="w", command=self.show_attendance_date_select)
+        self.btn_nav_attend = ctk.CTkButton(self.sidebar_frame, text="👥 出欠管理・確認", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.show_attendance_date_select)
         self.btn_nav_attend.grid(row=2, column=0, padx=20, pady=8, sticky="ew")
         
-        self.btn_nav_check = ctk.CTkButton(self.sidebar_frame, text="📅 ライブ管理", fg_color="transparent", text_color=("gray10", "gray90"), font=(FONT_NAME, 16), anchor="w", command=self.register_live)
+        self.btn_nav_check = ctk.CTkButton(self.sidebar_frame, text="📅 ライブ管理", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.register_live)
         self.btn_nav_check.grid(row=3, column=0, padx=20, pady=8, sticky="ew")
         
-        self.btn_nav_band = ctk.CTkButton(self.sidebar_frame, text="🎤 バンド登録・選出", fg_color="transparent", text_color=("gray10", "gray90"), font=(FONT_NAME, 16), anchor="w", command=self.register_band)
+        self.btn_nav_band = ctk.CTkButton(self.sidebar_frame, text="🎤 バンド登録・選出", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.register_band)
         self.btn_nav_band.grid(row=4, column=0, padx=20, pady=8, sticky="ew")
         
-        self.btn_nav_select = ctk.CTkButton(self.sidebar_frame, text="🕑 タイムテーブル", fg_color="transparent", text_color=("gray10", "gray90"), font=(FONT_NAME, 16), anchor="w", command=self.show_select_band)
+        self.btn_nav_select = ctk.CTkButton(self.sidebar_frame, text="🕑 タイムテーブル", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.show_select_band)
         self.btn_nav_select.grid(row=5, column=0, padx=20, pady=8, sticky="ew")
         
         # 下部の固定設定ボタン
-        self.btn_nav_settings = ctk.CTkButton(self.sidebar_frame, text="⚙ 設定メニュー", fg_color="transparent", text_color=("gray10", "gray90"), font=(FONT_NAME, 16), anchor="w", command=self.show_settings)
+        self.btn_nav_settings = ctk.CTkButton(self.sidebar_frame, text="⚙ 設定メニュー", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.show_settings)
         self.btn_nav_settings.grid(row=6, column=0, padx=20, pady=25, sticky="s")
         
         # 右側：メインコンテンツ表示用フレーム
@@ -103,7 +103,7 @@ class AttendanceApp:
                 prev_date = datetime.date.fromisoformat(prev)
                 delta_days = (today - prev_date).days
                 if delta_days >= 30:
-                    ctk.CTkLabel(self.main_frame, text=f'最後のバンド登録から{delta_days}日経過しています。登録済みバンドを確認しましょう！', font=(FONT_NAME, 16), text_color='green').pack(pady=10, anchor="w")
+                    ctk.CTkLabel(self.main_frame, text=f'最後のバンド登録から{delta_days}日経過しています。登録済みバンドを確認しましょう！', font=config.FONT_SUBTITLE, text_color='green').pack(pady=10, anchor="w")
         except Exception:
             pass
             
@@ -164,23 +164,23 @@ class AttendanceApp:
         grid_frame.pack(pady=20, fill="both", expand=True)
         grid_frame.grid_columnconfigure((0, 1), weight=1)
         
-        btn_attendance = ctk.CTkButton(grid_frame, text='📅 出席をとる・出欠状況確認', height=80, command=self.show_attendance_date_select, fg_color='#bfff80', text_color='black', font=(FONT_NAME, 16, 'bold'))
+        btn_attendance = ctk.CTkButton(grid_frame, text='📅 出席をとる・出欠状況確認', height=80, command=self.show_attendance_date_select, fg_color='#bfff80', text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_attendance.grid(row=0, column=0, padx=15, pady=15, sticky="ew")
         self.add_tooltip(btn_attendance, '出欠を記録する画面を開きます')
 
-        btn_check = ctk.CTkButton(grid_frame, text='📊 出欠状況の確認\n(出席率計算)', height=80, fg_color='#80d4ff', text_color='black', font=(FONT_NAME, 16, 'bold'))
+        btn_check = ctk.CTkButton(grid_frame, text='📊 出欠状況の確認\n(出席率計算)', height=80, fg_color='#80d4ff', text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_check.grid(row=0, column=1, padx=15, pady=15, sticky="ew")
         self.add_tooltip(btn_check, '出席率の計算と出欠状況の確認を行います')
 
-        btn_register = ctk.CTkButton(grid_frame, text='🎤 バンドの追加・編集・削除', height=80, command=self.register_band, fg_color='#ffff00', text_color='black', font=(FONT_NAME, 16, 'bold'))
+        btn_register = ctk.CTkButton(grid_frame, text='🎤 バンドの追加・編集・削除', height=80, command=self.register_band, fg_color='#ffff00', text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_register.grid(row=1, column=0, padx=15, pady=15, sticky="ew")
         self.add_tooltip(btn_register, 'バンドを新規登録・編集・削除します')
         
-        btn_select = ctk.CTkButton(grid_frame, text='🔶 出演バンド選出', height=80, command=self.show_select_band, fg_color='#ffd480', text_color='black', font=(FONT_NAME, 16, 'bold'))
+        btn_select = ctk.CTkButton(grid_frame, text='🔶 出演バンド選出', height=80, command=self.show_select_band, fg_color='#ffd480', text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_select.grid(row=1, column=1, padx=15, pady=15, sticky="ew")
         self.add_tooltip(btn_select, '応募バンドから出演バンドを選出します')
 
-        btn_timetable = ctk.CTkButton(grid_frame, text='⏱️ タイムテーブル作成 (別ウィンドウ)', height=80, command=self.make_timetable, fg_color="#d080ff", text_color='black', font=(FONT_NAME, 16, 'bold'))
+        btn_timetable = ctk.CTkButton(grid_frame, text='⏱️ タイムテーブル作成 (別ウィンドウ)', height=80, command=self.make_timetable, fg_color="#d080ff", text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_timetable.grid(row=2, column=0, columnspan=2, padx=15, pady=15, sticky="ew")
         self.add_tooltip(btn_timetable, 'タイムテーブル作成ウィンドウを開きます（別ウィンドウ）')
         
@@ -196,31 +196,42 @@ class AttendanceApp:
     def show_attendance_date_select(self):
         """出席日付選択画面を表示"""
         self.clear()
-        ctk.CTkLabel(self.main_frame, text='出欠管理 - 出席をとる日付を選択します。', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
+        ctk.CTkLabel(self.main_frame, text='出欠管理 - 出席をとる日付を選択します。', font=config.FONT_TITLE).pack(pady=15, anchor="w")
         
-        btn_today = ctk.CTkButton(self.main_frame, text='📅 今日の出席をとる', width=200, height=45, fg_color='#66ff66', text_color='black', font=(FONT_NAME, 16, 'bold'), command=self.start_attendance_today)
+        btn_today = ctk.CTkButton(self.main_frame, text='📅 今日の出席をとる', width=200, height=45, fg_color='#66ff66', text_color='black', font=config.FONT_LABEL_BUTTON, command=self.start_attendance_today)
         btn_today.pack(pady=10)
         self.add_tooltip(btn_today, '今日の日付で出席登録を開始します')
         
-        btn_other = ctk.CTkButton(self.main_frame, text='📆 過去・別日の出席をとる', width=200, height=45, fg_color='#ff9900', text_color='black', font=(FONT_NAME, 16, 'bold'), command=self.start_attendance_otherday)
+        btn_other = ctk.CTkButton(self.main_frame, text='📆 過去・別日の出席をとる', width=200, height=45, fg_color='#ff9900', text_color='black', font=config.FONT_LABEL_BUTTON, command=self.start_attendance_otherday)
         btn_other.pack(pady=10)
         self.add_tooltip(btn_other, '別の日付で出席登録を開始します')
         
-        ctk.CTkLabel(self.main_frame, text='', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
-        ctk.CTkLabel(self.main_frame, text='出欠状況の確認 - 出欠状況をテキストファイルで出力します。', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
+        ctk.CTkLabel(self.main_frame, text='', font=config.FONT_TITLE).pack(pady=15, anchor="w")
+        ctk.CTkLabel(self.main_frame, text='出欠状況の確認 - 出欠状況をテキストファイルで出力します。', font=config.FONT_TITLE).pack(pady=15, anchor="w")
         date_frame = ctk.CTkFrame(self.main_frame)
         date_frame.pack(pady=15, fill="x", padx=10)
-        date_candidates = self.get_available_dates()
-        
+        date_candidates_start = self.get_available_dates()
+        date_candidates_end = self.get_available_dates()
+
+        def update_end_dates(event):
+            """開始日が選択されたら、終了日の候補を更新する"""
+            selected_start = start_combo.get()
+            if selected_start in date_candidates_start:
+                start_index = date_candidates_start.index(selected_start)
+                new_end_dates = date_candidates_start[start_index:]
+                end_combo.configure(values=new_end_dates)
+                if end_combo.get() not in new_end_dates:
+                    end_combo.set(new_end_dates[0] if new_end_dates else '')
+
         ctk.CTkLabel(date_frame, text='開始日:', font=(FONT_NAME, 16)).pack(side='left', padx=10, pady=10)
-        start_combo = ctk.CTkComboBox(date_frame, font=(FONT_NAME, 16), width=130, values=date_candidates)
+        start_combo = ctk.CTkComboBox(date_frame, font=(FONT_NAME, 16), width=130, values=date_candidates_start, command=update_end_dates)
         start_combo.pack(side='left', padx=5, pady=10)
         
         ctk.CTkLabel(date_frame, text='終了日:', font=(FONT_NAME, 16)).pack(side='left', padx=10, pady=10)
-        end_combo = ctk.CTkComboBox(date_frame, font=(FONT_NAME, 16), width=130, values=date_candidates)
+        end_combo = ctk.CTkComboBox(date_frame, font=(FONT_NAME, 16), width=130, values=date_candidates_end)
         end_combo.pack(side='left', padx=5, pady=10)
         
-        btn_check = ctk.CTkButton(self.main_frame, text='👁 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=(FONT_NAME, 16, 'bold'), command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), FILE_PATH, SHEET_NAME))
+        btn_check = ctk.CTkButton(self.main_frame, text='👁 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=config.FONT_LABEL_BUTTON, command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), FILE_PATH, SHEET_NAME))
         btn_check.pack(pady=10)
         self.add_tooltip(btn_check, '出欠状況をテキストファイルに出力し、確認します')
         
@@ -439,14 +450,14 @@ class AttendanceApp:
                 pass
 
         # ヘッダー
-        ctk.CTkLabel(self.main_frame, text='🎸 ライブ情報の登録・編集', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
-        ctk.CTkLabel(self.main_frame, text='ライブ名と日程を登録します。既存のライブを選択して編集も可能です。', font=(FONT_NAME, 14), text_color='gray50').pack(pady=5, anchor="w")
+        ctk.CTkLabel(self.main_frame, text='🎸 ライブ情報の登録・編集', font=config.FONT_TITLE).pack(pady=15, anchor="w")
+        ctk.CTkLabel(self.main_frame, text='ライブ名と日程を登録します。既存のライブを選択して編集も可能です。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=5, anchor="w")
 
         # ライブ名 入力エリア（コンボボックスで既存データの呼び出し対応）
         name_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         name_frame.pack(pady=10, fill='x', padx=10)
         
-        ctk.CTkLabel(name_frame, text='ライブ名を入力して新規作成するか選択して編集:', font=(FONT_NAME, 16, 'bold')).pack(side='left', padx=0)
+        ctk.CTkLabel(name_frame, text='ライブ名を入力して新規作成するか選択して編集:', font=config.FONT_LABEL_BUTTON).pack(side='left', padx=0)
         
         # 既存のライブ名をリストアップ
         live_names_list = list(existing_lives.keys())
@@ -475,7 +486,7 @@ class AttendanceApp:
         self.add_tooltip(live_name_combo, "新しい名前を入力するか、過去のライブを選んで編集できます")
 
         # 日程設定エリア（複数日対応・スクロール可能・時刻選択式）
-        ctk.CTkLabel(self.main_frame, text='日程設定（開始・終了時刻）', font=(FONT_NAME, 16, 'bold')).pack(pady=(15, 5), anchor="w", padx=10)
+        ctk.CTkLabel(self.main_frame, text='日程設定（開始・終了時刻）', font=config.FONT_LABEL_BUTTON).pack(pady=(15, 5), anchor="w", padx=10)
         
         # スクロール可能なフレームを使用（日程が増えても大丈夫なように）
         schedule_frame = ctk.CTkScrollableFrame(self.main_frame, height=250)
@@ -492,7 +503,7 @@ class AttendanceApp:
             row.pack(fill='x', pady=5, padx=5)
             
             # 日数ラベル
-            lbl_num = ctk.CTkLabel(row, text=f"{len(schedule_rows)+1}日目:", font=(FONT_NAME, 16, 'bold'), width=50, anchor="w")
+            lbl_num = ctk.CTkLabel(row, text=f"{len(schedule_rows)+1}日目:", font=config.FONT_LABEL_BUTTON, width=50, anchor="w")
             lbl_num.pack(side='left', padx=(5, 10))
             
             # 日付
@@ -560,7 +571,7 @@ class AttendanceApp:
         btn_top = ctk.CTkButton(btn_frame, text='キャンセル', font=(FONT_NAME, 16), fg_color='#ff0000', text_color='white', width=120, command=self.show_top)
         btn_top.pack(side='left', padx=15)
         
-        btn_add = ctk.CTkButton(btn_frame, text='➕ 日程を追加', font=(FONT_NAME, 16, 'bold'), fg_color='#80d4ff', text_color='black', command=lambda: add_date_row())
+        btn_add = ctk.CTkButton(btn_frame, text='➕ 日程を追加', font=config.FONT_LABEL_BUTTON, fg_color='#80d4ff', text_color='black', command=lambda: add_date_row())
         btn_add.pack(side='left', padx=5)
 
         def save_live_info():
@@ -611,7 +622,7 @@ class AttendanceApp:
             except Exception as ex:
                 messagebox.showerror("保存エラー", f"JSONファイルへの保存に失敗しました:\n{ex}")
 
-        btn_save = ctk.CTkButton(btn_frame, text='💾 ライブ情報を保存', font=(FONT_NAME, 16, 'bold'), fg_color='#bfff80', text_color='black', width=160, height=40, command=save_live_info)
+        btn_save = ctk.CTkButton(btn_frame, text='💾 ライブ情報を保存', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', width=160, height=40, command=save_live_info)
         btn_save.pack(side='right', padx=5)
 
     def setup_band_selection_tab(self, tabview):
@@ -784,18 +795,18 @@ class AttendanceApp:
             for widget in parent_tab.winfo_children():
                 widget.destroy()
 
-            ctk.CTkLabel(parent_tab, text='🎤 バンド応募データの一括インポート', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
+            ctk.CTkLabel(parent_tab, text='🎤 バンド応募データの一括インポート', font=config.FONT_TITLE).pack(pady=15, anchor="w")
 
             form_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
             form_frame.pack(pady=10, fill='x', padx=10)
 
             # 1. ライブ名選択
-            ctk.CTkLabel(form_frame, text='対象のライブを選択:', font=(FONT_NAME, 16, 'bold')).pack(anchor='w', pady=5)
+            ctk.CTkLabel(form_frame, text='対象のライブを選択:', font=config.FONT_LABEL_BUTTON).pack(anchor='w', pady=5)
             live_combo = ctk.CTkComboBox(form_frame, values=list(existing_lives.keys()), width=300, font=(FONT_NAME, 16))
             live_combo.pack(anchor='w', pady=(0, 15))
 
             # 2. ファイル選択
-            ctk.CTkLabel(form_frame, text='応募フォームのExcelファイル:', font=(FONT_NAME, 16, 'bold')).pack(anchor='w', pady=5)
+            ctk.CTkLabel(form_frame, text='応募フォームのExcelファイル:', font=config.FONT_LABEL_BUTTON).pack(anchor='w', pady=5)
             file_path_var = tk.StringVar()
             
             file_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
@@ -821,7 +832,7 @@ class AttendanceApp:
                     return
                 parse_and_match(target_live, target_file, parent_tab)
 
-            btn_next = ctk.CTkButton(parent_tab, text='🚀 データの読み込みを開始', font=(FONT_NAME, 16, 'bold'), fg_color='#bfff80', text_color='black', width=300, height=45, command=process_excel)
+            btn_next = ctk.CTkButton(parent_tab, text='🚀 データの読み込みを開始', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', width=300, height=45, command=process_excel)
             btn_next.pack(pady=40)
             
             # キャンセルボタン（左下に配置）
@@ -909,8 +920,8 @@ class AttendanceApp:
                 widget.destroy()
             
             header_text = f'📋 バンド登録内容確認 - 対象: {live_name} (全{len(parsed_bands)}バンド)'
-            ctk.CTkLabel(parent_tab, text=header_text, font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=(15, 5), anchor="w")
-            ctk.CTkLabel(parent_tab, text='バンドメンバー自動判定の結果です。漏れや間違いがある場合は「修正」ボタンから手動で追加してください。', font=(FONT_NAME, 14), text_color='gray').pack(anchor="w", pady=(0, 10))
+            ctk.CTkLabel(parent_tab, text=header_text, font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
+            ctk.CTkLabel(parent_tab, text='バンドメンバー自動判定の結果です。漏れや間違いがある場合は「修正」ボタンから手動で追加してください。', font=config.FONT_SUBTITLE, text_color='gray').pack(anchor="w", pady=(0, 10))
 
             # 下部固定ボタンと被らないよう、スクロール領域の下マージン(pady)を多めに確保
             scroll_frame = ctk.CTkScrollableFrame(parent_tab)
@@ -939,10 +950,10 @@ class AttendanceApp:
                     popup.attributes("-topmost", True)
                     popup.grab_set()
 
-                    ctk.CTkLabel(popup, text='元の応募テキスト:', font=(FONT_NAME, 16, 'bold')).pack(pady=(10, 0), anchor='w', padx=15)
+                    ctk.CTkLabel(popup, text='元の応募テキスト:', font=config.FONT_LABEL_BUTTON).pack(pady=(10, 0), anchor='w', padx=15)
                     ctk.CTkLabel(popup, text=current_band['members_raw'], font=(FONT_NAME, 14), justify='left', fg_color=("gray85", "gray25"), corner_radius=5).pack(fill='x', padx=15, pady=5, ipady=5)
 
-                    ctk.CTkLabel(popup, text='メンバー設定 (最大10名):', font=(FONT_NAME, 16, 'bold')).pack(pady=(10, 0), anchor='w', padx=15)
+                    ctk.CTkLabel(popup, text='メンバー設定 (最大10名):', font=config.FONT_LABEL_BUTTON).pack(pady=(10, 0), anchor='w', padx=15)
 
                     edit_scroll = ctk.CTkScrollableFrame(popup, height=180)
                     edit_scroll.pack(fill='both', expand=True, padx=15, pady=5)
@@ -972,7 +983,7 @@ class AttendanceApp:
                         popup.grab_release()
                         popup.destroy()
 
-                    btn_save_pop = ctk.CTkButton(popup, text='決定して閉じる', font=(FONT_NAME, 16, 'bold'), fg_color='#bfff80', text_color='black', command=save_popup)
+                    btn_save_pop = ctk.CTkButton(popup, text='決定して閉じる', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', command=save_popup)
                     btn_save_pop.pack(pady=15)
 
                 # クロージャ対策を施したインポート除外（削除）コマンドの生成
@@ -1042,7 +1053,7 @@ class AttendanceApp:
                     messagebox.showerror('保存エラー', f'Excel保存に失敗しました:\n{e}')
 
             # 登録実行ボタン（右下に配置）
-            btn_register = ctk.CTkButton(parent_tab, text='✨ この内容で全て登録', font=(FONT_NAME, 16, 'bold'), fg_color='#00ff62', text_color='black', height=40, command=register_all_to_excel)
+            btn_register = ctk.CTkButton(parent_tab, text='✨ この内容で全て登録', font=config.FONT_LABEL_BUTTON, fg_color='#00ff62', text_color='black', height=40, command=register_all_to_excel)
             btn_register.place(relx=1.0, rely=1.0, anchor='se', x=-25, y=-21)
 
             # キャンセルボタン（左下に配置）
@@ -1056,12 +1067,12 @@ class AttendanceApp:
             for widget in parent_tab.winfo_children():
                 widget.destroy()
 
-            ctk.CTkLabel(parent_tab, text='📝 登録済みバンドの管理（編集・削除）', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=15, anchor="w")
+            ctk.CTkLabel(parent_tab, text='📝 登録済みバンドの管理（編集・削除）', font=config.FONT_TITLE).pack(pady=15, anchor="w")
 
             filter_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
             filter_frame.pack(pady=5, fill='x', padx=10)
 
-            ctk.CTkLabel(filter_frame, text='表示するライブを選択:', font=(FONT_NAME, 16, 'bold')).pack(side='left', padx=(0, 10))
+            ctk.CTkLabel(filter_frame, text='表示するライブを選択:', font=config.FONT_LABEL_BUTTON).pack(side='left', padx=(0, 10))
             live_selector = ctk.CTkComboBox(filter_frame, values=list(existing_lives.keys()), width=250, font=(FONT_NAME, 16))
             live_selector.pack(side='left', padx=5)
 
@@ -1153,7 +1164,7 @@ class AttendanceApp:
                         popup.attributes("-topmost", True)
                         popup.grab_set()
 
-                        ctk.CTkLabel(popup, text=f'🎤 バンド名: {name}', font=(FONT_NAME, 16, 'bold')).pack(pady=10, anchor='w', padx=15)
+                        ctk.CTkLabel(popup, text=f'🎤 バンド名: {name}', font=config.FONT_LABEL_BUTTON).pack(pady=10, anchor='w', padx=15)
                         
                         try:
                             p_time = ws.cell(row=target_row, column=12).value or ''
@@ -1171,7 +1182,7 @@ class AttendanceApp:
                         date_entry.pack(anchor='w', padx=15, pady=2)
                         date_entry.insert(0, str(p_date))
 
-                        ctk.CTkLabel(popup, text='メンバー設定 (最大10名):', font=(FONT_NAME, 16, 'bold')).pack(pady=(10, 0), anchor='w', padx=15)
+                        ctk.CTkLabel(popup, text='メンバー設定 (最大10名):', font=config.FONT_LABEL_BUTTON).pack(pady=(10, 0), anchor='w', padx=15)
                         
                         edit_scroll = ctk.CTkScrollableFrame(popup, height=180)
                         edit_scroll.pack(fill='both', expand=True, padx=15, pady=5)
@@ -1216,7 +1227,7 @@ class AttendanceApp:
                             except Exception as e:
                                 messagebox.showerror('エラー', f'更新に失敗しました: {e}')
 
-                        btn_save_pop = ctk.CTkButton(popup, text='💾 変更を保存', font=(FONT_NAME, 16, 'bold'), fg_color='#bfff80', text_color='black', command=save_managed_edit)
+                        btn_save_pop = ctk.CTkButton(popup, text='💾 変更を保存', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', command=save_managed_edit)
                         btn_save_pop.pack(pady=15)
 
                     # 右端配置ボタン（削除と編集）
@@ -1418,7 +1429,7 @@ class AttendanceApp:
 
     def show_settings(self):
         self.clear()
-        ctk.CTkLabel(self.main_frame, text='システム環境設定', font=ctk.CTkFont(family=FONT_NAME, size=20, weight='bold')).pack(pady=20, anchor="w")
+        ctk.CTkLabel(self.main_frame, text='システム環境設定', font=config.FONT_TITLE).pack(pady=20, anchor="w")
         
         btn_excel = ctk.CTkButton(self.main_frame, text='📁 Excelデータソースの設定', font=(FONT_NAME, 16), text_color='white', width=220, height=42, command=self.show_excel_file_settings, fg_color="#00bb44")
         btn_excel.pack(pady=10, anchor="w")
@@ -1436,7 +1447,7 @@ class AttendanceApp:
         settings_win.attributes("-topmost", True)
         
         ctk.CTkLabel(settings_win, text='Excelターゲットパス設定', font=ctk.CTkFont(family=FONT_NAME, size=16, weight="bold")).pack(pady=10)
-        ctk.CTkLabel(settings_win, text='※アプリと同じディレクトリ内の相対パス、またはフルパスを指定', font=(FONT_NAME, 14), text_color='gray').pack(pady=2)
+        ctk.CTkLabel(settings_win, text='※アプリと同じディレクトリ内の相対パス、またはフルパスを指定', font=config.FONT_SUBTITLE, text_color='gray').pack(pady=2)
         
         file_var = tk.StringVar(value=globals().get('FILE_PATH', 'attend_data.xlsx'))
         entry = ctk.CTkEntry(settings_win, textvariable=file_var, font=(FONT_NAME, 16), width=320)
@@ -1451,7 +1462,7 @@ class AttendanceApp:
             else:
                 messagebox.showerror('エラー', '有効なファイル名を入力してください。', parent=settings_win)
 
-        btn_save = ctk.CTkButton(settings_win, text='適用して保存', font=(FONT_NAME, 16, 'bold'), command=save_file_path, width=120, fg_color='#bfff80', text_color='black')
+        btn_save = ctk.CTkButton(settings_win, text='適用して保存', font=config.FONT_LABEL_BUTTON, command=save_file_path, width=120, fg_color='#bfff80', text_color='black')
         btn_save.pack(pady=15)
 
     def show_operation_support_settings(self):
@@ -1479,7 +1490,7 @@ class AttendanceApp:
         btn_frame_ops = ctk.CTkFrame(settings_win, fg_color="transparent")
         btn_frame_ops.pack(pady=15)
 
-        btn_save = ctk.CTkButton(btn_frame_ops, text='設定を保存', font=(FONT_NAME, 16, 'bold'), command=save_op_setting, width=110, fg_color='#bfff80', text_color='black')
+        btn_save = ctk.CTkButton(btn_frame_ops, text='設定を保存', font=config.FONT_LABEL_BUTTON, command=save_op_setting, width=110, fg_color='#bfff80', text_color='black')
         btn_save.pack(side='left', padx=10)
 
         def rerun_walkthrough():
