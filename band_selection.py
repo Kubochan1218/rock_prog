@@ -11,13 +11,13 @@ def select_bands(period, slots, total_time, change_time, file_path):
         total_time = int(total_time)
         change_time = int(change_time)
     except Exception:
-        return [], '', '枠数・総時間・リハ転換時間は整数で入力してください。'
+        return f'【エラー】枠数・総時間・リハ転換時間は整数で入力してください。'
     try:
         wb = openpyxl.load_workbook(file_path, data_only=True)
         ws_rate = wb['出席率記録']
         ws_band = wb['登録済みバンド']
     except Exception as e:
-        return [], '', f'Excelファイルの読み込みに失敗しました\n{e}'
+        return f'【エラー】Excelファイルの読み込みに失敗しました\n{e}'
     # 期間列特定
     period_col = None
     for col in range(7, ws_rate.max_column + 1):
@@ -26,7 +26,7 @@ def select_bands(period, slots, total_time, change_time, file_path):
             period_col = col
             break
     if period_col is None:
-        return [], '', f'選択した期間「{period}」の出席率データがありません。'
+        return f'【エラー】選択した期間「{period}」の出席率データがありません。'
     # 氏名列特定
     name_col = None
     for col in range(1, ws_rate.max_column + 1):
@@ -35,7 +35,7 @@ def select_bands(period, slots, total_time, change_time, file_path):
             name_col = col
             break
     if name_col is None:
-        return [], '', '出席率記録シートに「氏名」列がありません。'
+        return '【エラー】出席率記録シートに「氏名」列がありません。'
     # 個人ポイント初期化
     member_points = {}
     member_rates = {}
