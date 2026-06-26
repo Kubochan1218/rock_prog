@@ -39,20 +39,9 @@ def is_date_in_range(date_str, start_date, end_date):
 def save_attendance_rate_to_excel(results, file_path):
     """出席率記録シートに期間ごとに記録（出欠情報と同様の形式・書式コピーあり）"""
     try:
-        from copy import copy
         wb = openpyxl.load_workbook(file_path)
         sheet_name = '出席率記録'
         if sheet_name not in wb.sheetnames:
-            """
-            ↓これはChatGPTが書いたコードやけど処理的に不要なのでコメントアウトしてます。
-            ws = wb.create_sheet(sheet_name)
-            # ヘッダー行を追加（1行目:空、2行目:項目名、3行目以降:データ）
-            ws.cell(row=2, column=1).value = '学年'
-            ws.cell(row=2, column=2).value = '学部'
-            ws.cell(row=2, column=3).value = '学籍番号'
-            ws.cell(row=2, column=4).value = '氏名'
-            # 期間列は5列目以降
-            """
             messagebox.showerror('エラー', f'出席率を記録するシートが存在しません。\n適切なファイルを指定しているか確認してください。')
         else:
             ws = wb[sheet_name]
@@ -77,34 +66,15 @@ def save_attendance_rate_to_excel(results, file_path):
         if target_col is None:
             target_col = max_col + 1
 
-        # ヘッダが空なら期間を設定（左隣の書式をコピー）
+        # ヘッダが空なら期間を設定
         period_cell = ws.cell(row=2, column=target_col)
         if period_cell.value is None or str(period_cell.value).strip() == '':
-            if target_col > 1:
-                left_cell = ws.cell(row=2, column=target_col-1)
-                try:
-                    period_cell.font = copy(left_cell.font)
-                    period_cell.alignment = copy(left_cell.alignment)
-                    period_cell.border = copy(left_cell.border)
-                    period_cell.fill = copy(left_cell.fill)
-                except Exception:
-                    pass
             period_cell.value = period
 
-        # 各行に出席率を書き込み、左隣の書式をコピー
+        # 各行に出席率を書き込む
         for i, result in enumerate(results):
             row_num = 3 + i
             cell = ws.cell(row=row_num, column=target_col)
-            # 左隣のセルの書式をコピー（なければ何もしない）
-            if target_col > 1:
-                left_cell = ws.cell(row=row_num, column=target_col-1)
-                try:
-                    cell.font = copy(left_cell.font)
-                    cell.alignment = copy(left_cell.alignment)
-                    cell.border = copy(left_cell.border)
-                    cell.fill = copy(left_cell.fill)
-                except Exception:
-                    pass
             cell.value = result['出席率']
         wb.save(file_path)
     except Exception as e:
