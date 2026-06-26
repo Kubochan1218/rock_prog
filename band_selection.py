@@ -1,7 +1,7 @@
 # バンド選出ロジック関連の関数・クラスをここに分割して記述
 # 引数：period, slots, total_time, change_time, file_path
 
-import openpyxl
+import openpyxl, datetime
 from tkinter import messagebox
 
 # 応募順で表示ボタン
@@ -130,6 +130,10 @@ def select_bands(period, slots, total_time, change_time, file_path):
     try:
         with open('select_band_log.txt', 'w', encoding='utf-8') as f:
             f.write('\n'.join(log_lines))
+            f.write('\n=== 選出バンド一覧 ===\n')
+            for selected_band in selected_bands:
+                f.write(f'{selected_band["name"]}\n')
+            f.write(f"\n出力: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
     except Exception as e:
             messagebox.showerror('エラー', f'ログ保存に失敗しました: {e}')
     # 出演確定バンドのR列（18列目）に1を書き込む
