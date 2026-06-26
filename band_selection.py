@@ -5,7 +5,7 @@ import openpyxl, datetime
 from tkinter import messagebox
 
 # 応募順で表示ボタン
-def select_bands(period, slots, total_time, change_time, file_path):
+def select_bands(period, slots, total_time, change_time, file_path, live_name):
     try:
         slots = int(slots)
         total_time = int(total_time)
@@ -67,6 +67,8 @@ def select_bands(period, slots, total_time, change_time, file_path):
     # バンド情報取得
     band_list = []
     for row in range(1, ws_band.max_row + 1):
+        if ws_band.cell(row=row, column=19).value != live_name:
+            continue
         band_name = ws_band.cell(row=row, column=1).value
         if not band_name:
             continue

@@ -1,4 +1,4 @@
-import json, os, difflib, re, openpyxl
+import datetime, json, os, difflib, re, openpyxl
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
@@ -308,6 +308,23 @@ class BandView(ctk.CTkFrame):
                 if self.end_combo.get() not in new_end_dates:
                     self.end_combo.set(new_end_dates[0] if new_end_dates else '')
 
+        def update_max_time(event):
+            """ライブ名が変更されたら、ライブ総時間を更新する"""
+            selected_live = self.live_combo.get()
+            if selected_live in existing_lives:
+                total_minutes = 0
+                schedules = existing_lives[selected_live].get('schedules', [])
+                for sched in schedules:
+                    start_str = sched.get('start')
+                    end_str = sched.get('end')
+                    if start_str and end_str:
+                        start_time = pd.to_datetime(start_str, format='%H:%M')
+                        end_time = pd.to_datetime(end_str, format='%H:%M')
+                        duration = end_time - start_time
+                        total_minutes += duration.total_seconds() / 60
+                self.entry_total_time.delete(0, 'end')
+                self.entry_total_time.insert(0, str(int(total_minutes)))
+
         ctk.CTkLabel(date_frame, text='出席率計算 開始日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=(0, 6))
         self.start_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_start, command=update_end_dates)
         self.start_combo.pack(side='left', padx=5, pady=(0, 6))
@@ -315,6 +332,14 @@ class BandView(ctk.CTkFrame):
         ctk.CTkLabel(date_frame, text='出席率計算 終了日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=(0, 6))
         self.end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_end)
         self.end_combo.pack(side='left', padx=5, pady=(0, 6))
+        
+        # ライブを選択
+        row_live = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        row_live.pack(fill="x", pady=6, padx=10)
+        lbl_live = ctk.CTkLabel(row_live, text="🎤 ライブを選択:", font=(config.FONT_NAME, 16), width=LBL_WIDTH, anchor="w")
+        lbl_live.pack(side="left")
+        self.live_combo = ctk.CTkComboBox(row_live, font=(config.FONT_NAME, 16), width=180, values=list(existing_lives.keys()), command=update_max_time)
+        self.live_combo.pack(side="left", padx=5)
         
         # 募集バンド数
         row_bands = ctk.CTkFrame(scroll_frame, fg_color="transparent")
@@ -331,14 +356,6 @@ class BandView(ctk.CTkFrame):
         lbl_time.pack(side="left")
         self.entry_total_time = ctk.CTkEntry(row_time, width=180, font=(config.FONT_NAME, 14))
         self.entry_total_time.pack(side="left", padx=5)
-        
-        # ライブを選択
-        row_live = ctk.CTkFrame(scroll_frame, fg_color="transparent")
-        row_live.pack(fill="x", pady=6, padx=10)
-        lbl_live = ctk.CTkLabel(row_live, text="🎤 ライブを選択:", font=(config.FONT_NAME, 16), width=LBL_WIDTH, anchor="w")
-        lbl_live.pack(side="left")
-        self.live_combo = ctk.CTkComboBox(row_live, font=(config.FONT_NAME, 16), width=130, values=list(existing_lives.keys()))
-        self.live_combo.pack(side="left", padx=5)
 
         # リハーサル時間
         row_reh = ctk.CTkFrame(scroll_frame, fg_color="transparent")
@@ -629,7 +646,8 @@ class BandView(ctk.CTkFrame):
                     slots=max_bands,
                     total_time=total_time,
                     change_time=rehearsal_time,
-                    file_path=config.FILE_PATH
+                    file_path=config.FILE_PATH,
+                    live_name=live_name
                 )
                 
                 self.result_textbox.delete("1.0", "end")
