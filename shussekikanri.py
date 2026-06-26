@@ -9,6 +9,9 @@ import pandas as pd
 import band_selection as bs
 import attendance_calculation as ac
 from top import TopWindow
+from views.sidebar import SidebarFrame
+from views.attendance_view import AttendanceView
+from views.live_view import LiveView
 
 FILE_PATH = config.FILE_PATH
 SHEET_NAME = config.SHEET_NAME
@@ -39,45 +42,35 @@ class AttendanceApp:
         self.master.grid_rowconfigure(0, weight=1)
         
         # 左側：サイドバーフレーム
-        self.sidebar_frame = ctk.CTkFrame(self.master, width=220, corner_radius=0)
-        self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(6, weight=1)  # 設定ボタンを下に押し下げる
-        
-        # サークルロゴ/タイトル
-        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="🎸 ロック部 出席管理", font=ctk.CTkFont(family=FONT_NAME, size=18, weight="bold"))
-        self.logo_label.grid(row=0, column=0, padx=20, pady=25)
-        
-        # 常駐ナビゲーションボタン群
-        self.btn_nav_top = ctk.CTkButton(self.sidebar_frame, text="🏠 トップ画面", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.show_top)
-        self.btn_nav_top.grid(row=1, column=0, padx=20, pady=8, sticky="ew")
-        
-        self.btn_nav_attend = ctk.CTkButton(self.sidebar_frame, text="👥 出欠管理・確認", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.show_attendance_date_select)
-        self.btn_nav_attend.grid(row=2, column=0, padx=20, pady=8, sticky="ew")
-        
-        self.btn_nav_check = ctk.CTkButton(self.sidebar_frame, text="📅 ライブ管理", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.register_live)
-        self.btn_nav_check.grid(row=3, column=0, padx=20, pady=8, sticky="ew")
-        
-        self.btn_nav_band = ctk.CTkButton(self.sidebar_frame, text="🎤 バンド登録・選出", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.register_band)
-        self.btn_nav_band.grid(row=4, column=0, padx=20, pady=8, sticky="ew")
-        
-        self.btn_nav_select = ctk.CTkButton(self.sidebar_frame, text="🕑 タイムテーブル", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.show_select_band)
-        self.btn_nav_select.grid(row=5, column=0, padx=20, pady=8, sticky="ew")
-        
-        # 下部の固定設定ボタン
-        self.btn_nav_settings = ctk.CTkButton(self.sidebar_frame, text="⚙ 設定メニュー", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_BUTTON, anchor="w", command=self.show_settings)
-        self.btn_nav_settings.grid(row=6, column=0, padx=20, pady=25, sticky="s")
+        self.sidebar = SidebarFrame(self.master, on_menu_select=self.change_screen)
+        self.sidebar.grid(row=0, column=0, sticky="nsew")
         
         # 右側：メインコンテンツ表示用フレーム
         self.main_frame = ctk.CTkFrame(self.master, fg_color="transparent")
         self.main_frame.grid(row=0, column=1, padx=25, pady=25, sticky="nsew")
-                    
-        self.show_top()
         
         # 起動時ウォークスルー表示
         try:
             self.maybe_show_walkthrough()
         except Exception:
             pass
+                    
+        self.change_screen("top")
+
+    def change_screen(self, screen_name):
+        """サイドバーのメニュー選択に応じて右側の画面を切り替える"""
+        if screen_name == "top":
+            self.show_top()
+        elif screen_name == "attendance":
+            self.show_attendance_date_select()
+        elif screen_name == "live":
+            self.register_live()
+        elif screen_name == "band":
+            self.register_band()
+        elif screen_name == "timetable":
+            self.make_timetable()
+        elif screen_name == "settings":
+            self.show_settings()
 
     def clear(self):
         """右側のメインコンテンツエリアのみを消去する"""
@@ -193,221 +186,6 @@ class AttendanceApp:
         except Exception:
             pass
 
-    def show_attendance_date_select(self):
-        """出席日付選択画面を表示"""
-        self.clear()
-        ctk.CTkLabel(self.main_frame, text='出欠管理 - 出席をとる日付を選択します。', font=config.FONT_TITLE).pack(pady=15, anchor="w")
-        
-        btn_today = ctk.CTkButton(self.main_frame, text='📅 今日の出席をとる', width=200, height=45, fg_color='#66ff66', text_color='black', font=config.FONT_LABEL_BUTTON, command=self.start_attendance_today)
-        btn_today.pack(pady=10)
-        self.add_tooltip(btn_today, '今日の日付で出席登録を開始します')
-        
-        btn_other = ctk.CTkButton(self.main_frame, text='📆 過去・別日の出席をとる', width=200, height=45, fg_color='#ff9900', text_color='black', font=config.FONT_LABEL_BUTTON, command=self.start_attendance_otherday)
-        btn_other.pack(pady=10)
-        self.add_tooltip(btn_other, '別の日付で出席登録を開始します')
-        
-        ctk.CTkLabel(self.main_frame, text='', font=config.FONT_TITLE).pack(pady=15, anchor="w")
-        ctk.CTkLabel(self.main_frame, text='出欠状況の確認 - 出欠状況をテキストファイルで出力します。', font=config.FONT_TITLE).pack(pady=15, anchor="w")
-        date_frame = ctk.CTkFrame(self.main_frame)
-        date_frame.pack(pady=15, fill="x", padx=10)
-        date_candidates_start = self.get_available_dates()
-        date_candidates_end = self.get_available_dates()
-
-        def update_end_dates(event):
-            """開始日が選択されたら、終了日の候補を更新する"""
-            selected_start = start_combo.get()
-            if selected_start in date_candidates_start:
-                start_index = date_candidates_start.index(selected_start)
-                new_end_dates = date_candidates_start[start_index:]
-                end_combo.configure(values=new_end_dates)
-                if end_combo.get() not in new_end_dates:
-                    end_combo.set(new_end_dates[0] if new_end_dates else '')
-
-        ctk.CTkLabel(date_frame, text='開始日:', font=(FONT_NAME, 16)).pack(side='left', padx=10, pady=10)
-        start_combo = ctk.CTkComboBox(date_frame, font=(FONT_NAME, 16), width=130, values=date_candidates_start, command=update_end_dates)
-        start_combo.pack(side='left', padx=5, pady=10)
-        
-        ctk.CTkLabel(date_frame, text='終了日:', font=(FONT_NAME, 16)).pack(side='left', padx=10, pady=10)
-        end_combo = ctk.CTkComboBox(date_frame, font=(FONT_NAME, 16), width=130, values=date_candidates_end)
-        end_combo.pack(side='left', padx=5, pady=10)
-        
-        btn_check = ctk.CTkButton(self.main_frame, text='👁 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=config.FONT_LABEL_BUTTON, command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), FILE_PATH, SHEET_NAME))
-        btn_check.pack(pady=10)
-        self.add_tooltip(btn_check, '出欠状況をテキストファイルに出力し、確認します')
-        
-        btn_top = ctk.CTkButton(self.main_frame, text='キャンセル', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 16), command=self.show_top)
-        btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
-
-    def start_attendance_today(self):
-        today = datetime.datetime.now().strftime('%m/%d').lstrip('0').replace('/0', '/')
-        self.start_attendance(date=today)
-
-    def start_attendance_otherday(self):
-        while True:
-            date = simpledialog.askstring('日付入力', '日付を「M/D」形式で入力してください（例: 10/2）')
-            if date is None:
-                return
-            if re.fullmatch(r'\s*\d{1,2}/\d{1,2}\s*', date):
-                try:
-                    m, d = map(int, date.strip().split('/'))
-                    if 1 <= m <= 12 and 1 <= d <= 31:
-                        self.start_attendance(date=date.strip())
-                        return
-                    else:
-                        messagebox.showerror('入力エラー', '月日は正しい範囲で入力してください。')
-                except Exception:
-                    messagebox.showerror('入力エラー', '日付の形式が正しくありません。')
-            else:
-                messagebox.showerror('入力エラー', '日付は「M/D」形式で入力してください（例: 10/2）')
-
-    def start_attendance(self, date):
-        self.df = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME, header=1, index_col=None)
-        self.df = self.df.loc[:, ~self.df.columns.str.contains('^Unnamed')]
-        self.date = date
-        if date not in self.df.columns:
-            self.df[date] = ''
-        self.current_idx = 0
-        self.show_attendance_entry()
-
-    def show_attendance_entry(self):
-        self.clear()
-        if self.current_idx < 0:
-            self.current_idx = 0
-        if self.current_idx >= len(self.df):
-            self.current_idx = len(self.df) - 1
-        row = self.df.iloc[self.current_idx]
-        
-        def safe_str(val):
-            import math
-            return '' if val is None or (isinstance(val, float) and math.isnan(val)) else str(val)
-            
-        name = safe_str(row['氏名'])
-        student_id = safe_str(row['学籍番号'])
-        grade = safe_str(row['学年']) if '学年' in self.df.columns else ''
-        faculty = safe_str(row['学部']) if '学部' in self.df.columns else ''
-
-        info = f'No. {self.current_idx+1} / 全 {len(self.df)} 名\n氏名: {name}\n学籍番号: {student_id}\n学年: {grade}  学部: {faculty}\n対象日: {self.date}'
-        ctk.CTkLabel(self.main_frame, text=info, font=ctk.CTkFont(family=FONT_NAME, size=16, weight='bold'), justify='left', anchor="w").pack(pady=15, fill="x")
-
-        mark_defs = [
-            ('出席', '〇 出席', '#66ff66'),
-            ('連絡あり', '△ 連絡あり欠席', '#ffff66'),
-            ('無断欠席', '× 無断欠席', '#ff0000'),
-            ('オ', 'オンライン', '#cccccc'),
-            ('忌引', '忌引き等', '#cccccc'),
-        ]
-        
-        btn_frame1 = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        btn_frame1.pack(pady=5)
-        btn_frame2 = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        btn_frame2.pack(pady=5)
-        
-        for mark, label, color in mark_defs[:3]:
-            b = ctk.CTkButton(btn_frame1, text=label, width=140, height=40, fg_color=color, text_color='black', font=(FONT_NAME, 14, 'bold'), command=lambda m=mark: self.set_attendance(m))
-            b.pack(side='left', padx=6)
-            self.add_tooltip(b, f'{label} を記録します')
-            
-        for mark, label, color in mark_defs[3:]:
-            b2 = ctk.CTkButton(btn_frame2, text=label, width=140, height=40, fg_color=color, text_color='black', font=(FONT_NAME, 14, 'bold'), command=lambda m=mark: self.set_attendance(m))
-            b2.pack(side='left', padx=6)
-            self.add_tooltip(b2, f'{label} を記録します')
-
-        nav_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        nav_frame.pack(pady=20)
-        
-        btn_prev = ctk.CTkButton(nav_frame, text='◀ 前の人へ', fg_color='#ff9900', text_color='black', font=(FONT_NAME, 14, 'bold'), command=self.prev_person)
-        btn_prev.pack(side='left', padx=10)
-        
-        btn_next_nav = ctk.CTkButton(nav_frame, text='次の人へ ▶', fg_color='#66ff66', text_color='black', font=(FONT_NAME, 14, 'bold'), command=self.next_person)
-        btn_next_nav.pack(side='left', padx=10)
-
-        btn_top = ctk.CTkButton(self.main_frame, text='保存して終了', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 14), command=self.save_and_back_to_top)
-        btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
-
-    def set_attendance(self, mark):
-        self.df.at[self.current_idx, self.date] = mark
-        self.next_person()
-
-    def prev_person(self):
-        self.current_idx -= 1
-        if self.current_idx < 0:
-            self.current_idx = 0
-        self.show_attendance_entry()
-
-    def next_person(self):
-        self.current_idx += 1
-        def is_empty_name(idx):
-            import math
-            if idx >= len(self.df):
-                return True
-            val = self.df.iloc[idx]['氏名']
-            return (val is None) or (isinstance(val, float) and math.isnan(val)) or (str(val).strip() == '')
-        if self.current_idx >= len(self.df) or is_empty_name(self.current_idx):
-            messagebox.showinfo('完了', '全員分の出欠登録が完了しました。')
-            self.save_and_back_to_top()
-        else:
-            self.show_attendance_entry()
-
-    def save_and_back_to_top(self):
-        try:
-            wb = openpyxl.load_workbook(FILE_PATH)
-            ws = wb[SHEET_NAME]
-            target_col = None
-            for col in range(1, ws.max_column + 1):
-                if str(ws.cell(row=2, column=col).value) == str(self.date):
-                    target_col = col
-                    break
-            if target_col is None:
-                for col in range(7, ws.max_column + 1):
-                    val = ws.cell(row=2, column=col).value
-                    if val is None or str(val).strip() == '':
-                        target_col = col
-                        break
-            if target_col is None:
-                target_col = ws.max_column + 1
-                
-            from copy import copy
-            date_cell = ws.cell(row=2, column=target_col)
-            if date_cell.value is None or str(date_cell.value).strip() == '':
-                if target_col > 1:
-                    left_cell = ws.cell(row=2, column=target_col-1)
-                    date_cell.font = copy(left_cell.font)
-                    date_cell.alignment = copy(left_cell.alignment)
-                    date_cell.border = copy(left_cell.border)
-                    date_cell.fill = copy(left_cell.fill)
-                date_cell.value = self.date
-
-            id_col = None
-            for col in range(1, ws.max_column + 1):
-                if str(ws.cell(row=2, column=col).value) == '学籍番号':
-                    id_col = col
-                    break
-            if id_col is None:
-                raise Exception('学籍番号列が見つかりません')
-
-            for idx, row in self.df.iterrows():
-                student_id = str(row['学籍番号'])
-                excel_row = None
-                for r in range(3, ws.max_row + 1):
-                    if str(ws.cell(row=r, column=id_col).value) == student_id:
-                        excel_row = r
-                        break
-                if excel_row is None:
-                    continue
-                cell = ws.cell(row=excel_row, column=target_col)
-                if target_col > 1:
-                    left_cell = ws.cell(row=excel_row, column=target_col-1)
-                    cell.font = copy(left_cell.font)
-                    cell.alignment = copy(left_cell.alignment)
-                    cell.border = copy(left_cell.border)
-                    cell.fill = copy(left_cell.fill)
-                cell.value = row[self.date]
-            wb.save(FILE_PATH)
-            messagebox.showinfo('保存完了', 'Excelファイルを保存しました。')
-        except Exception as e:
-            messagebox.showerror('保存エラー', f'Excel保存に失敗しました: {e}')
-        self.show_top()
-
     def get_available_dates(self):
         """Excelシートから有効な日付列を取得"""
         try:
@@ -433,197 +211,17 @@ class AttendanceApp:
         except Exception:
             return []
 
+    def show_attendance_date_select(self):
+        """出席日付選択画面を表示"""
+        self.clear()
+        self.attendance_view = AttendanceView(self.main_frame, app=self)
+        self.attendance_view.pack(fill='both', expand=True)
+
     def register_live(self):
         """ライブ情報の登録・編集画面を表示 (JSON保存・時刻選択版)"""
-        self.clear() # メインフレームを初期化
-        
-        # ライブ情報を保存するJSONファイルのパス
-        LIVE_JSON_PATH = self.get_config_path('live_info.json')
-        existing_lives = {}
-        
-        # 既存のJSONデータが存在すれば読み込む
-        if os.path.exists(LIVE_JSON_PATH):
-            try:
-                with open(LIVE_JSON_PATH, 'r', encoding='utf-8') as f:
-                    existing_lives = json.load(f)
-            except Exception:
-                pass
-
-        # ヘッダー
-        ctk.CTkLabel(self.main_frame, text='🎸 ライブ情報の登録・編集', font=config.FONT_TITLE).pack(pady=15, anchor="w")
-        ctk.CTkLabel(self.main_frame, text='ライブ名と日程を登録します。既存のライブを選択して編集も可能です。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=5, anchor="w")
-
-        # ライブ名 入力エリア（コンボボックスで既存データの呼び出し対応）
-        name_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        name_frame.pack(pady=10, fill='x', padx=10)
-        
-        ctk.CTkLabel(name_frame, text='ライブ名を入力して新規作成するか選択して編集:', font=config.FONT_LABEL_BUTTON).pack(side='left', padx=0)
-        
-        # 既存のライブ名をリストアップ
-        live_names_list = list(existing_lives.keys())
-        
-        def on_live_select(choice):
-            """プルダウンから既存ライブを選んだら、日程リストを復元する"""
-            if choice in existing_lives:
-                # 現在の入力行をすべて削除
-                for r in schedule_rows.copy():
-                    r['frame'].destroy()
-                schedule_rows.clear()
-                
-                # 既存データから行を再生成
-                for sch in existing_lives[choice].get('schedules', []):
-                    add_date_row(date_val=sch.get('date', ''), start_val=sch.get('start', ''), end_val=sch.get('end', ''))
-
-        live_name_combo = ctk.CTkComboBox(
-            name_frame, 
-            values=live_names_list if live_names_list else [""], 
-            font=(FONT_NAME, 16), 
-            width=300,
-            command=on_live_select
-        )
-        live_name_combo.set("") # 初期値は空
-        live_name_combo.pack(side='left', padx=10)
-        self.add_tooltip(live_name_combo, "新しい名前を入力するか、過去のライブを選んで編集できます")
-
-        # 日程設定エリア（複数日対応・スクロール可能・時刻選択式）
-        ctk.CTkLabel(self.main_frame, text='日程設定（開始・終了時刻）', font=config.FONT_LABEL_BUTTON).pack(pady=(15, 5), anchor="w", padx=10)
-        
-        # スクロール可能なフレームを使用（日程が増えても大丈夫なように）
-        schedule_frame = ctk.CTkScrollableFrame(self.main_frame, height=250)
-        schedule_frame.pack(fill='both', expand=True, padx=10, pady=5)
-        
-        schedule_rows = [] # 追加された日程行のウィジェットを管理するリスト
-        
-        # 15分刻みの時刻リストを生成 (07:00 〜 20:45)
-        time_options = [f"{h:02d}:{m:02d}" for h in range(7,21) for m in (0, 15, 30, 45)]
-
-        def add_date_row(date_val="", start_val="", end_val=""):
-            """日程入力行を1行追加する関数"""
-            row = ctk.CTkFrame(schedule_frame)
-            row.pack(fill='x', pady=5, padx=5)
-            
-            # 日数ラベル
-            lbl_num = ctk.CTkLabel(row, text=f"{len(schedule_rows)+1}日目:", font=config.FONT_LABEL_BUTTON, width=50, anchor="w")
-            lbl_num.pack(side='left', padx=(5, 10))
-            
-            # 日付
-            ctk.CTkLabel(row, text="日付:", font=(FONT_NAME, 16)).pack(side='left')
-            date_entry = ctk.CTkEntry(row, width=110, font=(FONT_NAME, 16), placeholder_text="YYYY-MM-DD")
-            if date_val:
-                date_entry.insert(0, date_val)
-            date_entry.pack(side='left', padx=5)
-            
-            # カレンダー機能
-            def open_calendar():
-                try:
-                    from tkcalendar import Calendar
-                    cal_win = ctk.CTkToplevel(self.master)
-                    cal_win.title("日付を選択")
-                    cal_win.attributes("-topmost", True)
-                    cal = Calendar(cal_win, selectmode='day', date_pattern='yyyy-mm-dd')
-                    cal.pack(padx=15, pady=15)
-                    
-                    def set_date():
-                        date_entry.delete(0, 'end')
-                        date_entry.insert(0, cal.get_date())
-                        cal_win.destroy()
-                        
-                    ctk.CTkButton(cal_win, text='決定', command=set_date).pack(pady=10)
-                except Exception:
-                    messagebox.showinfo("お知らせ", "tkcalendarモジュールがインストールされていません。手入力してください。")
-
-            btn_cal = ctk.CTkButton(row, text="📅", width=30, fg_color="gray70", text_color="black", command=open_calendar)
-            btn_cal.pack(side='left', padx=(0, 15))
-            
-            # 開演時刻（コンボボックス）
-            ctk.CTkLabel(row, text="開始:", font=(FONT_NAME, 16)).pack(side='left')
-            start_combo = ctk.CTkComboBox(row, values=time_options, width=80, font=(FONT_NAME, 16))
-            start_combo.set(start_val if start_val else "10:00")
-            start_combo.pack(side='left', padx=5)
-            
-            # 終演時刻（コンボボックス）
-            ctk.CTkLabel(row, text="終了:", font=(FONT_NAME, 16)).pack(side='left', padx=(10, 0))
-            end_combo = ctk.CTkComboBox(row, values=time_options, width=80, font=(FONT_NAME, 16))
-            end_combo.set(end_val if end_val else "18:00")
-            end_combo.pack(side='left', padx=5)
-            
-            # 削除ボタン
-            def remove_row():
-                row.destroy()
-                schedule_rows.remove(row_data)
-                # 残った行の「◯日目」の数字を振り直す
-                for idx, r_data in enumerate(schedule_rows):
-                    r_data['lbl'].configure(text=f"{idx+1}日目:")
-                    
-            btn_del = ctk.CTkButton(row, text="削除", width=50, fg_color="#ff6666", hover_color="#cc0000", command=remove_row)
-            btn_del.pack(side='right', padx=10)
-            
-            row_data = {"frame": row, "lbl": lbl_num, "date": date_entry, "start": start_combo, "end": end_combo}
-            schedule_rows.append(row_data)
-
-        # 初期状態で1行目を追加
-        add_date_row()
-
-        # アクションボタン群（下部）
-        btn_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        btn_frame.pack(pady=15, fill='x', padx=10)
-
-        btn_top = ctk.CTkButton(btn_frame, text='キャンセル', font=(FONT_NAME, 16), fg_color='#ff0000', text_color='white', width=120, command=self.show_top)
-        btn_top.pack(side='left', padx=15)
-        
-        btn_add = ctk.CTkButton(btn_frame, text='➕ 日程を追加', font=config.FONT_LABEL_BUTTON, fg_color='#80d4ff', text_color='black', command=lambda: add_date_row())
-        btn_add.pack(side='left', padx=5)
-
-        def save_live_info():
-            """入力内容を検証し、JSONファイルとして保存する"""
-            live_name = live_name_combo.get().strip()
-            
-            if live_name == "" or live_name == "ライブ名を入力するか選択":
-                messagebox.showerror("エラー", "ライブ名を入力してください。")
-                return
-            if not schedule_rows:
-                messagebox.showerror("エラー", "日程を少なくとも1日以上追加してください。")
-                return
-                
-            schedules = []
-            for idx, r_data in enumerate(schedule_rows):
-                d = r_data['date'].get().strip()
-                s = r_data['start'].get().strip()
-                e = r_data['end'].get().strip()
-                
-                if not d or not s or not e:
-                    messagebox.showerror("エラー", f"{idx+1}日目の入力項目に空欄があります。")
-                    return
-                # 時刻フォーマット（HH:MM または H:MM）のチェック
-                if not re.match(r'^\d{1,2}:\d{2}$', s) or not re.match(r'^\d{1,2}:\d{2}$', e):
-                    messagebox.showerror("エラー", f"{idx+1}日目の時刻は「HH:MM」形式（例: 13:00）で入力してください。")
-                    return
-                
-                schedules.append({
-                    "day": idx + 1,
-                    "date": d,
-                    "start": s,
-                    "end": e
-                })
-                
-            # 既存の辞書に上書き（または新規追加）
-            existing_lives[live_name] = {
-                "live_name": live_name,
-                "schedules": schedules,
-                "updated_at": __import__('datetime').datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-            
-            # JSONへ書き込み
-            try:
-                with open(LIVE_JSON_PATH, 'w', encoding='utf-8') as f:
-                    json.dump(existing_lives, f, ensure_ascii=False, indent=4)
-                messagebox.showinfo("保存完了", f"「{live_name}」の情報を保存しました。")
-                self.show_top()
-            except Exception as ex:
-                messagebox.showerror("保存エラー", f"JSONファイルへの保存に失敗しました:\n{ex}")
-
-        btn_save = ctk.CTkButton(btn_frame, text='💾 ライブ情報を保存', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', width=160, height=40, command=save_live_info)
-        btn_save.pack(side='right', padx=5)
+        self.clear()
+        self.live_view = LiveView(self.main_frame, app=self)
+        self.live_view.pack(fill='both', expand=True)
 
     def setup_band_selection_tab(self, tabview):
         """バンド選出タブを追加し、UIを構築する"""
