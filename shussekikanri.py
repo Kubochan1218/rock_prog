@@ -142,10 +142,6 @@ class AttendanceApp:
 
                     btn = ctk.CTkButton(row, text=btn_text, width=110, fg_color=default_color, text_color="black" if default_color != '#cccccc' else "gray60", font=(FONT_NAME, 12, 'bold'), command=make_help_cmd(i, cmd))
                     btn.pack(side='right', padx=10)
-                    try:
-                        self.add_tooltip(btn, f'{title} の画面を開きます')
-                    except Exception:
-                        pass
                         
                 btn_exit = ctk.CTkButton(self.main_frame, text='ヘルプモードを終了', width=160, fg_color='#cccccc', text_color="black", font=(FONT_NAME, 12, 'bold'), command=self.toggle_help_mode)
                 btn_exit.place(relx=1.0, rely=1.0, anchor='se', x=-20, y=-20)
@@ -160,30 +156,24 @@ class AttendanceApp:
         
         btn_attendance = ctk.CTkButton(grid_frame, text='📅 出席をとる・出欠状況確認', height=80, command=self.show_attendance_date_select, fg_color='#bfff80', text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_attendance.grid(row=0, column=0, padx=15, pady=15, sticky="ew")
-        self.add_tooltip(btn_attendance, '出欠を記録する画面を開きます')
 
         btn_check = ctk.CTkButton(grid_frame, text='📊 出欠状況の確認\n(出席率計算)', height=80, fg_color='#80d4ff', text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_check.grid(row=0, column=1, padx=15, pady=15, sticky="ew")
-        self.add_tooltip(btn_check, '出席率の計算と出欠状況の確認を行います')
 
         btn_register = ctk.CTkButton(grid_frame, text='🎤 バンドの追加・編集・削除', height=80, command=self.register_band, fg_color='#ffff00', text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_register.grid(row=1, column=0, padx=15, pady=15, sticky="ew")
-        self.add_tooltip(btn_register, 'バンドを新規登録・編集・削除します')
         
         btn_select = ctk.CTkButton(grid_frame, text='🔶 出演バンド選出', height=80, command=self.register_band, fg_color='#ffd480', text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_select.grid(row=1, column=1, padx=15, pady=15, sticky="ew")
-        self.add_tooltip(btn_select, '応募バンドから出演バンドを選出します')
 
         btn_timetable = ctk.CTkButton(grid_frame, text='⏱️ タイムテーブル作成 (別ウィンドウ)', height=80, command=self.make_timetable, fg_color="#d080ff", text_color='black', font=config.FONT_LABEL_BUTTON)
         btn_timetable.grid(row=2, column=0, columnspan=2, padx=15, pady=15, sticky="ew")
-        self.add_tooltip(btn_timetable, 'タイムテーブル作成ウィンドウを開きます（別ウィンドウ）')
         
         # ヘルプモード切り替えボタン
         try:
             if self.settings.get('operation_support', False):
                 btn_help_mode = ctk.CTkButton(self.main_frame, text='❓ ヘルプモード開始', width=150, height=35, command=self.toggle_help_mode, fg_color="#4375ff", font=(FONT_NAME, 13, 'bold'))
                 btn_help_mode.place(relx=0.0, rely=1.0, anchor='sw', x=20, y=-20)
-                self.add_tooltip(btn_help_mode, 'ヘルプモードに切り替えます（操作手順を案内します）')
         except Exception:
             pass
 
@@ -342,54 +332,6 @@ class AttendanceApp:
                 self.master.destroy()
             except Exception:
                 pass
-
-    def add_tooltip(self, widget, text, delay=300):
-        def on_enter(event):
-            try:
-                if not self.settings.get('operation_support', False):
-                    return
-            except Exception:
-                return
-            try:
-                widget._tooltip_after = widget.after(delay, lambda: self._show_tooltip(widget, text))
-            except Exception:
-                pass
-
-        def on_leave(event):
-            try:
-                if hasattr(widget, '_tooltip_after'):
-                    widget.after_cancel(widget._tooltip_after)
-                    del widget._tooltip_after
-            except Exception:
-                pass
-            self._hide_tooltip(widget)
-
-        widget.bind('<Enter>', on_enter)
-        widget.bind('<Leave>', on_leave)
-        widget.bind('<ButtonPress>', lambda e: self._hide_tooltip(widget))
-
-    def _show_tooltip(self, widget, text):
-        try:
-            if hasattr(widget, '_tooltip') and widget._tooltip:
-                return
-            x = widget.winfo_rootx() + 20
-            y = widget.winfo_rooty() + widget.winfo_height() + 5
-            tw = tk.Toplevel(self.master)
-            tw.wm_overrideredirect(True)
-            tw.wm_geometry(f"+{x}+{y}")
-            lbl = tk.Label(tw, text=text, font=(FONT_NAME, 10), bg='#ffffe0', justify='left', relief='solid', bd=1)
-            lbl.pack(ipadx=4, ipady=2)
-            widget._tooltip = tw
-        except Exception:
-            pass
-
-    def _hide_tooltip(self, widget):
-        try:
-            if hasattr(widget, '_tooltip') and widget._tooltip:
-                widget._tooltip.destroy()
-                widget._tooltip = None
-        except Exception:
-            pass
 
     def get_config_path(self, filename='settings.json'):
         if hasattr(sys, '_MEIPASS'):

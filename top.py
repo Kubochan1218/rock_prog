@@ -99,25 +99,13 @@ class TopWindow(tk.Toplevel):
 
         btn_add = tk.Button(frame, text="追加", command=self.add_schedule, font=("Meiryo", 12, "bold"), bg="#e0f7fa")
         btn_add.grid(row=3, column=0, pady=10, sticky="w")
-        try:
-            self.add_tooltip(btn_add, '日程を追加します')
-        except Exception:
-            pass
 
         btn_load = tk.Button(frame, text="読み込み", command=self.load_schedules, bg="#b2dfdb", font=default_font)
         btn_load.grid(row=3, column=1, pady=10, sticky="w")
-        try:
-            self.add_tooltip(btn_load, '保存済みの日程を読み込みます')
-        except Exception:
-            pass
 
         # 引き継ぎボタン追加
         btn_transfer = tk.Button(frame, text="他のPCへ引き継ぎ", command=self.transfer_data, font=("Meiryo", 12, "bold"), bg="#ffe082")
         btn_transfer.grid(row=3, column=2, pady=10, sticky="w")
-        try:
-            self.add_tooltip(btn_transfer, 'データをデスクトップの引き継ぎフォルダにコピーします')
-        except Exception:
-            pass
 
         # 日程リスト表示エリア
         list_frame = tk.LabelFrame(self, text="日程リスト", font=default_font)
@@ -139,24 +127,12 @@ class TopWindow(tk.Toplevel):
 
         btn_edit = tk.Button(btn_frame, text="編集", command=self.edit_schedule, bg="#ffe082", font=default_font, width=5, height=1)
         btn_edit.pack(side=tk.LEFT, padx=8)
-        try:
-            self.add_tooltip(btn_edit, '選択した日程を編集します')
-        except Exception:
-            pass
 
         btn_delete = tk.Button(btn_frame, text="削除", command=self.delete_schedule, bg="lightcoral", font=default_font, width=5, height=1)
         btn_delete.pack(side=tk.LEFT, padx=8)
-        try:
-            self.add_tooltip(btn_delete, '選択した日程を削除します')
-        except Exception:
-            pass
 
         btn_order = tk.Button(btn_frame, text="出演順設定エリアを表示", command=self.show_order_area, bg="lightblue", font=("Meiryo", 12, "bold"), width=20, height=1)
         btn_order.pack(side=tk.LEFT, padx=8)
-        try:
-            self.add_tooltip(btn_order, '出演順を設定するエリアを表示します')
-        except Exception:
-            pass
 
     def show_order_area(self):
         if not self.schedules:
@@ -200,42 +176,18 @@ class TopWindow(tk.Toplevel):
         menu_frame.pack(fill=tk.X, padx=10, pady=3)
         btn_save = tk.Button(menu_frame, text="保存", command=self.save_schedule, font=("Meiryo", 12), width=7, height=1)
         btn_save.pack(side=tk.LEFT, padx=10)
-        try:
-            self.add_tooltip(btn_save, '現在のタイムテーブルを保存します')
-        except Exception:
-            pass
         btn_load = tk.Button(menu_frame, text="読み込み", command=self.load_schedule, font=("Meiryo", 12), width=7, height=1)
         btn_load.pack(side=tk.LEFT, padx=10)
-        try:
-            self.add_tooltip(btn_load, '保存済みのタイムテーブルを読み込みます')
-        except Exception:
-            pass
         btn_export_pdf = tk.Button(menu_frame, text="PDF出力", command=self.export_pdf, font=("Meiryo", 12), width=8, height=1, bg="#ff417a")
         btn_export_pdf.pack(side=tk.LEFT, padx=10)
-        try:
-            self.add_tooltip(btn_export_pdf, '現在のタイムテーブルをPDFで出力します')
-        except Exception:
-            pass
         btn_export_excel = tk.Button(menu_frame, text="Excel出力(おすすめ)", command=self.export_excel, font=("Meiryo", 12), width=16, height=1, bg="#07ca6f")
         btn_export_excel.pack(side=tk.LEFT, padx=10)
-        try:
-            self.add_tooltip(btn_export_excel, '現在のタイムテーブルをExcelで出力します')
-        except Exception:
-            pass
         # オプションボタン追加
         btn_option = tk.Button(menu_frame, text="絞り込み", command=self.show_option_dialog, font=("Meiryo", 12), width=8, height=1, bg="#fff9c4")
         btn_option.pack(side=tk.LEFT, padx=10)
-        try:
-            self.add_tooltip(btn_option, 'バンドの絞り込み条件を設定します')
-        except Exception:
-            pass
         # 「日程設定に戻る」赤色ボタン
         btn_back = tk.Button(menu_frame, text="日程設定に戻る", command=self.back_to_top, font=("Meiryo", 12, "bold"), width=12, height=1, bg="red", fg="white")
         btn_back.pack(side=tk.RIGHT, padx=10)
-        try:
-            self.add_tooltip(btn_back, 'トップ画面に戻ります')
-        except Exception:
-            pass
 
         self.tab_control = ttk.Notebook(self.order_area)
         self.tab_control.pack(expand=True, fill="both")
@@ -270,16 +222,8 @@ class TopWindow(tk.Toplevel):
                 self.refresh_combo(tab)
         btn_ok = tk.Button(win, text="OK", command=on_ok, font=("Meiryo", 11), width=8, bg="#c8e6c9")
         btn_ok.grid(row=4, column=0, pady=12)
-        try:
-            self.add_tooltip(btn_ok, '絞り込み条件を適用します')
-        except Exception:
-            pass
         btn_clear = tk.Button(win, text="全解除", command=on_clear, font=("Meiryo", 11), width=8, bg="#ffcdd2")
         btn_clear.grid(row=4, column=1, pady=12)
-        try:
-            self.add_tooltip(btn_clear, '絞り込み条件を全て解除します')
-        except Exception:
-            pass
 
         """
         self.tab_control = ttk.Notebook(self.order_area)
@@ -356,63 +300,6 @@ class TopWindow(tk.Toplevel):
                 "tab_label": label_text
             }
 
-    # --- ツールチップ補助 ---
-    def add_tooltip(self, widget, text, delay=300):
-        """ウィジェットにツールチップを追加（操作支援が有効なときのみ表示）。"""
-        def on_enter(event):
-            try:
-                # TopWindowは親の設定に従う（AttendanceApp が設定している場合）
-                parent = self.master
-                op = True
-                try:
-                    op = getattr(parent, 'settings', {}).get('operation_support', True)
-                except Exception:
-                    op = True
-                if not op:
-                    return
-            except Exception:
-                return
-            try:
-                widget._tooltip_after = widget.after(delay, lambda: self._show_tooltip(widget, text))
-            except Exception:
-                pass
-
-        def on_leave(event):
-            try:
-                if hasattr(widget, '_tooltip_after'):
-                    widget.after_cancel(widget._tooltip_after)
-                    del widget._tooltip_after
-            except Exception:
-                pass
-            self._hide_tooltip(widget)
-
-        widget.bind('<Enter>', on_enter)
-        widget.bind('<Leave>', on_leave)
-        widget.bind('<ButtonPress>', lambda e: self._hide_tooltip(widget))
-
-    def _show_tooltip(self, widget, text):
-        try:
-            if hasattr(widget, '_tooltip') and widget._tooltip:
-                return
-            x = widget.winfo_rootx() + 20
-            y = widget.winfo_rooty() + widget.winfo_height() + 5
-            tw = tk.Toplevel(self)
-            tw.wm_overrideredirect(True)
-            tw.wm_geometry(f"+{x}+{y}")
-            lbl = tk.Label(tw, text=text, font=("Meiryo", 10), bg='#ffffe0', justify='left', relief='solid', bd=1)
-            lbl.pack(ipadx=4, ipady=2)
-            widget._tooltip = tw
-        except Exception:
-            pass
-
-    def _hide_tooltip(self, widget):
-        try:
-            if hasattr(widget, '_tooltip') and widget._tooltip:
-                widget._tooltip.destroy()
-                widget._tooltip = None
-        except Exception:
-            pass
-
     def add_band(self, combo, tab):
         band_name = combo.get()
         if not band_name:
@@ -473,10 +360,6 @@ class TopWindow(tk.Toplevel):
         combo_band.configure(justify='center')
         btn = tk.Button(win, text="OK", command=on_ok)
         btn.grid(row=3, column=0, columnspan=2, pady=5)
-        try:
-            self.add_tooltip(btn, '特別枠を追加します')
-        except Exception:
-            pass
         def on_kind_change(event=None):
             kind = var_kind.get()
             if kind == 'リハ':
