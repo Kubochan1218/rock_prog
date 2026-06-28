@@ -1,16 +1,14 @@
-import tkinter as tk
-from tkinter import messagebox
-from tkinter import ttk
-from tkcalendar import DateEntry
-from datetime import datetime
 import csv, os, sys, json, shutil
+import tkinter as tk
+from tkinter import messagebox, ttk
+from tkcalendar import DateEntry
+from datetime import datetime, timedelta
+import customtkinter as ctk
+import config
 from models import LiveSchedule, BandInfo
-from datetime import timedelta
 
-class TopWindow(tk.Toplevel):
-    # フィルタ条件の初期化は__init__内で行う
+class TopWindow(ctk.CTkToplevel):
     def get_json_path(self, filename="schedule_data.json", mode="r"):
-        import sys
         if hasattr(sys, '_MEIPASS'):
             # PyInstallerでexe化した場合も、常にexeのある場所を参照
             base_dir = os.path.dirname(sys.executable)
@@ -18,10 +16,11 @@ class TopWindow(tk.Toplevel):
             # スクリプト実行時はtop.pyのあるディレクトリ
             base_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(base_dir, filename)
+
     def __init__(self, master=None):
         super().__init__(master)
         self.title("ライブ日程設定")
-        self.geometry("840x600")  # order.pyのウィンドウサイズに合わせて拡大
+        self.geometry("840x650")  # 見出し追加に伴い高さを少し微調整
         self.minsize(800, 600)
         self.schedules = []
         self.band_data = self.load_band_infos_from_csv(os.path.join(os.path.dirname(sys.argv[0]), "bands.csv"))
@@ -31,21 +30,21 @@ class TopWindow(tk.Toplevel):
         self.order_area = None
         self.top_widgets = []  # トップ画面ウィジェットを管理
         self.filter_options = {'オプション1': '', 'オプション2': '', 'オプション3': ''}  # フィルタ条件
+        
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         self._last_font_copied = False
+        
+        # ウィンドウを最前面にフォーカスさせる
+        self.after(200, lambda: self.focus())
 
     def _ensure_font_file(self, filename, friendly_name="フォント"):
-        """アプリフォルダに filename がなければ Windows のフォントフォルダからコピーを試みる。
-        成功した場合はコピー先のパスを返す。失敗した場合は None を返す（かつエラーメッセージを表示）。
-        """
         app_dir = os.path.dirname(os.path.abspath(__file__))
         target_path = os.path.join(app_dir, filename)
         if os.path.exists(target_path):
             self._last_font_copied = False
             return target_path
 
-        # Windows のフォントディレクトリを探す
         windir = os.environ.get("WINDIR", "C:\\Windows")
         fonts_dir = os.path.join(windir, "Fonts")
         candidates = []
@@ -60,7 +59,6 @@ class TopWindow(tk.Toplevel):
             messagebox.showerror(f"{friendly_name} コピー失敗", f"{filename} が見つかりません。\nシステムフォントフォルダに {filename} が存在しないようです。", parent=self)
             return None
 
-        # コピーを試みる（成功したらフラグを立てて返す。ダイアログは後で出力完了時にまとめて表示）
         for src in candidates:
             try:
                 shutil.copy2(src, target_path)
@@ -77,142 +75,154 @@ class TopWindow(tk.Toplevel):
             self.destroy()
 
     def create_widgets(self):
-        default_font = ("Meiryo", 12)
-        frame = tk.LabelFrame(self, text="日程追加", font=default_font)
-        frame.pack(pady=10, padx=10, fill=tk.X, anchor="w")
+        # 1. 画面大見出し (config.FONT_TITLE)
+        title_label = ctk.CTkLabel(self, text="ライブ日程設定", font=config.FONT_TITLE)
+        title_label.pack(pady=10, padx=15, anchor="w")
+        self.top_widgets.append(title_label)
+
+        # 2. 日程追加セクション (ctk.CTkFrame で再現)
+        frame = ctk.CTkFrame(self)
+        frame.pack(pady=10, padx=15, fill="x", anchor="w")
         self.top_widgets.append(frame)
 
-        tk.Label(frame, text="日付：", font=default_font, anchor="w").grid(row=0, column=0, sticky="w")
+        # セクションタイトル (config.FONT_SUBTITLE)
+        sub_title1 = ctk.CTkLabel(frame, text="日程追加", font=config.FONT_SUBTITLE)
+        sub_title1.grid(row=0, column=0, columnspan=3, padx=15, pady=5, sticky="w")
+
+        ctk.CTkLabel(frame, text="日付：", font=config.FONT_LABEL_BUTTON, anchor="w").grid(row=1, column=0, padx=15, pady=5, sticky="w")
+        # tkcalendarは標準のtkinterベースのためそのまま使用
         self.date_entry = DateEntry(frame, width=12, background='darkblue',
-                                    foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd', font=default_font)
-        self.date_entry.grid(row=0, column=1, padx=5, pady=2, sticky="w")
+                                    foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd', font=config.FONT_LABEL_BUTTON)
+        self.date_entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")
 
-        tk.Label(frame, text="開始時刻：", font=default_font, anchor="w").grid(row=1, column=0, sticky="w")
-        self.start_time = ttk.Combobox(frame, values=self.time_options(), width=10, state="normal")
-        self.start_time.grid(row=1, column=1, padx=5, pady=2, sticky="w")
-        self.start_time.configure(font=default_font)
+        ctk.CTkLabel(frame, text="開始時刻：", font=config.FONT_LABEL_BUTTON, anchor="w").grid(row=2, column=0, padx=15, pady=5, sticky="w")
+        self.start_time = ctk.CTkComboBox(frame, values=self.time_options(), width=120, font=config.FONT_LABEL_BUTTON)
+        self.start_time.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
-        tk.Label(frame, text="終了時刻：", font=default_font, anchor="w").grid(row=2, column=0, sticky="w")
-        self.end_time = ttk.Combobox(frame, values=self.time_options(), width=10, state="normal")
-        self.end_time.grid(row=2, column=1, padx=5, pady=2, sticky="w")
-        self.end_time.configure(font=default_font)
+        ctk.CTkLabel(frame, text="終了時刻：", font=config.FONT_LABEL_BUTTON, anchor="w").grid(row=3, column=0, padx=15, pady=5, sticky="w")
+        self.end_time = ctk.CTkComboBox(frame, values=self.time_options(), width=120, font=config.FONT_LABEL_BUTTON)
+        self.end_time.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
-        btn_add = tk.Button(frame, text="追加", command=self.add_schedule, font=("Meiryo", 12, "bold"), bg="#e0f7fa")
-        btn_add.grid(row=3, column=0, pady=10, sticky="w")
+        btn_add = ctk.CTkButton(frame, text="追加", command=self.add_schedule, font=config.FONT_LABEL_BUTTON, fg_color="#e0f7fa", text_color="black", hover_color="#b2dfdb", width=100)
+        btn_add.grid(row=4, column=0, padx=15, pady=15, sticky="w")
 
-        btn_load = tk.Button(frame, text="読み込み", command=self.load_schedules, bg="#b2dfdb", font=default_font)
-        btn_load.grid(row=3, column=1, pady=10, sticky="w")
+        btn_load = ctk.CTkButton(frame, text="読み込み", command=self.load_schedules, fg_color="#b2dfdb", text_color="black", hover_color="#80cbc4", font=config.FONT_LABEL_BUTTON, width=100)
+        btn_load.grid(row=4, column=1, padx=5, pady=15, sticky="w")
 
-        # 引き継ぎボタン追加
-        btn_transfer = tk.Button(frame, text="他のPCへ引き継ぎ", command=self.transfer_data, font=("Meiryo", 12, "bold"), bg="#ffe082")
-        btn_transfer.grid(row=3, column=2, pady=10, sticky="w")
+        btn_transfer = ctk.CTkButton(frame, text="他のPCへ引き継ぎ", command=self.transfer_data, font=config.FONT_LABEL_BUTTON, fg_color="#ffe082", text_color="black", hover_color="#ffd54f")
+        btn_transfer.grid(row=4, column=2, padx=5, pady=15, sticky="w")
 
-        # 日程リスト表示エリア
-        list_frame = tk.LabelFrame(self, text="日程リスト", font=default_font)
-        list_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True, anchor="w")
+        # 3. 日程リスト表示エリア
+        list_frame = ctk.CTkFrame(self)
+        list_frame.pack(pady=10, padx=15, fill="both", expand=True, anchor="w")
         self.top_widgets.append(list_frame)
 
-        self.listbox = tk.Listbox(list_frame, width=50, height=3, font=("Meiryo", 12, "bold"), selectbackground="#ffe082")
-        self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, anchor="w")
+        sub_title2 = ctk.CTkLabel(list_frame, text="日程リスト", font=config.FONT_SUBTITLE)
+        sub_title2.pack(padx=15, pady=5, anchor="w")
 
-        scrollbar = tk.Scrollbar(list_frame, orient="vertical")
-        scrollbar.config(command=self.listbox.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        list_inner_frame = ctk.CTkFrame(list_frame, fg_color="transparent")
+        list_inner_frame.pack(fill="both", expand=True, padx=15, pady=5)
+
+        # Listboxは複数行選択のロジック上、標準のtk.ListboxをCustomTkinterのフォントで装飾して使用
+        self.listbox = tk.Listbox(list_inner_frame, font=config.FONT_LABEL_BUTTON, selectbackground="#ffe082", selectforeground="black", bd=0, highlightthickness=0)
+        self.listbox.pack(side="left", fill="both", expand=True)
+
+        scrollbar = ctk.CTkScrollbar(list_inner_frame, orientation="vertical", command=self.listbox.yview)
+        scrollbar.pack(side="right", fill="y")
         self.listbox.config(yscrollcommand=scrollbar.set)
 
-        # ボタンエリア（中央揃え・横並び）
-        btn_frame = tk.Frame(self)
-        btn_frame.pack(pady=10, anchor="w")
+        # 4. ボタンエリア
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.pack(pady=10, anchor="w", padx=15)
         self.top_widgets.append(btn_frame)
 
-        btn_edit = tk.Button(btn_frame, text="編集", command=self.edit_schedule, bg="#ffe082", font=default_font, width=5, height=1)
-        btn_edit.pack(side=tk.LEFT, padx=8)
+        btn_edit = ctk.CTkButton(btn_frame, text="編集", command=self.edit_schedule, fg_color="#ffe082", text_color="black", hover_color="#ffd54f", font=config.FONT_LABEL_BUTTON, width=80)
+        btn_edit.pack(side="left", padx=8)
 
-        btn_delete = tk.Button(btn_frame, text="削除", command=self.delete_schedule, bg="lightcoral", font=default_font, width=5, height=1)
-        btn_delete.pack(side=tk.LEFT, padx=8)
+        btn_delete = ctk.CTkButton(btn_frame, text="削除", command=self.delete_schedule, fg_color="lightcoral", text_color="black", hover_color="#ff8a80", font=config.FONT_LABEL_BUTTON, width=80)
+        btn_delete.pack(side="left", padx=8)
 
-        btn_order = tk.Button(btn_frame, text="出演順設定エリアを表示", command=self.show_order_area, bg="lightblue", font=("Meiryo", 12, "bold"), width=20, height=1)
-        btn_order.pack(side=tk.LEFT, padx=8)
+        btn_order = ctk.CTkButton(btn_frame, text="出演順設定エリアを表示", command=self.show_order_area, fg_color="lightblue", text_color="black", hover_color="#90caf9", font=config.FONT_LABEL_BUTTON, width=200)
+        btn_order.pack(side="left", padx=8)
 
     def show_order_area(self):
         if not self.schedules:
             messagebox.showinfo("出演順設定", "日程を1つ以上追加してください", parent=self)
             return
-        # トップ画面（ウィジェット）を非表示
-        self.hidden_widgets = []
+        # トップ画面を非表示にする
         for widget in self.top_widgets:
-            if widget.winfo_ismapped():
-                widget.pack_forget()
-                self.hidden_widgets.append(widget)
-        # 既存のorder_areaがあれば削除
+            widget.pack_forget()
+            
         if self.order_area:
             self.order_area.destroy()
-        self.order_area = tk.Frame(self)
-        self.order_area.pack(fill=tk.BOTH, expand=True)
+        self.order_area = ctk.CTkFrame(self, fg_color="transparent")
+        self.order_area.pack(fill="both", expand=True)
         self.create_order_area()
 
     def back_to_top(self):
-        # 出演順設定エリアを非表示
         if self.order_area:
             self.order_area.destroy()
             self.order_area = None
-        # トップ画面（ウィジェット）を再表示（pack_forgetしたものだけ、元の配置で）
-        if len(self.top_widgets) >= 3:
-            # frame（日程追加）
-            self.top_widgets[0].pack(pady=10, padx=10, fill=tk.X, anchor="w")
-            # list_frame（日程リスト）
-            self.top_widgets[1].pack(pady=10, padx=10, fill=tk.BOTH, expand=True, anchor="w")
-            # btn_frame（ボタンエリア）
-            self.top_widgets[2].pack(pady=10, anchor="w")
-        self.hidden_widgets = []
-        self.order_area = None
-        # トップ画面（ウィジェット）を再表示（元のpack順で）
-        for widget in self.top_widgets:
-            widget.pack()
+            
+        # トップ画面ウィジェットを元の設定で綺麗に再配置
+        if len(self.top_widgets) >= 4:
+            self.top_widgets[0].pack(pady=10, padx=15, anchor="w")  # 大見出し
+            self.top_widgets[1].pack(pady=10, padx=15, fill="x", anchor="w")  # 日程追加
+            self.top_widgets[2].pack(pady=10, padx=15, fill="both", expand=True, anchor="w")  # 日程リスト
+            self.top_widgets[3].pack(pady=10, anchor="w", padx=15)  # ボタンエリア
 
     def create_order_area(self):
-        # order.pyのUIを再現
-        menu_frame = tk.Frame(self.order_area)
-        menu_frame.pack(fill=tk.X, padx=10, pady=3)
-        btn_save = tk.Button(menu_frame, text="保存", command=self.save_schedule, font=("Meiryo", 12), width=7, height=1)
-        btn_save.pack(side=tk.LEFT, padx=10)
-        btn_load = tk.Button(menu_frame, text="読み込み", command=self.load_schedule, font=("Meiryo", 12), width=7, height=1)
-        btn_load.pack(side=tk.LEFT, padx=10)
-        btn_export_pdf = tk.Button(menu_frame, text="PDF出力", command=self.export_pdf, font=("Meiryo", 12), width=8, height=1, bg="#ff417a")
-        btn_export_pdf.pack(side=tk.LEFT, padx=10)
-        btn_export_excel = tk.Button(menu_frame, text="Excel出力(おすすめ)", command=self.export_excel, font=("Meiryo", 12), width=16, height=1, bg="#07ca6f")
-        btn_export_excel.pack(side=tk.LEFT, padx=10)
-        # オプションボタン追加
-        btn_option = tk.Button(menu_frame, text="絞り込み", command=self.show_option_dialog, font=("Meiryo", 12), width=8, height=1, bg="#fff9c4")
-        btn_option.pack(side=tk.LEFT, padx=10)
-        # 「日程設定に戻る」赤色ボタン
-        btn_back = tk.Button(menu_frame, text="日程設定に戻る", command=self.back_to_top, font=("Meiryo", 12, "bold"), width=12, height=1, bg="red", fg="white")
-        btn_back.pack(side=tk.RIGHT, padx=10)
+        menu_frame = ctk.CTkFrame(self.order_area, fg_color="transparent")
+        menu_frame.pack(fill="x", padx=10, pady=3)
+        
+        btn_save = ctk.CTkButton(menu_frame, text="保存", command=self.save_schedule, font=config.FONT_LABEL_BUTTON, width=70)
+        btn_save.pack(side="left", padx=10)
+        
+        btn_load = ctk.CTkButton(menu_frame, text="読み込み", command=self.load_schedule, font=config.FONT_LABEL_BUTTON, width=70)
+        btn_load.pack(side="left", padx=10)
+        
+        btn_export_pdf = ctk.CTkButton(menu_frame, text="PDF出力", command=self.export_pdf, font=config.FONT_LABEL_BUTTON, width=80, fg_color="#ff417a", text_color="white", hover_color="#f50057")
+        btn_export_pdf.pack(side="left", padx=10)
+        
+        btn_export_excel = ctk.CTkButton(menu_frame, text="Excel出力(おすすめ)", command=self.export_excel, font=config.FONT_LABEL_BUTTON, width=160, fg_color="#07ca6f", text_color="white", hover_color="#05964f")
+        btn_export_excel.pack(side="left", padx=10)
+        
+        btn_option = ctk.CTkButton(menu_frame, text="絞り込み", command=self.show_option_dialog, font=config.FONT_LABEL_BUTTON, width=80, fg_color="#fff9c4", text_color="black", hover_color="#fff59d")
+        btn_option.pack(side="left", padx=10)
+        
+        btn_back = ctk.CTkButton(menu_frame, text="日程設定に戻る", command=self.back_to_top, font=config.FONT_LABEL_BUTTON, width=120, fg_color="red", text_color="white", hover_color="#d32f2f")
+        btn_back.pack(side="right", padx=10)
 
-        self.tab_control = ttk.Notebook(self.order_area)
-        self.tab_control.pack(expand=True, fill="both")
+        # Tabviewへのアップグレード
+        self.tab_control = ctk.CTkTabview(self.order_area)
+        self.tab_control.pack(expand=True, fill="both", padx=10, pady=5)
+        
         self.tabs = {}
-        self.used_band_names = set()  # ここで必ずリセット
+        self.used_band_names = set()
         self.create_tabs()
 
     def show_option_dialog(self):
-        win = tk.Toplevel(self)
+        win = ctk.CTkToplevel(self)
         win.title("絞り込みオプション")
-        win.geometry("320x200")
+        win.geometry("340x220")
+        win.after(200, lambda: win.focus())
+        
         labels = ["オプション1", "オプション2", "オプション3"]
         entries = {}
         for i, opt in enumerate(labels):
-            tk.Label(win, text=opt, font=("Meiryo", 11)).grid(row=i, column=0, padx=8, pady=8, sticky="e")
-            ent = tk.Entry(win, width=18, font=("Meiryo", 11))
+            ctk.CTkLabel(win, text=opt, font=config.FONT_LABEL_BUTTON).grid(row=i, column=0, padx=15, pady=8, sticky="e")
+            ent = ctk.CTkEntry(win, width=180, font=config.FONT_LABEL_BUTTON)
             ent.insert(0, self.filter_options.get(opt, ''))
-            ent.grid(row=i, column=1, padx=8, pady=8)
+            ent.grid(row=i, column=1, padx=15, pady=8)
             entries[opt] = ent
+            
         def on_ok():
             for opt in labels:
                 self.filter_options[opt] = entries[opt].get().strip()
             win.destroy()
             for tab in self.tabs:
                 self.refresh_combo(tab)
+                
         def on_clear():
             for opt in labels:
                 self.filter_options[opt] = ''
@@ -220,18 +230,12 @@ class TopWindow(tk.Toplevel):
             win.destroy()
             for tab in self.tabs:
                 self.refresh_combo(tab)
-        btn_ok = tk.Button(win, text="OK", command=on_ok, font=("Meiryo", 11), width=8, bg="#c8e6c9")
-        btn_ok.grid(row=4, column=0, pady=12)
-        btn_clear = tk.Button(win, text="全解除", command=on_clear, font=("Meiryo", 11), width=8, bg="#ffcdd2")
-        btn_clear.grid(row=4, column=1, pady=12)
-
-        """
-        self.tab_control = ttk.Notebook(self.order_area)
-        self.tab_control.pack(expand=True, fill="both")
-        self.tabs = {}
-        self.used_band_names = set()
-        self.create_tabs()
-        """
+                
+        btn_ok = ctk.CTkButton(win, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON, width=100, fg_color="#c8e6c9", text_color="black", hover_color="#a5d6a7")
+        btn_ok.grid(row=4, column=0, pady=15, padx=15)
+        
+        btn_clear = ctk.CTkButton(win, text="全解除", command=on_clear, font=config.FONT_LABEL_BUTTON, width=100, fg_color="#ffcdd2", text_color="black", hover_color="#ef9a9a")
+        btn_clear.grid(row=4, column=1, pady=15, padx=15)
 
     def load_band_infos_from_csv(self, csv_path):
         band_list = []
@@ -249,10 +253,8 @@ class TopWindow(tk.Toplevel):
                             date_list.append(date)
                         except ValueError:
                             pass
-                    # オプション列も格納（stripで空白除去）
                     options = {k: row.get(k, '').strip() for k in ["オプション1", "オプション2", "オプション3"]}
                     other = row.get("その他", '').strip()
-                    # available_datesは必ずdate型リストに
                     band = BandInfo(name, minutes, [d for d in date_list if isinstance(d, type(datetime.now().date()))])
                     band.options = options
                     band.other = other
@@ -263,40 +265,44 @@ class TopWindow(tk.Toplevel):
 
     def create_tabs(self):
         for sched in self.schedules:
-            tab = ttk.Frame(self.tab_control)
             label_text = sched['date'].strftime("%m/%d")
-            self.tab_control.add(tab, text=label_text)
-            top_frame = tk.Frame(tab)
-            top_frame.pack(fill=tk.X, padx=10, pady=5)
-            label = tk.Label(top_frame, text="バンドを選択：", font=("Meiryo", 12))
-            label.pack(side=tk.LEFT)
-            combo = ttk.Combobox(top_frame, width=25, state="readonly")
-            combo.pack(side=tk.LEFT, padx=5)
-            btn_add = tk.Button(top_frame, text="追加", command=lambda c=combo, t=tab: self.add_band(c, t), font=("Meiryo", 12, "bold"), width=8, height=1, bg="#e0f7fa")
-            btn_add.pack(side=tk.LEFT, padx=5)
-            btn_special = tk.Button(top_frame, text="特別枠追加", command=lambda t=tab: self.add_special_frame(t), font=("Meiryo", 12), width=12, height=1, bg="#ffe0b2")
-            btn_special.pack(side=tk.LEFT, padx=5)
-            label_info = tk.Label(top_frame, text="バンド名をクリックして\nバンド情報を表示", font=("Meiryo", 12))
-            label_info.pack(side=tk.LEFT, padx=5)
-            canvas = tk.Canvas(tab, borderwidth=0, background="#f8f8f8")
-            frame_container = tk.Frame(canvas, background="#f8f8f8")
-            vsb = tk.Scrollbar(tab, orient="vertical", command=canvas.yview)
-            canvas.configure(yscrollcommand=vsb.set)
-            vsb.pack(side="right", fill="y")
-            canvas.pack(side="left", fill="both", expand=True)
-            canvas.create_window((0, 0), window=frame_container, anchor="nw")
-            def on_frame_configure(event, c=canvas, f=frame_container):
-                c.configure(scrollregion=c.bbox("all"))
-            frame_container.bind("<Configure>", on_frame_configure)
+            self.tab_control.add(label_text)
+            tab = self.tab_control.tab(label_text)
+            
+            top_frame = ctk.CTkFrame(tab, fg_color="transparent")
+            top_frame.pack(fill="x", padx=10, pady=5)
+            
+            label = ctk.CTkLabel(top_frame, text="バンドを選択：", font=config.FONT_LABEL_BUTTON)
+            label.pack(side="left")
+            
+            combo = ctk.CTkComboBox(top_frame, width=200, font=config.FONT_LABEL_BUTTON, state="readonly")
+            combo.pack(side="left", padx=5)
+            
+            btn_add = ctk.CTkButton(top_frame, text="追加", command=lambda c=combo, t=label_text: self.add_band(c, t), font=config.FONT_LABEL_BUTTON, width=80, fg_color="#e0f7fa", text_color="black", hover_color="#b2dfdb")
+            btn_add.pack(side="left", padx=5)
+            
+            btn_special = ctk.CTkButton(top_frame, text="特別枠追加", command=lambda t=label_text: self.add_special_frame(t), font=config.FONT_LABEL_BUTTON, width=100, fg_color="#ffe0b2", text_color="black", hover_color="#ffcc80")
+            btn_special.pack(side="left", padx=5)
+            
+            label_info = ctk.CTkLabel(top_frame, text="バンド名をクリックして\nバンド情報を表示", font=config.FONT_LABEL_BUTTON, justify="left")
+            label_info.pack(side="left", padx=5)
+            
+            # Canvasエリア一式を ctk.CTkScrollableFrame の1行に置き換え
+            frame_container = ctk.CTkScrollableFrame(tab, fg_color="#f8f8f8")
+            frame_container.pack(fill="both", expand=True, padx=5, pady=5)
+            
             available_bands = [b for b in self.band_data if sched['date'] in b.available_dates]
-            combo["values"] = [b.name for b in available_bands]  # 初期値を必ずセット
-            self.tabs[tab] = {
+            combo.configure(values=[b.name for b in available_bands])
+            if available_bands:
+                combo.set(available_bands[0].name)
+            else:
+                combo.set("")
+                
+            self.tabs[label_text] = {
                 "combo": combo,
                 "frame": frame_container,
                 "bands": [],
                 "band_objs": available_bands,
-                "canvas": canvas,
-                "scrollbar": vsb,
                 "tab_label": label_text
             }
 
@@ -341,65 +347,63 @@ class TopWindow(tk.Toplevel):
             self.tabs[tab]["bands"].append(item)
             win.destroy()
             self.update_band_frames(tab)
-        win = tk.Toplevel(self)
+            
+        win = ctk.CTkToplevel(self)
         win.title("特別枠追加")
-        win.geometry("300x150")
-        tk.Label(win, text="種別").grid(row=0, column=0)
+        win.geometry("320x180")
+        win.after(200, lambda: win.focus())
+        
+        ctk.CTkLabel(win, text="種別", font=config.FONT_LABEL_BUTTON).grid(row=0, column=0, padx=10, pady=5)
         var_kind = tk.StringVar(value='休憩')
         kinds = ['休憩', '転換', 'リハ']
-        combo_kind = ttk.Combobox(win, values=kinds, textvariable=var_kind, state="readonly", width=8, justify='center')
-        combo_kind.grid(row=0, column=1, padx=5, pady=2)
-        combo_kind.configure(justify='center')
-        tk.Label(win, text="分数").grid(row=1, column=0)
-        entry_min = tk.Entry(win, width=8, justify='center')
-        entry_min.grid(row=1, column=1, padx=5, pady=2)
-        tk.Label(win, text="バンド名(リハのみ)").grid(row=2, column=0)
+        combo_kind = ctk.CTkComboBox(win, values=kinds, variable=var_kind, state="readonly", width=120, font=config.FONT_LABEL_BUTTON)
+        combo_kind.grid(row=0, column=1, padx=5, pady=5)
+        
+        ctk.CTkLabel(win, text="分数", font=config.FONT_LABEL_BUTTON).grid(row=1, column=0, padx=10, pady=5)
+        entry_min = ctk.CTkEntry(win, width=120, justify='center', font=config.FONT_LABEL_BUTTON)
+        entry_min.grid(row=1, column=1, padx=5, pady=5)
+        
+        ctk.CTkLabel(win, text="バンド名(リハのみ)", font=config.FONT_LABEL_BUTTON).grid(row=2, column=0, padx=10, pady=5)
         all_band_names = [b.name for b in self.tabs[tab]['band_objs']]
-        combo_band = ttk.Combobox(win, values=all_band_names, state="readonly", width=18, justify='center')
-        combo_band.grid(row=2, column=1, padx=5, pady=2)
-        combo_band.configure(justify='center')
-        btn = tk.Button(win, text="OK", command=on_ok)
-        btn.grid(row=3, column=0, columnspan=2, pady=5)
-        def on_kind_change(event=None):
-            kind = var_kind.get()
-            if kind == 'リハ':
-                combo_band.config(state='normal')
-                combo_band.config(state='readonly')
+        combo_band = ctk.CTkComboBox(win, values=all_band_names, width=180, font=config.FONT_LABEL_BUTTON)
+        combo_band.grid(row=2, column=1, padx=5, pady=5)
+        
+        btn = ctk.CTkButton(win, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON)
+        btn.grid(row=3, column=0, columnspan=2, pady=15)
+        
+        def on_kind_change(choice):
+            if choice == 'リハ':
+                combo_band.configure(state='normal')
             else:
                 combo_band.set("")
-                combo_band.config(state='disabled')
-        combo_kind.bind('<<ComboboxSelected>>', on_kind_change)
-        # 初期状態反映
-        on_kind_change()
+                combo_band.configure(state='disabled')
+                
+        combo_kind.configure(command=on_kind_change)
+        on_kind_change(var_kind.get())
 
     def transfer_data(self):
-            # ①インストール有無確認
-            result = messagebox.askyesno("確認", "引き継ぎ先のコンピュータに出席管理システムがインストールされていますか？", parent=self)
-            if result:
-                # ①-1 Yesの場合：編集中データを保存してからデータコピー
-                self.save_schedule()  # 日程・出演順データを保存
-                import shutil
-                import pathlib
-                desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
-                target_dir = os.path.join(desktop, '【ロック部出席管理】引き継ぎデータ')
-                os.makedirs(target_dir, exist_ok=True)
-                files = [
-                    os.path.join(os.path.dirname(sys.argv[0]), 'attend_data.xlsx'),
-                    os.path.join(os.path.dirname(sys.argv[0]), 'bands.csv'),
-                    os.path.join(os.path.dirname(sys.argv[0]), 'schedule_data.json'),
-                ]
-                copied = []
-                for f in files:
-                    if os.path.exists(f):
-                        shutil.copy2(f, target_dir)
-                        copied.append(os.path.basename(f))
-                msg = f"編集中の日程・出演順データを保存し、引き継ぎデータをデスクトップの『【ロック部出席管理】引き継ぎデータ』フォルダに保存しました。\n\n" \
-                      f"引き継ぎ先のコンピュータにこのフォルダごと移動すると引き継ぎが完了します。\n\n" \
-                      f"保存ファイル: {', '.join(copied)}"
-                messagebox.showinfo("引き継ぎ完了", msg, parent=self)
-            else:
-                # ①-2 Noの場合：インストール案内
-                messagebox.showinfo("案内", "引き継ぎ先のコンピュータにソフトウェアをインストールしてから引き継ぎを行ってください。", parent=self)
+        result = messagebox.askyesno("確認", "引き継ぎ先のコンピュータに出席管理システムがインストールされていますか？", parent=self)
+        if result:
+            self.save_schedule()
+            desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
+            target_dir = os.path.join(desktop, '【ロック部出席管理】引き継ぎデータ')
+            os.makedirs(target_dir, exist_ok=True)
+            files = [
+                os.path.join(os.path.dirname(sys.argv[0]), 'attend_data.xlsx'),
+                os.path.join(os.path.dirname(sys.argv[0]), 'bands.csv'),
+                os.path.join(os.path.dirname(sys.argv[0]), 'schedule_data.json'),
+            ]
+            copied = []
+            for f in files:
+                if os.path.exists(f):
+                    shutil.copy2(f, target_dir)
+                    copied.append(os.path.basename(f))
+            msg = f"編集中の日程・出演順データを保存し、引き継ぎデータをデスクトップの『【ロック部出席管理】引き継ぎデータ』フォルダに保存しました。\n\n" \
+                  f"引き継ぎ先のコンピュータにこのフォルダごと移動すると引き継ぎが完了します。\n\n" \
+                  f"保存ファイル: {', '.join(copied)}"
+            messagebox.showinfo("引き継ぎ完了", msg, parent=self)
+        else:
+            messagebox.showinfo("案内", "引き継ぎ先のコンピュータにソフトウェアをインストールしてから引き継ぎを行ってください。", parent=self)
 
     def update_band_frames(self, tab):
         tab_info = self.tabs[tab]
@@ -416,25 +420,22 @@ class TopWindow(tk.Toplevel):
             return
         end_time_limit = datetime.strptime(sched['end'], "%H:%M")
         current_time = datetime.strptime(sched['start'], "%H:%M")
+        
         for idx, item in enumerate(tab_info["bands"]):
             if item['type'] == 'band':
                 name = item['name']
                 minutes = item['minutes']
                 label_text = f"{name}（{minutes}分）"
-                # バンド情報取得
                 band_info = self.find_band_by_name(name, self.band_data)
                 def show_band_info(event, band_info=band_info):
                     if band_info:
                         info = f"バンド名: {band_info.name}\n演奏時間: {band_info.performance_minutes}分\n出演日: {', '.join([d.strftime('%Y-%m-%d') for d in band_info.available_dates])}"
-                        # オプション表示
                         if hasattr(band_info, 'options'):
                             for k, v in band_info.options.items():
                                 info += f"\n{k}: {v}"
-                        # その他表示
                         if hasattr(band_info, 'other') and band_info.other:
                             info += f"\nその他: {band_info.other}"
                         messagebox.showinfo("バンド情報", info, parent=self)
-                # ラベル生成後にイベントバインド
             elif item['type'] == 'break':
                 name = None
                 minutes = item['minutes']
@@ -449,34 +450,43 @@ class TopWindow(tk.Toplevel):
                 label_text = f"リハ（{name}）（{minutes}分）"
             else:
                 continue
+                
             start_str = current_time.strftime("%H:%M")
             end_time = current_time + timedelta(minutes=minutes)
             end_str = end_time.strftime("%H:%M")
-            # 背景色判定
+            
             bg_color = None
-            # バンド枠のみ「その他」判定
             if item['type'] == 'band' and band_info is not None:
                 other_val = getattr(band_info, 'other', None)
-                # nan判定（str型で"nan"やNone、空文字は除外）
                 if other_val is not None and str(other_val).lower() != 'nan' and str(other_val).strip() != '':
                     bg_color = '#b2ebf2'  # 水色
-            # 超過判定（バンド以外も）
             if bg_color is None and end_time > end_time_limit:
                 bg_color = '#fff59d'  # 黄色
-            wrapper = tk.Frame(frame, bd=1, relief="solid", padx=5, pady=5, width=776, height=36, bg=bg_color)
-            wrapper.pack(fill=tk.X, expand=True, pady=2)
+                
+            # ctk.CTkFrame でのコンテナ
+            if bg_color:
+                wrapper = ctk.CTkFrame(frame, corner_radius=4, border_width=1, border_color="gray", fg_color=bg_color, height=40)
+            else:
+                wrapper = ctk.CTkFrame(frame, corner_radius=4, border_width=1, border_color="gray", height=40)
+                
+            wrapper.pack(fill="x", expand=True, pady=2, padx=5)
             wrapper.pack_propagate(False)
-            label = tk.Label(wrapper, text=f"{start_str}～{end_str} {label_text}", anchor="w", font=("Meiryo", 12, "bold"), bg=bg_color)
-            label.pack(side=tk.LEFT, fill=tk.X, expand=True)
-            # バンド枠のみクリックで情報表示
+            
+            label = ctk.CTkLabel(wrapper, text=f"{start_str}～{end_str} {label_text}", anchor="w", font=config.FONT_LABEL_BUTTON, text_color="black" if bg_color else None)
+            label.pack(side="left", fill="x", expand=True, padx=10)
+            
             if item['type'] == 'band':
                 label.bind('<Button-1>', show_band_info)
-            btn_del = tk.Button(wrapper, text="×", width=3, fg="red", font=("Meiryo", 12))
-            btn_del.pack(side=tk.RIGHT)
-            btn_down = tk.Button(wrapper, text="↓", width=2, font=("Meiryo", 12))
-            btn_down.pack(side=tk.RIGHT, padx=2)
-            btn_up = tk.Button(wrapper, text="↑", width=2, font=("Meiryo", 12))
-            btn_up.pack(side=tk.RIGHT, padx=2)
+                
+            btn_del = ctk.CTkButton(wrapper, text="×", width=30, height=25, fg_color="transparent", text_color="red", hover_color="lightcoral", font=config.FONT_LABEL_BUTTON)
+            btn_del.pack(side="right", padx=5)
+            
+            btn_down = ctk.CTkButton(wrapper, text="↓", width=25, height=25, font=config.FONT_LABEL_BUTTON)
+            btn_down.pack(side="right", padx=2)
+            
+            btn_up = ctk.CTkButton(wrapper, text="↑", width=25, height=25, font=config.FONT_LABEL_BUTTON)
+            btn_up.pack(side="right", padx=2)
+            
             def remove_item(idx=idx):
                 removed = tab_info["bands"][idx]
                 del tab_info["bands"][idx]
@@ -485,12 +495,14 @@ class TopWindow(tk.Toplevel):
                     for t in self.tabs:
                         self.refresh_combo(t)
                 self.update_band_frames(tab)
-            btn_up.config(command=lambda idx=idx: self.move_band(tab, idx, -1))
-            btn_down.config(command=lambda idx=idx: self.move_band(tab, idx, 1))
-            btn_del.config(command=remove_item)
+                
+            btn_up.configure(command=lambda idx=idx: self.move_band(tab, idx, -1))
+            btn_down.configure(command=lambda idx=idx: self.move_band(tab, idx, 1))
+            btn_del.configure(command=remove_item)
+            
             if end_time > end_time_limit:
-                warn = tk.Label(wrapper, text="時刻超過", fg="black", font=("Meiryo", 10, "bold"), bg='#fff59d')
-                warn.pack(side=tk.BOTTOM, fill=tk.X, pady=2)
+                warn = ctk.CTkLabel(wrapper, text="時刻超過", fg_color='#fff59d', text_color="black", font=config.FONT_LABEL_BUTTON)
+                warn.pack(side="right", padx=10)
             current_time = end_time
 
     def move_band(self, tab, idx, direction):
@@ -503,23 +515,22 @@ class TopWindow(tk.Toplevel):
     def refresh_combo(self, tab):
         tab_info = self.tabs[tab]
         used_names = self.used_band_names
-        # オプションフィルタ
         def match_option(band):
             for opt, val in self.filter_options.items():
                 v = val.strip()
                 if v == '':
-                    continue  # 空欄はフィルタしない
+                    continue
                 band_opt = band.options.get(opt, '').strip() if hasattr(band, 'options') else ''
                 if band_opt != v:
                     return False
             return True
         filtered = [b.name for b in tab_info["band_objs"] if b.name not in used_names and match_option(b)]
-        # オプション全空欄時は全バンドを候補に
         if all(v.strip() == '' for v in self.filter_options.values()):
             filtered = [b.name for b in tab_info["band_objs"] if b.name not in used_names]
-        tab_info["combo"]["values"] = filtered
+            
+        tab_info["combo"].configure(values=filtered)
         if filtered:
-            tab_info["combo"].current(0)
+            tab_info["combo"].set(filtered[0])
         else:
             tab_info["combo"].set("")
 
@@ -573,7 +584,7 @@ class TopWindow(tk.Toplevel):
         for tab in self.tabs:
             self.refresh_combo(tab)
             self.update_band_frames(tab)
-            messagebox.showinfo("読み込み", "スケジュールを読み込みました。", parent=self)
+        messagebox.showinfo("読み込み", "スケジュールを読み込みました。", parent=self)
 
     def export_excel(self):
         try:
@@ -582,10 +593,8 @@ class TopWindow(tk.Toplevel):
         except ImportError:
             messagebox.showerror("Excel出力エラー", "openpyxlライブラリが必要です。\npip install openpyxl でインストールしてください。", parent=self)
             return
-        # Excel出力前に Meiryo フォントファイルが必要か確認（なければシステムからコピーを試みる）
         font_file = os.path.join(os.path.dirname(__file__), "meiryo.ttc")
         if not os.path.exists(font_file):
-            # コピーに失敗したら処理中止
             if not self._ensure_font_file("meiryo.ttc", "Meiryo"):
                 return
 
@@ -595,7 +604,6 @@ class TopWindow(tk.Toplevel):
             safe_title = tab_title.replace("/", "-")
             ws = wb.create_sheet(title=safe_title)
             ws.append(["開始時刻", "～", "終了時刻", "枠の名前"])
-            # ヘッダにメイリオフォントを設定
             header_font = Font(name="Meiryo", size=12, bold=True)
             for col in range(1, 5):
                 ws.cell(row=ws.max_row, column=col).font = header_font
@@ -661,7 +669,6 @@ class TopWindow(tk.Toplevel):
             from reportlab.pdfbase.ttfonts import TTFont
             font_path = os.path.join(os.path.dirname(__file__), "meiryo.ttc")
             if not os.path.exists(font_path):
-                # システムフォントからコピーを試みる
                 if not self._ensure_font_file("meiryo.ttc", "Meiryo"):
                     return
             pdfmetrics.registerFont(TTFont("meiryo", font_path))
@@ -680,7 +687,7 @@ class TopWindow(tk.Toplevel):
                 for idx, item in enumerate(tabinfo["bands"]):
                     sched = None
                     for s in self.schedules:
-                        if s['date'].strftime("%m/%d") == tabinfo.get("tab_label"):
+                        if s['date'].strftime("%m/%d") == tabinfo.get('tab_label'):
                             sched = s
                             break
                     if not sched:
@@ -737,25 +744,21 @@ class TopWindow(tk.Toplevel):
         start = self.start_time.get()
         end = self.end_time.get()
 
-        # --- フォーマットチェック ---
         if not self.is_valid_time_format(start) or not self.is_valid_time_format(end):
             messagebox.showerror("エラー", "開始時刻・終了時刻はHH:MM形式で入力してください", parent=self)
             return
 
-        # --- 時刻の前後チェック ---
         start_dt = datetime.strptime(start, "%H:%M")
         end_dt = datetime.strptime(end, "%H:%M")
         if end_dt <= start_dt:
             messagebox.showerror("エラー", "終了時刻は開始時刻より後にしてください", parent=self)
             return
 
-        # --- 日付の重複チェック ---
         for s in self.schedules:
             if s['date'] == date:
                 messagebox.showwarning("重複", "同じ日付が既に追加されています", parent=self)
                 return
 
-        # --- 登録 ---
         self.schedules.append({
             "date": date,
             "start": start,
@@ -781,26 +784,31 @@ class TopWindow(tk.Toplevel):
             return
         idx = selected[0]
         s = self.schedules[idx]
-        edit_win = tk.Toplevel(self)
+        
+        edit_win = ctk.CTkToplevel(self)
         edit_win.title("日程編集")
-        edit_win.geometry("300x200")
-        tk.Label(edit_win, text="日付：").grid(row=0, column=0, padx=10, pady=10)
-        date_entry = DateEntry(edit_win, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd')
+        edit_win.geometry("320x220")
+        edit_win.after(200, lambda: edit_win.focus())
+        
+        ctk.CTkLabel(edit_win, text="日付：", font=config.FONT_LABEL_BUTTON).grid(row=0, column=0, padx=10, pady=10)
+        date_entry = DateEntry(edit_win, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd', font=config.FONT_LABEL_BUTTON)
         date_entry.set_date(s['date'])
         date_entry.grid(row=0, column=1, padx=10, pady=10)
-        tk.Label(edit_win, text="開始時刻：").grid(row=1, column=0, padx=10, pady=10)
-        start_combo = ttk.Combobox(edit_win, values=self.time_options(), width=10, state="normal")
+        
+        ctk.CTkLabel(edit_win, text="開始時刻：", font=config.FONT_LABEL_BUTTON).grid(row=1, column=0, padx=10, pady=10)
+        start_combo = ctk.CTkComboBox(edit_win, values=self.time_options(), width=120, font=config.FONT_LABEL_BUTTON)
         start_combo.set(s['start'])
         start_combo.grid(row=1, column=1, padx=10, pady=10)
-        tk.Label(edit_win, text="終了時刻：").grid(row=2, column=0, padx=10, pady=10)
-        end_combo = ttk.Combobox(edit_win, values=self.time_options(), width=10, state="normal")
+        
+        ctk.CTkLabel(edit_win, text="終了時刻：", font=config.FONT_LABEL_BUTTON).grid(row=2, column=0, padx=10, pady=10)
+        end_combo = ctk.CTkComboBox(edit_win, values=self.time_options(), width=120, font=config.FONT_LABEL_BUTTON)
         end_combo.set(s['end'])
         end_combo.grid(row=2, column=1, padx=10, pady=10)
+        
         def save_edit():
             new_date = date_entry.get_date()
             new_start = start_combo.get()
             new_end = end_combo.get()
-            # フォーマット・前後チェック
             if not self.is_valid_time_format(new_start) or not self.is_valid_time_format(new_end):
                 messagebox.showerror("エラー", "開始時刻・終了時刻はHH:MM形式で入力してください", parent=self)
                 return
@@ -809,17 +817,16 @@ class TopWindow(tk.Toplevel):
             if end_dt <= start_dt:
                 messagebox.showerror("エラー", "終了時刻は開始時刻より後にしてください", parent=self)
                 return
-            # 日付重複チェック（自分以外）
             for i, ss in enumerate(self.schedules):
                 if i != idx and ss['date'] == new_date:
                     messagebox.showwarning("重複", "同じ日付が既に追加されています", parent=self)
                     return
-            # 反映
             self.schedules[idx] = {"date": new_date, "start": new_start, "end": new_end}
             self.update_listbox()
             edit_win.destroy()
-        btn_save = tk.Button(edit_win, text="保存", command=save_edit, bg="#e0f7fa", font=("Meiryo", 12, "bold"))
-        btn_save.grid(row=3, column=0, columnspan=2, pady=20)
+            
+        btn_save = ctk.CTkButton(edit_win, text="保存", command=save_edit, fg_color="#e0f7fa", text_color="black", hover_color="#b2dfdb", font=config.FONT_LABEL_BUTTON)
+        btn_save.grid(row=3, column=0, columnspan=2, pady=15)
 
     def update_listbox(self):
         self.listbox.delete(0, tk.END)
@@ -855,7 +862,14 @@ class TopWindow(tk.Toplevel):
         messagebox.showinfo("読み込み", "日程を読み込みました。", parent=self)
 
 
-# 起動
+# 起動確認用のテストブロック
 if __name__ == "__main__":
-    app = TopWindow()
-    app.mainloop()
+    ctk.set_appearance_mode("System")
+    ctk.set_default_color_theme("blue")
+    
+    # 単体動作テスト用にメインウィンドウを非表示で生成
+    root = ctk.CTk()
+    root.withdraw()
+    
+    app = TopWindow(root)
+    root.mainloop()
