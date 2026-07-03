@@ -1,11 +1,13 @@
 # 2026年6月21日更新 (CustomTkinterモダンデザイン版)
 
-import datetime, openpyxl, re, os, sys, json, difflib, config
+import datetime, openpyxl, re, os, sys, json, difflib
 import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog, ttk
 import tkinter.font as tkfont
 import customtkinter as ctk
 import pandas as pd
+
+import config
 import band_selection as bs
 import attendance_calculation as ac
 from top import TopWindow
@@ -13,6 +15,7 @@ from views.sidebar import SidebarFrame
 from views.attendance_view import AttendanceView
 from views.live_view import LiveView
 from views.band_view import BandView
+from views.timetable_view import TimetableView
 
 FILE_PATH = config.FILE_PATH
 SHEET_NAME = config.SHEET_NAME
@@ -221,31 +224,9 @@ class AttendanceApp:
         self.band_view.pack(fill='both', expand=True)
 
     def make_timetable(self):
-        try:
-            wb = openpyxl.load_workbook(FILE_PATH, data_only=True)
-            ws = wb['登録済みバンド']
-            bands = []
-            for row in range(1, ws.max_row + 1):
-                r_val = ws.cell(row=row, column=18).value
-                if r_val == 1:
-                    band_name = ws.cell(row=row, column=1).value
-                    play_time = ws.cell(row=row, column=12).value
-                    perform_dates = ws.cell(row=row, column=13).value
-                    opt1 = ws.cell(row=row, column=14).value or ''
-                    opt2 = ws.cell(row=row, column=15).value or ''
-                    opt3 = ws.cell(row=row, column=16).value or ''
-                    other = ws.cell(row=row, column=17).value or ''
-                    bands.append([str(band_name), str(play_time), str(perform_dates), str(opt1), str(opt2), str(opt3), str(other)])
-            with open('bands.csv', 'w', encoding='utf-8', newline='') as f:
-                import csv
-                writer = csv.writer(f)
-                writer.writerow(['バンド名', '演奏時間', '出演日', 'オプション1', 'オプション2', 'オプション3', 'その他'])
-                for band in bands:
-                    writer.writerow(band)
-        except Exception as e:
-            messagebox.showerror('CSV出力エラー', f'bands.csvの出力に失敗しました: {e}')
-        app = TopWindow()
-        app.mainloop()
+        self.clear()
+        self.timetable_view = TimetableView(self.main_frame, app=self)
+        self.timetable_view.pack(fill='both', expand=True)
 
     def show_settings(self):
         self.clear()
