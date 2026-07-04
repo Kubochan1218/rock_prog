@@ -41,8 +41,13 @@ class TimetableView(ctk.CTkFrame):
         self.create_widgets()
 
     def _ensure_font_file(self, filename, friendly_name="フォント"):
-        app_dir = os.path.dirname(os.path.abspath(__file__))
-        target_path = os.path.join(app_dir, filename)
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstallerでexe化した場合も、常にexeのある場所を参照
+            app_dir = os.path.dirname(sys.executable)
+        else:
+            # スクリプト実行時はtop.pyのあるディレクトリ
+            app_dir = os.path.dirname(os.path.abspath(__file__))
+        target_path = os.path.join(app_dir, "..", filename)
         if os.path.exists(target_path):
             self._last_font_copied = False
             return target_path
@@ -518,11 +523,13 @@ class TimetableView(ctk.CTkFrame):
         tab_info = self.tabs[tab]
         used_names = self.used_band_names
         def match_option(band):
+            i = 0
             for opt, val in self.filter_options.items():
+                i += 1
                 v = val.strip()
                 if v == '':
                     continue
-                band_opt = band.options.get(opt, '').strip() if hasattr(band, 'options') else ''
+                band_opt = band[f"opt{i}"].strip()
                 if band_opt != v:
                     return False
             return True
@@ -607,8 +614,8 @@ class TimetableView(ctk.CTkFrame):
         if "Sheet" in wb.sheetnames:
             del wb["Sheet"]
         try:
-            wb.save("タイムテーブル.xlsx")
-            msg = "タイムテーブル.xlsx を出力しました。"
+            wb.save(f"【{self.live_name_combo.get()}】タイムテーブル.xlsx")
+            msg = f"【{self.live_name_combo.get()}】タイムテーブル.xlsx を出力しました。"
             if getattr(self, '_last_font_copied', False):
                 msg += "\n※フォントファイルコピー済み"
             messagebox.showinfo("Excel出力", msg, parent=self)
