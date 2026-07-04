@@ -146,7 +146,7 @@ class TimetableView(ctk.CTkFrame):
     def show_option_dialog(self):
         win = ctk.CTkToplevel(self.winfo_toplevel())
         win.title("絞り込みオプション")
-        win.geometry("380x200")
+        win.geometry("380x180")
         win.after(200, lambda: win.focus())
         win.attributes("-topmost", True)
         win.grab_set()  # モーダル化
