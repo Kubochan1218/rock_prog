@@ -1,4 +1,4 @@
-import datetime, json, os, difflib, re, openpyxl
+import json, os, difflib, re, openpyxl
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox, filedialog

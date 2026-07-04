@@ -1,6 +1,5 @@
-import datetime, json, re, os
+import json, re, os
 import customtkinter as ctk
-from tkcalendar import Calendar
 from tkinter import messagebox
 import config
 
@@ -76,7 +75,7 @@ class LiveView(ctk.CTkFrame):
         schedule_rows = [] # 追加された日程行のウィジェットを管理するリスト
         
         # 15分刻みの時刻リストを生成 (07:00 〜 20:45)
-        time_options = [f"{h:02d}:{m:02d}" for h in range(7,21) for m in (0, 15, 30, 45)]
+        time_options = [f"{h:02d}:{m:02d}" for h in range(7,21) for m in (0, 30)]
 
         def add_date_row(date_val="", start_val="", end_val=""):
             """日程入力行を1行追加する関数"""

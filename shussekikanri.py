@@ -1,16 +1,13 @@
-# 2026年6月21日更新 (CustomTkinterモダンデザイン版)
+# 2026年7月5日更新 (CustomTkinterモダンデザイン版)
 
-import datetime, openpyxl, re, os, sys, json, difflib
+import datetime, os, sys
 import tkinter as tk
-from tkinter import messagebox, simpledialog, filedialog, ttk
+from tkinter import messagebox
 import tkinter.font as tkfont
 import customtkinter as ctk
 import pandas as pd
 
 import config
-import band_selection as bs
-import attendance_calculation as ac
-from top import TopWindow
 from views.sidebar import SidebarFrame
 from views.attendance_view import AttendanceView
 from views.live_view import LiveView

@@ -1,14 +1,12 @@
-import os, sys, json, shutil, csv, openpyxl
+import os, sys, json, shutil, openpyxl
 from datetime import datetime, timedelta
 import tkinter as tk
-from tkinter import messagebox, ttk
-from tkcalendar import DateEntry
+from tkinter import messagebox
 import customtkinter as ctk
 import config
-from models import LiveSchedule, BandInfo
 
 class TimetableView(ctk.CTkFrame):
-    def get_json_path(self, filename="schedule_data.json", mode="r"):
+    def get_json_path(self, filename, mode="r"):
         if hasattr(sys, '_MEIPASS'):
             # PyInstallerでexe化した場合も、常にexeのある場所を参照
             base_dir = os.path.dirname(sys.executable)
@@ -92,9 +90,10 @@ class TimetableView(ctk.CTkFrame):
                 date_str = sch.get('date', '')
                 start_str = sch.get('start', '')
                 end_str = sch.get('end', '')
+                saved_bands = sch.get('bands', [])
                 try:
                     date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-                    self.schedules.append({'date': date_obj, 'start': start_str, 'end': end_str})
+                    self.schedules.append({'date': date_obj, 'start': start_str, 'end': end_str, 'saved_bands': saved_bands})
                 except ValueError:
                     continue
             self.show_order_area()
@@ -147,16 +146,20 @@ class TimetableView(ctk.CTkFrame):
     def show_option_dialog(self):
         win = ctk.CTkToplevel(self.winfo_toplevel())
         win.title("絞り込みオプション")
-        win.geometry("420x220")
+        win.geometry("380x200")
         win.after(200, lambda: win.focus())
+        win.attributes("-topmost", True)
+        win.grab_set()  # モーダル化
         
         labels = ["オプション1", "オプション2", "オプション3"]
         entries = {}
         for i, opt in enumerate(labels):
-            ctk.CTkLabel(win, text=opt, font=config.FONT_LABEL_BUTTON).grid(row=i, column=0, padx=15, pady=8, sticky="e")
-            ent = ctk.CTkEntry(win, width=180, font=config.FONT_LABEL_BUTTON)
+            option_frame = ctk.CTkFrame(win, fg_color="transparent")
+            option_frame.pack(pady=5, fill='x')
+            ctk.CTkLabel(option_frame, text=opt, width=120, font=config.FONT_LABEL_BUTTON).pack(side="left", anchor="w", padx=10)
+            ent = ctk.CTkEntry(option_frame, width=180, font=config.FONT_LABEL_BUTTON)
             ent.insert(0, self.filter_options.get(opt, ''))
-            ent.grid(row=i, column=1, padx=15, pady=8)
+            ent.pack(side="left", anchor="w", padx=10)
             entries[opt] = ent
             
         def on_ok():
@@ -174,11 +177,12 @@ class TimetableView(ctk.CTkFrame):
             for tab in self.tabs:
                 self.refresh_combo(tab)
                 
-        btn_ok = ctk.CTkButton(win, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON, width=100, fg_color="#c8e6c9", text_color="black", hover_color="#a5d6a7")
-        btn_ok.grid(row=4, column=0, pady=15, padx=15)
-        
-        btn_clear = ctk.CTkButton(win, text="全解除", command=on_clear, font=config.FONT_LABEL_BUTTON, width=100, fg_color="#ffcdd2", text_color="black", hover_color="#ef9a9a")
-        btn_clear.grid(row=4, column=1, pady=15, padx=15)
+        button_frame = ctk.CTkFrame(win, fg_color="transparent")
+        button_frame.pack(side="bottom", anchor="center", pady=10)
+        btn_ok = ctk.CTkButton(button_frame, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON, width=100, fg_color="#c8e6c9", text_color="black", hover_color="#a5d6a7")
+        btn_ok.pack(side="left", padx=5)
+        btn_clear = ctk.CTkButton(button_frame, text="全解除", command=on_clear, font=config.FONT_LABEL_BUTTON, width=100, fg_color="#ffcdd2", text_color="black", hover_color="#ef9a9a")
+        btn_clear.pack(side="left", padx=5)
 
     def load_band_infos(self):
         """Excelファイルからバンド情報を読み込む"""
@@ -223,7 +227,7 @@ class TimetableView(ctk.CTkFrame):
             label_info.pack(side="left", padx=5)
             
             # Canvasエリア一式を ctk.CTkScrollableFrame の1行に置き換え
-            frame_container = ctk.CTkScrollableFrame(tab, fg_color="#f8f8f8")
+            frame_container = ctk.CTkScrollableFrame(tab)
             frame_container.pack(fill="both", expand=True, padx=5, pady=5)
             
             available_bands = [b for b in self.bands if str(sched['date']) in b['perform_dates'] and b['live_name'] == self.live_name_combo.get()]
@@ -232,16 +236,37 @@ class TimetableView(ctk.CTkFrame):
                 combo.set(available_bands[0]['band_name'])
             else:
                 combo.set("")
-                
+
+            bands_list = []
+            for bname in sched.get('saved_bands', []):
+                # 登録されているバンド情報から演奏時間(分)を探して取得
+                band_obj = self.find_band_by_name(bname, available_bands)
+                if band_obj:
+                    minutes = band_obj['play_time']
+                else:
+                    minutes = 30  # 万が一バンドデータから見つからなかった場合のデフォルト値
+                    
+                # 画面描画用の形式に変換してリストに詰める
+                bands_list.append({'type': 'band', 'name': bname, 'minutes': minutes})
+                # 出演確定リストに登録（他の日程の選択肢から除外するため）
+                self.used_band_names.add(bname)
+
             self.tabs[label_text] = {
                 "combo": combo,
                 "frame": frame_container,
-                "bands": [],
+                "bands": bands_list,
                 "band_objs": available_bands,
                 "tab_label": label_text
             }
 
+            self.update_band_frames(label_text)
+        
+        for t in self.tabs.keys():
+            self.refresh_combo(t)
+
     def add_band(self, combo, tab):
+        """選択されたバンドを指定されたタブに追加する"""
+        # combo: CTkComboBoxのインスタンス, tab: タブのラベル（例: "10/12"）
         band_name = combo.get()
         if not band_name:
             return
@@ -253,11 +278,12 @@ class TimetableView(ctk.CTkFrame):
         if not band:
             messagebox.showerror("エラー", "バンド情報が見つかりません", parent=self)
             return
-        tab_info["bands"].append({'type': 'band', 'name': band_name, 'minutes': band['performance_minutes']})
+        tab_info["bands"].append({'type': 'band', 'name': band_name, 'minutes': band['play_time']})
         self.used_band_names.add(band_name)
         for t in self.tabs.keys():
             self.refresh_combo(t)
         self.update_band_frames(tab)
+        self.auto_save_live_bands()
 
     def add_special_frame(self, tab):
         def on_ok():
@@ -282,29 +308,39 @@ class TimetableView(ctk.CTkFrame):
             self.tabs[tab]["bands"].append(item)
             win.destroy()
             self.update_band_frames(tab)
-            
+            self.auto_save_live_bands()
+
         win = ctk.CTkToplevel(self.winfo_toplevel())
         win.title("特別枠追加")
-        win.geometry("320x180")
+        win.geometry("360x200")
         win.after(200, lambda: win.focus())
+
+        win.attributes("-topmost", True)
+        win.grab_set()  # モーダル化
         
-        ctk.CTkLabel(win, text="種別", font=config.FONT_LABEL_BUTTON).grid(row=0, column=0, padx=10, pady=5)
+        kinds_frame = ctk.CTkFrame(win, fg_color="transparent")
+        kinds_frame.pack(pady=5, fill='x')
+        ctk.CTkLabel(kinds_frame, text="種別", font=config.FONT_LABEL_BUTTON).pack(side="left", anchor="w", padx=10, pady=5)
         var_kind = tk.StringVar(value='休憩')
         kinds = ['休憩', '転換', 'リハ']
-        combo_kind = ctk.CTkComboBox(win, values=kinds, variable=var_kind, state="readonly", width=120, font=config.FONT_LABEL_BUTTON)
-        combo_kind.grid(row=0, column=1, padx=5, pady=5)
+        combo_kind = ctk.CTkComboBox(kinds_frame, values=kinds, variable=var_kind, state="readonly", width=180, font=config.FONT_LABEL_BUTTON)
+        combo_kind.pack(side="right", padx=10)
         
-        ctk.CTkLabel(win, text="分数", font=config.FONT_LABEL_BUTTON).grid(row=1, column=0, padx=10, pady=5)
-        entry_min = ctk.CTkEntry(win, width=120, justify='center', font=config.FONT_LABEL_BUTTON)
-        entry_min.grid(row=1, column=1, padx=5, pady=5)
+        minutes_frame = ctk.CTkFrame(win, fg_color="transparent")
+        minutes_frame.pack(pady=5, fill='x')
+        ctk.CTkLabel(minutes_frame, text="分数", font=config.FONT_LABEL_BUTTON).pack(side="left", anchor="w", padx=10, pady=5)
+        entry_min = ctk.CTkEntry(minutes_frame, width=180, justify='center', font=config.FONT_LABEL_BUTTON)
+        entry_min.pack(side="right", padx=10)
         
-        ctk.CTkLabel(win, text="バンド名(リハのみ)", font=config.FONT_LABEL_BUTTON).grid(row=2, column=0, padx=10, pady=5)
-        all_band_names = [b.name for b in self.tabs[tab]['band_objs']]
-        combo_band = ctk.CTkComboBox(win, values=all_band_names, width=180, font=config.FONT_LABEL_BUTTON)
-        combo_band.grid(row=2, column=1, padx=5, pady=5)
+        band_frame = ctk.CTkFrame(win, fg_color="transparent")
+        band_frame.pack(pady=5, fill='x')
+        ctk.CTkLabel(band_frame, text="バンド名(リハのみ)", font=config.FONT_LABEL_BUTTON).pack(side="left", anchor="w", padx=10, pady=5)
+        all_band_names = [b['band_name'] for b in self.tabs[tab]['band_objs']]
+        combo_band = ctk.CTkComboBox(band_frame, values=all_band_names, width=180, font=config.FONT_LABEL_BUTTON)
+        combo_band.pack(side="right", padx=10)
         
         btn = ctk.CTkButton(win, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON)
-        btn.grid(row=3, column=0, columnspan=2, pady=15)
+        btn.pack(side="bottom", padx=10, pady=10)
         
         def on_kind_change(choice):
             if choice == 'リハ':
@@ -315,30 +351,6 @@ class TimetableView(ctk.CTkFrame):
                 
         combo_kind.configure(command=on_kind_change)
         on_kind_change(var_kind.get())
-    
-    def transfer_data(self):
-        result = messagebox.askyesno("確認", "引き継ぎ先のコンピュータに出席管理システムがインストールされていますか？", parent=self)
-        if result:
-            self.save_schedule()
-            desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
-            target_dir = os.path.join(desktop, '【ロック部出席管理】引き継ぎデータ')
-            os.makedirs(target_dir, exist_ok=True)
-            files = [
-                os.path.join(os.path.dirname(sys.argv[0]), 'attend_data.xlsx'),
-                os.path.join(os.path.dirname(sys.argv[0]), 'bands.csv'),
-                os.path.join(os.path.dirname(sys.argv[0]), 'schedule_data.json'),
-            ]
-            copied = []
-            for f in files:
-                if os.path.exists(f):
-                    shutil.copy2(f, target_dir)
-                    copied.append(os.path.basename(f))
-            msg = f"編集中の日程・出演順データを保存し、引き継ぎデータをデスクトップの『【ロック部出席管理】引き継ぎデータ』フォルダに保存しました。\n\n" \
-                  f"引き継ぎ先のコンピュータにこのフォルダごと移動すると引き継ぎが完了します。\n\n" \
-                  f"保存ファイル: {', '.join(copied)}"
-            messagebox.showinfo("引き継ぎ完了", msg, parent=self)
-        else:
-            messagebox.showinfo("案内", "引き継ぎ先のコンピュータにソフトウェアをインストールしてから引き継ぎを行ってください。", parent=self)
 
     def update_band_frames(self, tab):
         tab_info = self.tabs[tab]
@@ -361,15 +373,15 @@ class TimetableView(ctk.CTkFrame):
                 name = item['name']
                 minutes = item['minutes']
                 label_text = f"{name}（{minutes}分）"
-                band_info = self.find_band_by_name(name, self.band_data)
+                band_info = self.find_band_by_name(name, self.bands)
                 def show_band_info(event, band_info=band_info):
                     if band_info:
-                        info = f"バンド名: {band_info.name}\n演奏時間: {band_info.performance_minutes}分\n出演日: {', '.join([d.strftime('%Y-%m-%d') for d in band_info.available_dates])}"
+                        info = f"バンド名: {band_info['band_name']}\n演奏時間: {band_info['play_time']}分\n出演日: {band_info['perform_dates']}\nオプション1: {band_info['opt1']}\nオプション2: {band_info['opt2']}\nオプション3: {band_info['opt3']}\nその他: {band_info['other']}"
                         if hasattr(band_info, 'options'):
-                            for k, v in band_info.options.items():
+                            for k, v in band_info['options'].items():
                                 info += f"\n{k}: {v}"
-                        if hasattr(band_info, 'other') and band_info.other:
-                            info += f"\nその他: {band_info.other}"
+                        if hasattr(band_info, 'other') and band_info['other']:
+                            info += f"\nその他: {band_info['other']}"
                         messagebox.showinfo("バンド情報", info, parent=self)
             elif item['type'] == 'break':
                 name = None
@@ -387,7 +399,7 @@ class TimetableView(ctk.CTkFrame):
                 continue
                 
             start_str = current_time.strftime("%H:%M")
-            end_time = current_time + timedelta(minutes=minutes)
+            end_time = current_time + timedelta(minutes=int(minutes))
             end_str = end_time.strftime("%H:%M")
             
             bg_color = None
@@ -430,6 +442,7 @@ class TimetableView(ctk.CTkFrame):
                     for t in self.tabs:
                         self.refresh_combo(t)
                 self.update_band_frames(tab)
+                self.auto_save_live_bands()
                 
             btn_up.configure(command=lambda idx=idx: self.move_band(tab, idx, -1))
             btn_down.configure(command=lambda idx=idx: self.move_band(tab, idx, 1))
@@ -446,6 +459,60 @@ class TimetableView(ctk.CTkFrame):
         if 0 <= new_idx < len(tab_info["bands"]):
             tab_info["bands"][idx], tab_info["bands"][new_idx] = tab_info["bands"][new_idx], tab_info["bands"][idx]
             self.update_band_frames(tab)
+            self.auto_save_live_bands()
+
+    def auto_save_live_bands(self):
+        """バンドの出演順が変わったときに、live_info.jsonへ自動保存する関数"""
+        # 現在コンボボックスで選択されているライブ名を取得
+        live_key = self.live_name_combo.get()
+        if not live_key or live_key not in self.existing_lives:
+            return  # ライブが選択されていない場合は何もしない
+
+        # 最新の live_info.json を一度読み込む（他データの誤消去を防ぐため）
+        json_path = self.get_json_path("live_info.json")
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                live_data = json.load(f)
+        except Exception:
+            live_data = self.existing_lives
+
+        if live_key not in live_data:
+            return
+
+        # ライブの日程リストを取得
+        schedules = live_data[live_key].get('schedules', [])
+
+        # 各日程ごとにタイムテーブルの上から順にバンド名を抽出して格納
+        for sch in schedules:
+            sch_date_str = sch.get('date', '')  # 例: "2026-06-20"
+            target_bands = []
+
+            # 現在表示中の全スケジュール（self.schedules）から日付が一致するタブを探す
+            for s in self.schedules:
+                if s['date'].strftime("%Y-%m-%d") == sch_date_str:
+                    tab_label = s['date'].strftime("%m/%d")  # タブのキー（例: "06/20"）
+                    
+                    if tab_label in self.tabs:
+                        # タイムテーブルに並んでいる全枠を取得
+                        band_items = self.tabs[tab_label]["bands"]
+                        # 純粋な「バンド枠」かつ「名前があるもの」だけを順番に抽出
+                        target_bands = [
+                            item['name'] for item in band_items 
+                            if item.get('type') == 'band' and item.get('name')
+                        ]
+                    break
+
+            # JSONデータ構造内の対象日程に "bands" リストを追加・更新
+            sch['bands'] = target_bands
+
+        # live_info.json に上書き保存
+        try:
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump(live_data, f, ensure_ascii=False, indent=4)
+            # メモリ上のデータも最新状態に更新
+            self.existing_lives = live_data
+        except Exception as e:
+            messagebox.showerror("自動保存エラー", f"JSONの書き込みに失敗しました: {e}", parent=self)
 
     def refresh_combo(self, tab):
         tab_info = self.tabs[tab]
@@ -459,9 +526,9 @@ class TimetableView(ctk.CTkFrame):
                 if band_opt != v:
                     return False
             return True
-        filtered = [b.name for b in tab_info["band_objs"] if b.name not in used_names and match_option(b)]
+        filtered = [b["band_name"] for b in tab_info["band_objs"] if b["band_name"] not in used_names and match_option(b)]
         if all(v.strip() == '' for v in self.filter_options.values()):
-            filtered = [b.name for b in tab_info["band_objs"] if b.name not in used_names]
+            filtered = [b["band_name"] for b in tab_info["band_objs"] if b["band_name"] not in used_names]
             
         tab_info["combo"].configure(values=filtered)
         if filtered:
@@ -471,55 +538,9 @@ class TimetableView(ctk.CTkFrame):
 
     def find_band_by_name(self, name, band_list):
         for b in band_list:
-            if b.name == name:
+            if b["band_name"] == name:
                 return b
         return None
-
-    def save_schedule(self):
-        data = {
-            "schedules": [
-                {
-                    "date": s['date'].strftime("%Y-%m-%d"),
-                    "start_time": s['start'],
-                    "end_time": s['end']
-                } for s in self.schedules
-            ],
-            "bands": {
-                tabinfo.get("tab_label", str(i)): tabinfo["bands"]
-                for i, (tab, tabinfo) in enumerate(self.tabs.items())
-            }
-        }
-        try:
-            json_path = self.get_json_path()
-            with open(json_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-                messagebox.showinfo("保存", "スケジュールを保存しました。", parent=self)
-        except Exception as e:
-                messagebox.showerror("保存エラー", str(e), parent=self)
-
-    def load_schedule(self):
-        try:
-            json_path = self.get_json_path()
-            with open(json_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception as e:
-            messagebox.showerror("読み込みエラー", str(e), parent=self)
-            return
-        date2tab = {tabinfo.get("tab_label"): tab for tab, tabinfo in self.tabs.items()}
-        bands_data = data.get("bands", {})
-        self.used_band_names.clear()
-        for tab_label, bands in bands_data.items():
-            tab = date2tab.get(tab_label)
-            if tab:
-                self.tabs[tab]["bands"] = bands
-        for tab in self.tabs:
-            for b in self.tabs[tab]["bands"]:
-                if b.get("type") == "band":
-                    self.used_band_names.add(b["name"])
-        for tab in self.tabs:
-            self.refresh_combo(tab)
-            self.update_band_frames(tab)
-        messagebox.showinfo("読み込み", "スケジュールを読み込みました。", parent=self)
 
     def export_excel(self):
         try:
@@ -552,9 +573,9 @@ class TimetableView(ctk.CTkFrame):
                     continue
                 current_time = datetime.strptime(sched['start'], "%H:%M")
                 for i in range(idx):
-                    current_time += timedelta(minutes=tabinfo["bands"][i]["minutes"])
+                    current_time += timedelta(minutes=int(tabinfo["bands"][i]["minutes"]))
                 start_str = current_time.strftime("%H:%M")
-                end_time = current_time + timedelta(minutes=item["minutes"])
+                end_time = current_time + timedelta(minutes=int(item["minutes"]))
                 end_str = end_time.strftime("%H:%M")
                 name = item.get("name") if item.get("type") != "break" and item.get("type") != "change" else None
                 if item["type"] == "band":
@@ -594,129 +615,3 @@ class TimetableView(ctk.CTkFrame):
             self._last_font_copied = False
         except Exception as e:
             messagebox.showerror("Excel出力エラー", str(e), parent=self)
-
-    def time_options(self):
-        return [f"{h:02d}:{m:02d}" for h in range(8, 21) for m in (0, 30)]
-
-    def add_schedule(self):
-        date = self.date_entry.get_date()
-        start = self.start_time.get()
-        end = self.end_time.get()
-
-        if not self.is_valid_time_format(start) or not self.is_valid_time_format(end):
-            messagebox.showerror("エラー", "開始時刻・終了時刻はHH:MM形式で入力してください", parent=self)
-            return
-
-        start_dt = datetime.strptime(start, "%H:%M")
-        end_dt = datetime.strptime(end, "%H:%M")
-        if end_dt <= start_dt:
-            messagebox.showerror("エラー", "終了時刻は開始時刻より後にしてください", parent=self)
-            return
-
-        for s in self.schedules:
-            if s['date'] == date:
-                messagebox.showwarning("重複", "同じ日付が既に追加されています", parent=self)
-                return
-
-        self.schedules.append({
-            "date": date,
-            "start": start,
-            "end": end
-        })
-
-        self.update_listbox()
-
-    def delete_schedule(self):
-        selected = self.listbox.curselection()
-        if not selected:
-            messagebox.showinfo("削除", "削除する日程を選択してください", parent=self)
-            return
-
-        index = selected[0]
-        del self.schedules[index]
-        self.update_listbox()
-
-    def edit_schedule(self):
-        selected = self.listbox.curselection()
-        if not selected:
-            messagebox.showinfo("編集", "編集する日程を選択してください", parent=self)
-            return
-        idx = selected[0]
-        s = self.schedules[idx]
-        
-        edit_win = ctk.CTkToplevel(self.winfo_toplevel())
-        edit_win.title("日程編集")
-        edit_win.geometry("320x220")
-        edit_win.after(200, lambda: edit_win.focus())
-        
-        ctk.CTkLabel(edit_win, text="日付：", font=config.FONT_LABEL_BUTTON).grid(row=0, column=0, padx=10, pady=10)
-        date_entry = DateEntry(edit_win, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd', font=config.FONT_LABEL_BUTTON)
-        date_entry.set_date(s['date'])
-        date_entry.grid(row=0, column=1, padx=10, pady=10)
-        
-        ctk.CTkLabel(edit_win, text="開始時刻：", font=config.FONT_LABEL_BUTTON).grid(row=1, column=0, padx=10, pady=10)
-        start_combo = ctk.CTkComboBox(edit_win, values=self.time_options(), width=120, font=config.FONT_LABEL_BUTTON)
-        start_combo.set(s['start'])
-        start_combo.grid(row=1, column=1, padx=10, pady=10)
-        
-        ctk.CTkLabel(edit_win, text="終了時刻：", font=config.FONT_LABEL_BUTTON).grid(row=2, column=0, padx=10, pady=10)
-        end_combo = ctk.CTkComboBox(edit_win, values=self.time_options(), width=120, font=config.FONT_LABEL_BUTTON)
-        end_combo.set(s['end'])
-        end_combo.grid(row=2, column=1, padx=10, pady=10)
-        
-        def save_edit():
-            new_date = date_entry.get_date()
-            new_start = start_combo.get()
-            new_end = end_combo.get()
-            if not self.is_valid_time_format(new_start) or not self.is_valid_time_format(new_end):
-                messagebox.showerror("エラー", "開始時刻・終了時刻はHH:MM形式で入力してください", parent=self)
-                return
-            start_dt = datetime.strptime(new_start, "%H:%M")
-            end_dt = datetime.strptime(new_end, "%H:%M")
-            if end_dt <= start_dt:
-                messagebox.showerror("エラー", "終了時刻は開始時刻より後にしてください", parent=self)
-                return
-            for i, ss in enumerate(self.schedules):
-                if i != idx and ss['date'] == new_date:
-                    messagebox.showwarning("重複", "同じ日付が既に追加されています", parent=self)
-                    return
-            self.schedules[idx] = {"date": new_date, "start": new_start, "end": new_end}
-            self.update_listbox()
-            edit_win.destroy()
-            
-        btn_save = ctk.CTkButton(edit_win, text="保存", command=save_edit, fg_color="#e0f7fa", text_color="black", hover_color="#b2dfdb", font=config.FONT_LABEL_BUTTON)
-        btn_save.grid(row=3, column=0, columnspan=2, pady=15)
-
-    def update_listbox(self):
-        self.listbox.delete(0, tk.END)
-        for s in self.schedules:
-            date_str = s['date'].strftime('%Y-%m-%d')
-            self.listbox.insert(tk.END, f"{date_str} / {s['start']}～{s['end']}")
-
-    def is_valid_time_format(self, time_str):
-        try:
-            datetime.strptime(time_str, "%H:%M")
-            return True
-        except ValueError:
-            return False
-
-    def load_schedules(self):
-        try:
-            json_path = self.get_json_path()
-            with open(json_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception as e:
-            messagebox.showerror("読み込みエラー", str(e), parent=self)
-            return
-        self.schedules.clear()
-        for s in data.get("schedules", []):
-            try:
-                d = datetime.strptime(s["date"], "%Y-%m-%d").date()
-                start = s["start_time"] if "start_time" in s else s["start"]
-                end = s["end_time"] if "end_time" in s else s["end"]
-                self.schedules.append({"date": d, "start": start, "end": end})
-            except Exception:
-                continue
-        self.update_listbox()
-        messagebox.showinfo("読み込み", "日程を読み込みました。", parent=self)
-
