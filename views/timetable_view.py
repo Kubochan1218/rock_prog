@@ -228,7 +228,7 @@ class TimetableView(ctk.CTkFrame):
             btn_special = ctk.CTkButton(top_frame, text="特別枠追加", command=lambda t=label_text: self.add_special_frame(t), font=config.FONT_LABEL_BUTTON, width=100, fg_color="#ffe0b2", text_color="black", hover_color="#ffcc80")
             btn_special.pack(side="left", padx=5)
             
-            label_info = ctk.CTkLabel(top_frame, text="バンド名をクリックして\nバンド情報を表示", font=config.FONT_LABEL_BUTTON, justify="left")
+            label_info = ctk.CTkLabel(top_frame, text="ⓘをクリックして\nバンド情報を表示", font=config.FONT_LABEL_BUTTON, justify="left")
             label_info.pack(side="left", padx=5)
             
             # Canvasエリア一式を ctk.CTkScrollableFrame の1行に置き換え
@@ -409,7 +409,7 @@ class TimetableView(ctk.CTkFrame):
             
             bg_color = None
             if item['type'] == 'band' and band_info is not None:
-                other_val = getattr(band_info, 'other', None)
+                other_val = band_info.get('other', None)
                 if other_val is not None and str(other_val).lower() != 'nan' and str(other_val).strip() != '':
                     bg_color = '#b2ebf2'  # 水色
             if bg_color is None and end_time > end_time_limit:
@@ -426,9 +426,6 @@ class TimetableView(ctk.CTkFrame):
             
             label = ctk.CTkLabel(wrapper, text=f"{start_str}～{end_str} {label_text}", anchor="w", font=config.FONT_LABEL_BUTTON, text_color="black" if bg_color else None)
             label.pack(side="left", fill="x", expand=True, padx=10)
-            
-            if item['type'] == 'band':
-                label.bind('<Button-1>', show_band_info)
                 
             btn_del = ctk.CTkButton(wrapper, text="×", width=30, height=25, fg_color="transparent", text_color="red", hover_color="lightcoral", font=config.FONT_LABEL_BUTTON)
             btn_del.pack(side="right", padx=5)
@@ -438,6 +435,10 @@ class TimetableView(ctk.CTkFrame):
             
             btn_up = ctk.CTkButton(wrapper, text="↑", width=25, height=25, font=config.FONT_LABEL_BUTTON)
             btn_up.pack(side="right", padx=2)
+            
+            if item['type'] == 'band' and band_info is not None:
+                btn_info = ctk.CTkButton(wrapper, text="i", width=25, height=25, fg_color="blue", text_color="white", hover_color="#bbdefb", font=config.FONT_LABEL_BUTTON, command=lambda b=band_info: show_band_info(None, b))
+                btn_info.pack(side="right", padx=2)
             
             def remove_item(idx=idx):
                 removed = tab_info["bands"][idx]
