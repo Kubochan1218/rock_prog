@@ -96,9 +96,11 @@ class TimetableView(ctk.CTkFrame):
                 start_str = sch.get('start', '')
                 end_str = sch.get('end', '')
                 saved_bands = sch.get('bands', [])
+                saved_timetable = sch.get('timetable_items', [])
+                
                 try:
                     date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-                    self.schedules.append({'date': date_obj, 'start': start_str, 'end': end_str, 'saved_bands': saved_bands})
+                    self.schedules.append({'date': date_obj, 'start': start_str, 'end': end_str, 'saved_bands': saved_bands, 'saved_timetable': saved_timetable})
                 except ValueError:
                     continue
             self.show_order_area()
@@ -243,18 +245,24 @@ class TimetableView(ctk.CTkFrame):
                 combo.set("")
 
             bands_list = []
-            for bname in sched.get('saved_bands', []):
-                # 登録されているバンド情報から演奏時間(分)を探して取得
-                band_obj = self.find_band_by_name(bname, available_bands)
-                if band_obj:
-                    minutes = band_obj['play_time']
-                else:
-                    minutes = 30  # 万が一バンドデータから見つからなかった場合のデフォルト値
-                    
-                # 画面描画用の形式に変換してリストに詰める
-                bands_list.append({'type': 'band', 'name': bname, 'minutes': minutes})
-                # 出演確定リストに登録（他の日程の選択肢から除外するため）
-                self.used_band_names.add(bname)
+            if sched.get('saved_timetable'):
+                for item in sched['saved_timetable']:
+                    bands_list.append(item)
+                    if item.get('type') == 'band':
+                        self.used_band_names.add(item['name'])
+            else:            
+                for bname in sched.get('saved_bands', []):
+                    # 登録されているバンド情報から演奏時間(分)を探して取得
+                    band_obj = self.find_band_by_name(bname, available_bands)
+                    if band_obj:
+                        minutes = band_obj['play_time']
+                    else:
+                        minutes = 30  # 万が一バンドデータから見つからなかった場合のデフォルト値
+                        
+                    # 画面描画用の形式に変換してリストに詰める
+                    bands_list.append({'type': 'band', 'name': bname, 'minutes': minutes})
+                    # 出演確定リストに登録（他の日程の選択肢から除外するため）
+                    self.used_band_names.add(bname)
 
             self.tabs[label_text] = {
                 "combo": combo,
@@ -510,6 +518,7 @@ class TimetableView(ctk.CTkFrame):
 
             # JSONデータ構造内の対象日程に "bands" リストを追加・更新
             sch['bands'] = target_bands
+            sch['timetable_items'] = band_items
 
         # live_info.json に上書き保存
         try:
