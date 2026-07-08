@@ -87,10 +87,6 @@ class BandView(ctk.CTkFrame):
 
         btn_next = ctk.CTkButton(tab, text='🚀 データの読み込みを開始', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', width=300, height=45, command=process_excel)
         btn_next.pack(pady=40)
-            
-        # キャンセルボタン（左下に配置）
-        btn_top = ctk.CTkButton(tab, text='キャンセル', width=120, fg_color='#ff0000', text_color='white', font=(config.FONT_NAME, 16), command=self.app.show_top)
-        btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def show_management_screen(self, tabview, existing_lives):
         """STEP 1: 登録済みバンドの抽出と編集・削除画面"""
@@ -107,7 +103,7 @@ class BandView(ctk.CTkFrame):
 
         # リスト描画用のコンテナフレーム
         list_container = ctk.CTkFrame(tab, fg_color="transparent")
-        list_container.pack(fill='both', expand=True, padx=5, pady=(10, 65))
+        list_container.pack(fill='both', expand=True, padx=5, pady=10)
 
         def refresh_managed_bands(*args):
             """選択されたライブに紐づくバンドを再読み込みして描画"""
@@ -274,10 +270,6 @@ class BandView(ctk.CTkFrame):
             live_selector.set(list(existing_lives.keys())[0])
             refresh_managed_bands()
 
-        # キャンセルボタン（左下に配置）
-        btn_manage_back = ctk.CTkButton(tab, text='キャンセル', width=120, fg_color='#ff0000', text_color='white', font=(config.FONT_NAME, 16), command=self.app.show_top)
-        btn_manage_back.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
-
     def setup_band_selection_tab(self, tabview, existing_lives):
         """バンド選出タブを追加し、UIを構築する"""
         # 1. 新しいタブ「バンド選出」を追加
@@ -325,13 +317,16 @@ class BandView(ctk.CTkFrame):
                 self.entry_total_time.delete(0, 'end')
                 self.entry_total_time.insert(0, str(int(total_minutes)))
 
-        ctk.CTkLabel(date_frame, text='出席率計算 開始日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=(0, 6))
+        ctk.CTkLabel(date_frame, text='出席率計算 開始日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=6)
         self.start_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_start, command=update_end_dates)
-        self.start_combo.pack(side='left', padx=5, pady=(0, 6))
+        self.start_combo.pack(side='left', padx=5, pady=6)
         
-        ctk.CTkLabel(date_frame, text='出席率計算 終了日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=(0, 6))
+        ctk.CTkLabel(date_frame, text='出席率計算 終了日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=6)
         self.end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_end)
-        self.end_combo.pack(side='left', padx=5, pady=(0, 6))
+        self.end_combo.pack(side='left', padx=5, pady=6)
+        
+        ctk.CTkLabel(date_frame, text='ⓘ', font=(config.FONT_NAME, 18)).pack(side='left', anchor="w", padx=(15, 5))
+        ctk.CTkLabel(date_frame, text='開始日と終了日を同じ日付に設定すると\nその日の出欠状況のみを選出に使用します。', font=(config.FONT_NAME, 14), anchor="w", justify="left").pack(side='left', padx=0)
         
         # ライブを選択
         row_live = ctk.CTkFrame(scroll_frame, fg_color="transparent")
@@ -604,7 +599,7 @@ class BandView(ctk.CTkFrame):
         btn_register.place(relx=1.0, rely=1.0, anchor='se', x=-25, y=-21)
 
         # キャンセルボタン（左下に配置）
-        btn_cancel = ctk.CTkButton(parent_tab, text='キャンセル', font=(config.FONT_NAME, 16), fg_color='#ff0000', text_color='white', width=120, command=self.app.show_top)
+        btn_cancel = ctk.CTkButton(parent_tab, text='キャンセル', font=(config.FONT_NAME, 16), fg_color='#ff0000', text_color='white', width=120, command=self.show_band_input)
         btn_cancel.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def execute_band_selection(self):

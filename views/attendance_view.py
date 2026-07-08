@@ -20,7 +20,8 @@ class AttendanceView(ctk.CTkFrame):
     def show_attendance_date_select(self):
         self.clear_frame()
         
-        ctk.CTkLabel(self, text='出欠管理 - 出席をとる日付を選択します。', font=config.FONT_TITLE).pack(pady=15, anchor="w")
+        ctk.CTkLabel(self, text='👥 出欠管理', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
+        ctk.CTkLabel(self, text='出席をとる日付を選択します。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=(0, 5), anchor="w")
 
         btn_today = ctk.CTkButton(
             self, text='📅 今日の出席をとる', width=200, height=45, 
@@ -35,7 +36,8 @@ class AttendanceView(ctk.CTkFrame):
         btn_other.pack(pady=10)
         
         ctk.CTkLabel(self, text='', font=config.FONT_TITLE).pack(pady=15, anchor="w")
-        ctk.CTkLabel(self, text='出欠状況の確認 - 出欠状況をテキストファイルで出力します。', font=config.FONT_TITLE).pack(pady=15, anchor="w")
+        ctk.CTkLabel(self, text='👥 出欠状況の確認', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
+        ctk.CTkLabel(self, text='出欠状況をテキストファイルで出力します。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=(0, 5), anchor="w")
         date_frame = ctk.CTkFrame(self)
         date_frame.pack(pady=15, fill="x", padx=10)
         date_candidates_start = self.app.get_available_dates()
@@ -59,11 +61,11 @@ class AttendanceView(ctk.CTkFrame):
         end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_end)
         end_combo.pack(side='left', padx=5, pady=10)
         
+        ctk.CTkLabel(date_frame, text='ⓘ', font=(config.FONT_NAME, 18)).pack(side='left', anchor="w", padx=(15, 5))
+        ctk.CTkLabel(date_frame, text='開始日と終了日を同じ日付に設定すると\nその日の出欠状況のみを確認できます。', font=(config.FONT_NAME, 14), anchor="w", justify="left").pack(side='left', padx=0)
+        
         btn_check = ctk.CTkButton(self, text='👁 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=config.FONT_LABEL_BUTTON, command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), config.FILE_PATH, config.SHEET_NAME))
         btn_check.pack(pady=10)
-        
-        btn_top = ctk.CTkButton(self, text='キャンセル', width=120, fg_color='#ff0000', text_color='white', font=(config.FONT_NAME, 16), command=self.app.show_top)
-        btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def start_attendance_today(self):
         today = datetime.datetime.now().strftime('%m/%d').lstrip('0').replace('/0', '/')

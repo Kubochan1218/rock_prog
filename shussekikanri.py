@@ -2,7 +2,7 @@
 
 import datetime, os, sys
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 import tkinter.font as tkfont
 import customtkinter as ctk
 import pandas as pd
@@ -19,7 +19,7 @@ SHEET_NAME = config.SHEET_NAME
 FONT_NAME = config.FONT_NAME
 
 # アプリ全体のテーマカラー設定
-ctk.set_appearance_mode(config.APP_MODE)  # "System", "Dark", "Light"
+ctk.set_appearance_mode(config.APP_MODE)  # デフォルトは"System"
 ctk.set_default_color_theme(config.APP_COLOR)  # "blue", "green", "dark-blue"
 
 class AttendanceApp:
@@ -37,7 +37,12 @@ class AttendanceApp:
             
         # 設定読み込み（操作支援など）
         self.load_settings()
-        
+        appearance_mode = self.settings.get('appearance_mode', config.APP_MODE)
+        try:
+            ctk.set_appearance_mode(appearance_mode)
+        except Exception:
+            ctk.set_appearance_mode(config.APP_MODE)
+
         # 全体レイアウト：2カラム構成（左：固定サイドメニュー、右：動的画面）
         self.master.grid_columnconfigure(1, weight=1)
         self.master.grid_rowconfigure(0, weight=1)
@@ -221,6 +226,7 @@ class AttendanceApp:
         self.band_view.pack(fill='both', expand=True)
 
     def make_timetable(self):
+        """タイムテーブル作成画面を表示"""
         self.clear()
         self.timetable_view = TimetableView(self.main_frame, app=self)
         self.timetable_view.pack(fill='both', expand=True)
@@ -229,39 +235,52 @@ class AttendanceApp:
         self.clear()
         ctk.CTkLabel(self.main_frame, text='システム環境設定', font=config.FONT_TITLE).pack(pady=20, anchor="w")
         
-        btn_excel = ctk.CTkButton(self.main_frame, text='📁 Excelデータソースの設定', font=(FONT_NAME, 16), text_color='white', width=220, height=42, command=self.show_excel_file_settings, fg_color="#00bb44")
-        btn_excel.pack(pady=10, anchor="w")
+        excel_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        excel_frame.pack(pady=10, fill='x')
+        ctk.CTkLabel(excel_frame, text='Excelデータソースの設定', font=config.FONT_LABEL_BUTTON).pack(pady=(5, 0), anchor="w")
+        ctk.CTkLabel(excel_frame, text='出欠情報が格納されたExcelファイルを指定します。', font=config.FONT_SUBTITLE, text_color='gray').pack(pady=(0, 5), anchor="w")
         
+        if FILE_PATH:
+            file_path_var = tk.StringVar(value=FILE_PATH)
+        else:
+            file_path_var = tk.StringVar()
+            
+        file_frame = ctk.CTkFrame(excel_frame, fg_color="transparent")
+        file_frame.pack(anchor='w', fill='x')
+            
+        file_entry = ctk.CTkEntry(file_frame, textvariable=file_path_var, width=350, font=(config.FONT_NAME, 16), state='disabled')
+        file_entry.pack(side='left', padx=(0, 10))
+
+        def select_file():
+            f_path = filedialog.askopenfilename(title='出欠情報が格納されたExcelを選択', filetypes=[('Excelファイル', '*.xlsx;*.xls')])
+            if f_path:
+                file_path_var.set(f_path)
+                globals()['FILE_PATH'] = f_path
+            
+        btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color='#80d4ff', text_color='black', font=(config.FONT_NAME, 16), command=select_file)
+        btn_file.pack(side='left')
+        
+        appearance_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        appearance_frame.pack(pady=10, fill='x')
+        ctk.CTkLabel(appearance_frame, text='外観設定', font=config.FONT_LABEL_BUTTON).pack(pady=5, anchor="w")
+        
+        mode = {"システム": "System", "ダーク": "Dark", "ライト": "Light"}
+        def change_appearance(choice):
+            try:
+                ctk.set_appearance_mode(mode[choice])
+                self.settings['appearance_mode'] = mode[choice]
+                self.save_settings()
+            except Exception:
+                pass
+        
+        appearance_mode = self.settings.get('appearance_mode', config.APP_MODE)
+        appearance_key = [k for k, v in mode.items() if v == appearance_mode]
+        appearance_combo = ctk.CTkComboBox(appearance_frame, values=list(mode.keys()), font=(config.FONT_NAME, 16), width=120, command=change_appearance)
+        appearance_combo.set(appearance_key[0] if appearance_key else "")
+        appearance_combo.pack(pady=5, anchor="w")
+
         btn_op = ctk.CTkButton(self.main_frame, text='💡 操作支援・ガイド設定', font=(FONT_NAME, 16), text_color='white', width=220, height=42, command=self.show_operation_support_settings, fg_color="#35cbfd")
-        btn_op.pack(pady=10, anchor="w")
-        
-        btn_top = ctk.CTkButton(self.main_frame, text='トップに戻る', width=120, fg_color='#ff0000', text_color='white', font=(FONT_NAME, 16), command=self.show_top)
-        btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
-
-    def show_excel_file_settings(self):
-        settings_win = ctk.CTkToplevel(self.master)
-        settings_win.title('Excelファイルの設定')
-        settings_win.geometry('420x220')
-        settings_win.attributes("-topmost", True)
-        
-        ctk.CTkLabel(settings_win, text='Excelターゲットパス設定', font=ctk.CTkFont(family=FONT_NAME, size=16, weight="bold")).pack(pady=10)
-        ctk.CTkLabel(settings_win, text='※アプリと同じディレクトリ内の相対パス、またはフルパスを指定', font=config.FONT_SUBTITLE, text_color='gray').pack(pady=2)
-        
-        file_var = tk.StringVar(value=globals().get('FILE_PATH', 'attend_data.xlsx'))
-        entry = ctk.CTkEntry(settings_win, textvariable=file_var, font=(FONT_NAME, 16), width=320)
-        entry.pack(pady=10)
-
-        def save_file_path():
-            new_path = file_var.get().strip()
-            if new_path:
-                globals()['FILE_PATH'] = new_path
-                messagebox.showinfo('設定', f'ターゲットファイルを「{new_path}」に変更しました。', parent=settings_win)
-                settings_win.destroy()
-            else:
-                messagebox.showerror('エラー', '有効なファイル名を入力してください。', parent=settings_win)
-
-        btn_save = ctk.CTkButton(settings_win, text='適用して保存', font=config.FONT_LABEL_BUTTON, command=save_file_path, width=120, fg_color='#bfff80', text_color='black')
-        btn_save.pack(pady=15)
+        # btn_op.pack(pady=10, anchor="w")        
 
     def show_operation_support_settings(self):
         settings_win = ctk.CTkToplevel(self.master)

@@ -44,14 +44,60 @@
                 "start": "10:00",
                 "end": "18:00",
                 "bands": [
-                    "馬鳴(オムニバス)",
                     "ずんまよ（ずっと真夜中でいいのに。）",
                     "ヨルシカヤルシカ（ヨルシカ）",
                     "ゼンジン未到とタロタロソース(Mrs. GREEN APPLE)",
                     "ヤバイ農協ランキング（ヤバイTシャツ屋さん）",
                     "gnu魂(オムニバス)",
                     "ハンブレッダーズ",
-                    "yutori"
+                    "yutori",
+                    "バーサーカーフォレスト（オムニバス）"
+                ],
+                "timetable_items": [
+                    {
+                        "type": "band",
+                        "name": "ずんまよ（ずっと真夜中でいいのに。）",
+                        "minutes": "30"
+                    },
+                    {
+                        "type": "band",
+                        "name": "ヨルシカヤルシカ（ヨルシカ）",
+                        "minutes": "30"
+                    },
+                    {
+                        "type": "band",
+                        "name": "ゼンジン未到とタロタロソース(Mrs. GREEN APPLE)",
+                        "minutes": "30"
+                    },
+                    {
+                        "type": "band",
+                        "name": "ヤバイ農協ランキング（ヤバイTシャツ屋さん）",
+                        "minutes": "30"
+                    },
+                    {
+                        "type": "band",
+                        "name": "gnu魂(オムニバス)",
+                        "minutes": "30"
+                    },
+                    {
+                        "type": "band",
+                        "name": "ハンブレッダーズ",
+                        "minutes": "20"
+                    },
+                    {
+                        "type": "band",
+                        "name": "yutori",
+                        "minutes": "20"
+                    },
+                    {
+                        "type": "band",
+                        "name": "バーサーカーフォレスト（オムニバス）",
+                        "minutes": "15"
+                    },
+                    {
+                        "type": "break",
+                        "minutes": 15
+                    }
                 ]
             },
             {
@@ -61,6 +107,13 @@
                 "end": "16:00",
                 "bands": [
                     "都会のアルマジロ（SUPER BEAVER）"
+                ],
+                "timetable_items": [
+                    {
+                        "type": "band",
+                        "name": "都会のアルマジロ（SUPER BEAVER）",
+                        "minutes": "30"
+                    }
                 ]
             }
         ],

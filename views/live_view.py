@@ -31,8 +31,8 @@ class LiveView(ctk.CTkFrame):
                 pass
         
         # ヘッダー
-        ctk.CTkLabel(self, text='🎸 ライブ情報の登録・編集', font=config.FONT_TITLE).pack(pady=15, anchor="w")
-        ctk.CTkLabel(self, text='ライブ名と日程を登録します。既存のライブを選択して編集も可能です。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=5, anchor="w")
+        ctk.CTkLabel(self, text='📅 ライブ情報の登録・編集', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
+        ctk.CTkLabel(self, text='ライブ名と日程を登録します。既存のライブを選択して編集も可能です。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=(0, 5), anchor="w")
 
         # ライブ名 入力エリア（コンボボックスで既存データの呼び出し対応）
         name_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -147,9 +147,6 @@ class LiveView(ctk.CTkFrame):
         # アクションボタン群（下部）
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(pady=15, fill='x', padx=10)
-
-        btn_top = ctk.CTkButton(btn_frame, text='キャンセル', font=(config.FONT_NAME, 16), fg_color='#ff0000', text_color='white', width=120, command=self.app.show_top)
-        btn_top.pack(side='left', padx=15)
         
         btn_add = ctk.CTkButton(btn_frame, text='➕ 日程を追加', font=config.FONT_LABEL_BUTTON, fg_color='#80d4ff', text_color='black', command=lambda: add_date_row())
         btn_add.pack(side='left', padx=5)

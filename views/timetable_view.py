@@ -82,7 +82,7 @@ class TimetableView(ctk.CTkFrame):
             self.app.show_top()
 
     def create_widgets(self):
-        title_label = ctk.CTkLabel(self, text="タイムテーブル作成", font=config.FONT_TITLE)
+        title_label = ctk.CTkLabel(self, text="🕑 タイムテーブル作成", font=config.FONT_TITLE)
         title_label.pack(pady=15, anchor="w")
         
         select_live_frame = ctk.CTkFrame(self, fg_color="transparent")
