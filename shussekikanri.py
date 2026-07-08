@@ -9,6 +9,7 @@ import pandas as pd
 
 import config
 from views.sidebar import SidebarFrame
+from views.top_view import MainView
 from views.attendance_view import AttendanceView
 from views.live_view import LiveView
 from views.band_view import BandView
@@ -27,7 +28,7 @@ class AttendanceApp:
         self.master = master
         master.title('ロック部 出席管理')
         master.geometry('1150x680')
-        master.minsize(1050, 600)
+        master.minsize(1150, 680)
         
         # ウィンドウの×ボタンに確認ダイアログを設定
         try:
@@ -85,102 +86,7 @@ class AttendanceApp:
 
     def show_top(self):
         self.clear()
-        ctk.CTkLabel(self.main_frame, text='ロック部 出席管理ダッシュボード', font=ctk.CTkFont(family=FONT_NAME, size=22, weight='bold')).pack(pady=15, anchor="w")
-        
-        # 操作支援情報
-        try:
-            if self.settings.get('operation_support', False):
-                ctk.CTkLabel(self.main_frame, text='💡 操作支援モード有効: ボタンにマウスを合わせると説明が表示されます。', font=(FONT_NAME, 11), text_color='gray50').pack(pady=2, anchor="w")
-        except Exception:
-            pass
-
-        # 前回起動日が設定されている場合、30日以上経過していれば確認ダイアログを表示
-        try:
-            prev = self.settings.get('last_startup')
-            today = datetime.date.today()
-            if prev:
-                prev_date = datetime.date.fromisoformat(prev)
-                delta_days = (today - prev_date).days
-                if delta_days >= 30:
-                    ctk.CTkLabel(self.main_frame, text=f'最後のバンド登録から{delta_days}日経過しています。登録済みバンドを確認しましょう！', font=config.FONT_SUBTITLE, text_color='green').pack(pady=10, anchor="w")
-        except Exception:
-            pass
-            
-        # ヘルプモード用レイアウト
-        try:
-            if self.settings.get('operation_support', False) and self.settings.get('help_mode', False):
-                hl_frame = ctk.CTkFrame(self.main_frame)
-                hl_frame.pack(pady=15, fill='both', expand=True)
-                
-                items = [
-                    ('① 出欠をとる', '開く', self.show_attendance_date_select, '#bfff80'),
-                    ('② 出席率の計算', '開く', self.show_attendance_date_select, '#80d4ff'),
-                    ('③ バンド登録', '開く', self.register_band, '#ffff00'),
-                    ('④ バンド選出', '開く', self.register_band, '#ffd480'),
-                    ('⑤ タイムテーブル作成', '開く', self.make_timetable, '#d080ff'),
-                ]
-                prog = getattr(self, 'help_progress_index', 0)
-                
-                def make_help_cmd(idx, fn):
-                    def inner():
-                        try:
-                            fn()
-                            self.help_progress_index = max(getattr(self, 'help_progress_index', 0), idx + 1)
-                        except Exception:
-                            pass
-                    return inner
-
-                for i, (title, btn_text, cmd, default_color) in enumerate(items):
-                    if i < prog:
-                        color = "#00cf4f"  # 実行済み
-                    elif i == prog:
-                        color = "#174dff"  # 次に実行
-                    else:
-                        color = '#cccccc'  # 保留
-                        default_color = '#cccccc'
-
-                    row = ctk.CTkFrame(hl_frame, fg_color="transparent")
-                    row.pack(fill='x', padx=20, pady=12)
-                    
-                    lbl = ctk.CTkLabel(row, text=title, font=(FONT_NAME, 14, 'bold'), text_color=color)
-                    lbl.pack(side='left')
-
-                    btn = ctk.CTkButton(row, text=btn_text, width=110, fg_color=default_color, text_color="black" if default_color != '#cccccc' else "gray60", font=(FONT_NAME, 12, 'bold'), command=make_help_cmd(i, cmd))
-                    btn.pack(side='right', padx=10)
-                        
-                btn_exit = ctk.CTkButton(self.main_frame, text='ヘルプモードを終了', width=160, fg_color='#cccccc', text_color="black", font=(FONT_NAME, 12, 'bold'), command=self.toggle_help_mode)
-                btn_exit.place(relx=1.0, rely=1.0, anchor='se', x=-20, y=-20)
-                return
-        except Exception:
-            pass
-
-        # 通常モードのレイアウト（大きなタイルボタンでモダンに変身）
-        grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        grid_frame.pack(pady=20, fill="both", expand=True)
-        grid_frame.grid_columnconfigure((0, 1), weight=1)
-        
-        btn_attendance = ctk.CTkButton(grid_frame, text='📅 出席をとる・出欠状況確認', height=80, command=self.show_attendance_date_select, fg_color='#bfff80', text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_attendance.grid(row=0, column=0, padx=15, pady=15, sticky="ew")
-
-        btn_check = ctk.CTkButton(grid_frame, text='📊 出欠状況の確認\n(出席率計算)', height=80, fg_color='#80d4ff', text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_check.grid(row=0, column=1, padx=15, pady=15, sticky="ew")
-
-        btn_register = ctk.CTkButton(grid_frame, text='🎤 バンドの追加・編集・削除', height=80, command=self.register_band, fg_color='#ffff00', text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_register.grid(row=1, column=0, padx=15, pady=15, sticky="ew")
-        
-        btn_select = ctk.CTkButton(grid_frame, text='🔶 出演バンド選出', height=80, command=self.register_band, fg_color='#ffd480', text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_select.grid(row=1, column=1, padx=15, pady=15, sticky="ew")
-
-        btn_timetable = ctk.CTkButton(grid_frame, text='⏱️ タイムテーブル作成 (別ウィンドウ)', height=80, command=self.make_timetable, fg_color="#d080ff", text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_timetable.grid(row=2, column=0, columnspan=2, padx=15, pady=15, sticky="ew")
-        
-        # ヘルプモード切り替えボタン
-        try:
-            if self.settings.get('operation_support', False):
-                btn_help_mode = ctk.CTkButton(self.main_frame, text='❓ ヘルプモード開始', width=150, height=35, command=self.toggle_help_mode, fg_color="#4375ff", font=(FONT_NAME, 13, 'bold'))
-                btn_help_mode.place(relx=0.0, rely=1.0, anchor='sw', x=20, y=-20)
-        except Exception:
-            pass
+        self.top_view = MainView(self.main_frame, app=self)
 
     def get_available_dates(self):
         """Excelシートから有効な日付列を取得"""
@@ -232,6 +138,7 @@ class AttendanceApp:
         self.timetable_view.pack(fill='both', expand=True)
 
     def show_settings(self):
+        """システム設定画面を表示"""
         self.clear()
         ctk.CTkLabel(self.main_frame, text='システム環境設定', font=config.FONT_TITLE).pack(pady=20, anchor="w")
         
@@ -278,9 +185,6 @@ class AttendanceApp:
         appearance_combo = ctk.CTkComboBox(appearance_frame, values=list(mode.keys()), font=(config.FONT_NAME, 16), width=120, command=change_appearance)
         appearance_combo.set(appearance_key[0] if appearance_key else "")
         appearance_combo.pack(pady=5, anchor="w")
-
-        btn_op = ctk.CTkButton(self.main_frame, text='💡 操作支援・ガイド設定', font=(FONT_NAME, 16), text_color='white', width=220, height=42, command=self.show_operation_support_settings, fg_color="#35cbfd")
-        # btn_op.pack(pady=10, anchor="w")        
 
     def show_operation_support_settings(self):
         settings_win = ctk.CTkToplevel(self.master)
@@ -443,15 +347,6 @@ class AttendanceApp:
 
         update_step()
         win.protocol('WM_DELETE_WINDOW', on_close)
-
-    def toggle_help_mode(self):
-        try:
-            current = bool(self.settings.get('help_mode', False))
-            self.settings['help_mode'] = not current
-            self.save_settings()
-            self.show_top()
-        except Exception:
-            pass
 
 
 if __name__ == '__main__':

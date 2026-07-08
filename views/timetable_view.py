@@ -143,7 +143,7 @@ class TimetableView(ctk.CTkFrame):
         btn_option.pack(side="left", padx=10)
 
         # Tabviewへのアップグレード
-        self.tab_control = ctk.CTkTabview(self.order_area)
+        self.tab_control = ctk.CTkTabview(self.order_area, anchor="nw")
         self.tab_control.pack(expand=True, fill="both", padx=10, pady=5)
         
         self.tabs = {}

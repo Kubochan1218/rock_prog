@@ -36,7 +36,7 @@ class BandView(ctk.CTkFrame):
             return
 
         # 上部に切り替え用のタブビューを作成
-        tabview = ctk.CTkTabview(self)
+        tabview = ctk.CTkTabview(self, anchor="nw")
         tabview.pack(fill="both", expand=True, padx=0, pady=0)
 
         self.show_setup_screen(tabview, existing_lives)
@@ -326,7 +326,7 @@ class BandView(ctk.CTkFrame):
         self.end_combo.pack(side='left', padx=5, pady=6)
         
         ctk.CTkLabel(date_frame, text='ⓘ', font=(config.FONT_NAME, 18)).pack(side='left', anchor="w", padx=(15, 5))
-        ctk.CTkLabel(date_frame, text='開始日と終了日を同じ日付に設定すると\nその日の出欠状況のみを選出に使用します。', font=(config.FONT_NAME, 14), anchor="w", justify="left").pack(side='left', padx=0)
+        ctk.CTkLabel(date_frame, text='開始日と終了日を同じ日付に設定すると\nその日の出欠状況のみ選出に使用します。', font=(config.FONT_NAME, 14), anchor="w", justify="left").pack(side='left', padx=0)
         
         # ライブを選択
         row_live = ctk.CTkFrame(scroll_frame, fg_color="transparent")

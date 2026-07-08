@@ -30,4 +30,4 @@ class SidebarFrame(ctk.CTkFrame):
         
         # 下部の固定設定ボタン
         self.btn_nav_settings = ctk.CTkButton(self, text="⚙ 設定メニュー", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("settings"))
-        self.btn_nav_settings.grid(row=6, column=0, padx=20, pady=25, sticky="s")
+        self.btn_nav_settings.grid(row=6, column=0, padx=20, pady=25, sticky="sew")
