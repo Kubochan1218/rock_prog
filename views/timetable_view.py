@@ -235,7 +235,7 @@ class TimetableView(ctk.CTkFrame):
             
             # Canvasエリア一式を ctk.CTkScrollableFrame の1行に置き換え
             frame_container = ctk.CTkScrollableFrame(tab)
-            frame_container.pack(fill="both", expand=True, padx=5, pady=5)
+            frame_container.pack(fill="both", expand=True, padx=0, pady=5)
             
             available_bands = [b for b in self.bands if str(sched['date']) in b['perform_dates'] and b['live_name'] == self.live_name_combo.get()]
             combo.configure(values=[b['band_name'] for b in available_bands])
@@ -420,8 +420,9 @@ class TimetableView(ctk.CTkFrame):
                 other_val = band_info.get('other', None)
                 if other_val is not None and str(other_val).lower() != 'nan' and str(other_val).strip() != '':
                     bg_color = '#b2ebf2'  # 水色
-            if bg_color is None and end_time > end_time_limit:
-                bg_color = '#fff59d'  # 黄色
+            if end_time > end_time_limit:
+                bg_color = "#ffbb00"  # 黄色
+
                 
             # ctk.CTkFrame でのコンテナ
             if bg_color:
@@ -435,17 +436,17 @@ class TimetableView(ctk.CTkFrame):
             label = ctk.CTkLabel(wrapper, text=f"{start_str}～{end_str} {label_text}", anchor="w", font=config.FONT_LABEL_BUTTON, text_color="black" if bg_color else None)
             label.pack(side="left", fill="x", expand=True, padx=10)
                 
-            btn_del = ctk.CTkButton(wrapper, text="×", width=30, height=25, fg_color="transparent", text_color="red", hover_color="lightcoral", font=config.FONT_LABEL_BUTTON)
+            btn_del = ctk.CTkButton(wrapper, text="削除", anchor="center", width=24, height=12, fg_color="red", text_color="white", hover_color="lightcoral", font=("Yu Gothic UI", 14))
             btn_del.pack(side="right", padx=5)
             
-            btn_down = ctk.CTkButton(wrapper, text="↓", width=25, height=25, font=config.FONT_LABEL_BUTTON)
+            btn_down = ctk.CTkButton(wrapper, text="∨", anchor="center", width=12, height=12, font=("Yu Gothic UI", 14))
             btn_down.pack(side="right", padx=2)
             
-            btn_up = ctk.CTkButton(wrapper, text="↑", width=25, height=25, font=config.FONT_LABEL_BUTTON)
+            btn_up = ctk.CTkButton(wrapper, text="∧", anchor="center", width=12, height=12, font=("Yu Gothic UI", 14))
             btn_up.pack(side="right", padx=2)
             
             if item['type'] == 'band' and band_info is not None:
-                btn_info = ctk.CTkButton(wrapper, text="i", width=25, height=25, fg_color="blue", text_color="white", hover_color="#bbdefb", font=config.FONT_LABEL_BUTTON, command=lambda b=band_info: show_band_info(None, b))
+                btn_info = ctk.CTkButton(wrapper, text="ⓘ", anchor="center", width=24, height=12, fg_color="#2196F3", text_color="white", hover_color="#bbdefb", font=("Yu Gothic UI", 14), command=lambda b=band_info: show_band_info(None, b))
                 btn_info.pack(side="right", padx=2)
             
             def remove_item(idx=idx):
@@ -463,7 +464,7 @@ class TimetableView(ctk.CTkFrame):
             btn_del.configure(command=remove_item)
             
             if end_time > end_time_limit:
-                warn = ctk.CTkLabel(wrapper, text="時刻超過", fg_color='#fff59d', text_color="black", font=config.FONT_LABEL_BUTTON)
+                warn = ctk.CTkLabel(wrapper, text="⚠時刻超過", text_color="black", font=config.FONT_LABEL_BUTTON)
                 warn.pack(side="right", padx=10)
             current_time = end_time
 
