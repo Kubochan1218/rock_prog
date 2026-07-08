@@ -8,7 +8,7 @@ class SidebarFrame(ctk.CTkFrame):
 
         self.on_menu_select = on_menu_select  # メニュー選択時のコールバック関数
         
-         # サークルロゴ/タイトル
+        # サークルロゴ/タイトル
         self.logo_label = ctk.CTkLabel(self, text="🎸 ロック部 出席管理", font=ctk.CTkFont(family=config.FONT_NAME, size=18, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=25)
         
