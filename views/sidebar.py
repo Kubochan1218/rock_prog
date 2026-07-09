@@ -13,7 +13,7 @@ class SidebarFrame(ctk.CTkFrame):
         self.logo_label.grid(row=0, column=0, padx=20, pady=25)
         
         # 常駐ナビゲーションボタン群
-        self.btn_nav_top = ctk.CTkButton(self, text="🏠 トップ画面", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("top"))
+        self.btn_nav_top = ctk.CTkButton(self, text="🏠 ホーム", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("top"))
         self.btn_nav_top.grid(row=1, column=0, padx=20, pady=8, sticky="ew")
         
         self.btn_nav_attend = ctk.CTkButton(self, text="👥 出欠管理・確認", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("attendance"))
@@ -29,5 +29,5 @@ class SidebarFrame(ctk.CTkFrame):
         self.btn_nav_select.grid(row=5, column=0, padx=20, pady=8, sticky="ew")
         
         # 下部の固定設定ボタン
-        self.btn_nav_settings = ctk.CTkButton(self, text="⚙ 設定メニュー", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("settings"))
+        self.btn_nav_settings = ctk.CTkButton(self, text="⚙️ 設定メニュー", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("settings"))
         self.btn_nav_settings.grid(row=6, column=0, padx=20, pady=25, sticky="sew")
