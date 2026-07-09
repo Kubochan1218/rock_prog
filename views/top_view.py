@@ -39,6 +39,7 @@ class MainView(ctk.CTkFrame):
         main_frame.grid_columnconfigure(0, weight=1, uniform="col1")
         main_frame.grid_columnconfigure(1, weight=1, uniform="col1")
         main_frame.grid_rowconfigure(0, weight=1)
+        # memo:17:3
         nest_live_frame = ctk.CTkFrame(main_frame)
         nest_live_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         live_mgmt_frame = ctk.CTkFrame(main_frame)
@@ -63,7 +64,7 @@ class MainView(ctk.CTkFrame):
             # タイムテーブル追加済みバンド情報を表示
             added_bands_frame = ctk.CTkFrame(bands_frame, fg_color="#a3caa3")
             added_bands_frame.grid(row=0, column=0, padx=5, pady=(0, 5), sticky="nsew")
-            ctk.CTkLabel(added_bands_frame, text='✔ タイムテーブル追加済みバンド', font=(config.FONT_NAME, 18, 'bold'), text_color='black').pack(pady=5)
+            ctk.CTkLabel(added_bands_frame, text='✔ タイムテーブル追加済みバンド', font=(config.FONT_NAME, 18, 'bold'), text_color='black').pack(pady=(5, 0))
             
             bands = self.get_live_bands(next_live["name"])[:3]  # 上位3件まで表示
             num_bands = len(self.get_live_bands(next_live["name"])) # バンド総数を取得
@@ -78,7 +79,7 @@ class MainView(ctk.CTkFrame):
             # タイムテーブル未追加バンド情報を表示
             unadded_bands_frame = ctk.CTkFrame(bands_frame, fg_color="#f5dfc6")
             unadded_bands_frame.grid(row=1, column=0, padx=5, pady=(0, 5), sticky="nsew")
-            ctk.CTkLabel(unadded_bands_frame, text='⚠ タイムテーブル未追加バンド', font=(config.FONT_NAME, 18, 'bold'), text_color='black').pack(pady=5)
+            ctk.CTkLabel(unadded_bands_frame, text='⚠ タイムテーブル未追加バンド', font=(config.FONT_NAME, 18, 'bold'), text_color='black').pack(pady=(5, 0))
             
             all_bands = self.get_selected_bands(next_live["name"])
             unadded_bands = [b['band_name'] for b in all_bands if b['band_name'] not in self.get_live_bands(next_live["name"])]
@@ -86,22 +87,48 @@ class MainView(ctk.CTkFrame):
                 for band in unadded_bands[:3]:  # 上位3件まで表示
                     ctk.CTkLabel(unadded_bands_frame, text=f'🎵 {band}', font=(config.FONT_NAME, 16), text_color='black').pack(padx=10, anchor="w")
                 ctk.CTkLabel(unadded_bands_frame, text=f'全 {len(unadded_bands)} バンド', font=(config.FONT_NAME, 16), text_color='gray20').pack(padx=10, anchor="w")
+            elif not unadded_bands and not self.get_live_bands(next_live["name"]):
+                ctk.CTkLabel(unadded_bands_frame, text='バンド選出が完了していません', font=(config.FONT_NAME, 16), text_color='black').pack(padx=10, anchor="w")
             else:
                 ctk.CTkLabel(unadded_bands_frame, text='タイムテーブル未追加バンド情報なし', font=(config.FONT_NAME, 16), text_color='black').pack(padx=10, anchor="w")
             
             # ライブ管理ボタン表示枠
             button_frame = ctk.CTkFrame(nest_live_frame, fg_color="transparent")
-            button_frame.pack(padx=0, pady=0, fill="both", expand=True)
+            button_frame.pack(padx=0, pady=0, side="bottom", expand=True)
             ctk.CTkButton(
                 button_frame,
                 text='ライブ情報編集', 
                 font=config.FONT_LABEL_BUTTON,
                 fg_color='transparent',
-                text_color='#4a90e2',
+                text_color="#65e1f1",
                 command=lambda: self.app.register_live(default_live_name=next_live["name"])
-                ).pack(pady=10, padx=10, fill="x")
+                ).pack(pady=10, padx=5, side="left")
+            ctk.CTkButton(
+                button_frame,
+                text='バンド登録・編集',
+                font=config.FONT_LABEL_BUTTON,
+                fg_color='transparent',
+                text_color='#65e1f1',
+                command=lambda: self.app.register_band(default_tab="📝 登録済みバンドの管理", default_live_name=next_live["name"])
+                ).pack(pady=10, padx=5, side="left")
+            ctk.CTkButton(
+                button_frame,
+                text='タイムテーブル作成',
+                font=config.FONT_LABEL_BUTTON,
+                fg_color='transparent',
+                text_color='#65e1f1',
+                command=lambda: self.app.make_timetable(default_live_name=next_live["name"])
+                ).pack(pady=10, padx=5, side="left")
         else:
-            ctk.CTkLabel(nest_live_frame, text='情報なし', font=(config.FONT_NAME, 18)).pack(padx=10, pady=5, anchor="w")
+            ctk.CTkLabel(nest_live_frame, text='情報なし', font=(config.FONT_NAME, 18)).pack(padx=10, pady=5, anchor="center")
+            ctk.CTkButton(
+                nest_live_frame,
+                text='ライブ情報を登録する',
+                font=config.FONT_LABEL_BUTTON,
+                fg_color='transparent',
+                text_color='#4a90e2',
+                command=lambda: self.app.register_live()
+                ).pack(pady=10, padx=10, fill="x")
 
 
 

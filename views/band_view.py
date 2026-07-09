@@ -8,9 +8,11 @@ import attendance_calculation as ac
 import band_selection as bs
 
 class BandView(ctk.CTkFrame):
-    def __init__(self, master, app, **kwargs):
+    def __init__(self, master, app, default_tab=None, default_live_name=None, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.app = app
+        self.default_tab = default_tab
+        self.default_live_name = default_live_name
 
         self.show_band_input()
 
@@ -42,6 +44,12 @@ class BandView(ctk.CTkFrame):
         self.show_setup_screen(tabview, existing_lives)
         self.show_management_screen(tabview, existing_lives)
         self.setup_band_selection_tab(tabview, existing_lives)
+        
+        if self.default_tab:
+            try:
+                tabview.set(self.default_tab)
+            except:
+                pass
 
     # タブ表示
     def show_setup_screen(self, tabview, existing_lives):
@@ -259,7 +267,7 @@ class BandView(ctk.CTkFrame):
                 btn_del = ctk.CTkButton(b_frame, text='× 削除', width=70, font=(config.FONT_NAME, 16), fg_color='#ff8080', text_color='black', command=make_delete_cmd())
                 btn_del.pack(side='right', padx=10, anchor='n', pady=6)
 
-                btn_edt = ctk.CTkButton(b_frame, text='✏️ 編集', width=70, font=(config.FONT_NAME, 16), fg_color='#ffd480', text_color='black', command=make_edit_cmd())
+                btn_edt = ctk.CTkButton(b_frame, text='✏ 編集', width=70, font=(config.FONT_NAME, 16), fg_color='#ffd480', text_color='black', command=make_edit_cmd())
                 btn_edt.pack(side='right', padx=5, anchor='n', pady=6)
 
             if not has_bands:

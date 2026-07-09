@@ -126,16 +126,16 @@ class AttendanceApp:
         self.live_view = LiveView(self.main_frame, app=self, default_live_name=default_live_name)
         self.live_view.pack(fill='both', expand=True)
 
-    def register_band(self):
+    def register_band(self, default_tab=None, default_live_name=None):
         """バンド登録画面を表示 (タブ切り替え・一括一覧表示＆ライブ名紐付け版)"""
         self.clear()
-        self.band_view = BandView(self.main_frame, app=self)
+        self.band_view = BandView(self.main_frame, app=self, default_tab=default_tab, default_live_name=default_live_name)
         self.band_view.pack(fill='both', expand=True)
 
-    def make_timetable(self):
+    def make_timetable(self, default_live_name=None):
         """タイムテーブル作成画面を表示"""
         self.clear()
-        self.timetable_view = TimetableView(self.main_frame, app=self)
+        self.timetable_view = TimetableView(self.main_frame, app=self, default_live_name=default_live_name)
         self.timetable_view.pack(fill='both', expand=True)
 
     def show_settings(self):

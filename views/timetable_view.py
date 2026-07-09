@@ -15,9 +15,10 @@ class TimetableView(ctk.CTkFrame):
             base_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(base_dir, "..", filename)
 
-    def __init__(self, master, app, **kwargs):
+    def __init__(self, master, app, default_live_name=None, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.app = app
+        self.default_live_name = default_live_name
         LIVE_JSON_PATH = self.app.get_config_path('live_info.json')
         self.existing_lives = {}
         self.schedules = []        
@@ -100,7 +101,13 @@ class TimetableView(ctk.CTkFrame):
                 
                 try:
                     date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-                    self.schedules.append({'date': date_obj, 'start': start_str, 'end': end_str, 'saved_bands': saved_bands, 'saved_timetable': saved_timetable})
+                    self.schedules.append({
+                        'date': date_obj,
+                        'start': start_str,
+                        'end': end_str,
+                        'saved_bands': saved_bands,
+                        'saved_timetable': saved_timetable
+                        })
                 except ValueError:
                     continue
             self.show_order_area()
@@ -115,7 +122,11 @@ class TimetableView(ctk.CTkFrame):
             state="readonly",
             command=on_live_select
         )
-        self.live_name_combo.set("") # 初期値は空
+        if self.default_live_name and self.default_live_name in live_names_list:
+            self.live_name_combo.set(f"{self.default_live_name}") # 初期値は指定されたライブ名
+            on_live_select(None)  # 初期値がある場合は自動で日程を表示
+        else:
+            self.live_name_combo.set("") # 初期値は空
         self.live_name_combo.pack(side='left', padx=10)
 
     def show_order_area(self):
@@ -207,7 +218,16 @@ class TimetableView(ctk.CTkFrame):
                 opt3 = ws.cell(row=row, column=16).value or ''
                 other = ws.cell(row=row, column=17).value or ''
                 live_name = ws.cell(row=row, column=19).value or ''
-                self.bands.append({"band_name" : str(band_name), "play_time" : str(play_time), "perform_dates" : str(perform_dates), "opt1" : str(opt1), "opt2" : str(opt2), "opt3" : str(opt3), "other" : str(other), "live_name" : str(live_name)})
+                self.bands.append({
+                    "band_name" : str(band_name),
+                    "play_time" : str(play_time),
+                    "perform_dates" : str(perform_dates),
+                    "opt1" : str(opt1),
+                    "opt2" : str(opt2),
+                    "opt3" : str(opt3),
+                    "other" : str(other),
+                    "live_name" : str(live_name)
+                    })
     
     def create_tabs(self):
         for sched in self.schedules:
