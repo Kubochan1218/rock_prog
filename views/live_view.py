@@ -66,7 +66,7 @@ class LiveView(ctk.CTkFrame):
             command=on_live_select
         )
         if self.default_live_name and self.default_live_name in live_names_list:
-            live_name_combo.set(f"{self.default_live_name}") # 初期値は指定されたライブ名
+            live_name_combo.set(self.default_live_name) # 初期値は指定されたライブ名
         else:
             live_name_combo.set("") # 初期値は空
         live_name_combo.pack(side='left', padx=10)

@@ -274,7 +274,10 @@ class BandView(ctk.CTkFrame):
                 ctk.CTkLabel(list_container, text='選択されたライブに登録されているバンドはありません。', font=(config.FONT_NAME, 16)).pack(pady=20)
 
         live_selector.configure(command=refresh_managed_bands)
-        if list(existing_lives.keys()):
+        if self.default_live_name and self.default_live_name in existing_lives:
+            live_selector.set(self.default_live_name)
+            refresh_managed_bands()
+        elif list(existing_lives.keys()):
             live_selector.set(list(existing_lives.keys())[0])
             refresh_managed_bands()
 
