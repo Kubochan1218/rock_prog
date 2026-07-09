@@ -87,6 +87,7 @@ class AttendanceApp:
     def show_top(self):
         self.clear()
         self.top_view = MainView(self.main_frame, app=self)
+        self.top_view.pack(fill='both', expand=True)
 
     def get_available_dates(self):
         """Excelシートから有効な日付列を取得"""

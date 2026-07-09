@@ -22,18 +22,18 @@
         "schedules": [
             {
                 "day": 1,
-                "date": "2026-06-27",
+                "date": "2026-07-01",
                 "start": "10:00",
                 "end": "18:00"
             },
             {
                 "day": 2,
-                "date": "2026-06-28",
+                "date": "2026-07-02",
                 "start": "10:00",
                 "end": "16:00"
             }
         ],
-        "updated_at": "2026-06-20 04:02:12"
+        "updated_at": "2026-07-09 03:31:59"
     },
     "フレッシュマンコンサート": {
         "live_name": "フレッシュマンコンサート",
@@ -44,16 +44,20 @@
                 "start": "10:00",
                 "end": "18:00",
                 "bands": [
+                    "馬鳴(オムニバス)",
                     "ずんまよ（ずっと真夜中でいいのに。）",
                     "ヨルシカヤルシカ（ヨルシカ）",
                     "ゼンジン未到とタロタロソース(Mrs. GREEN APPLE)",
+                    "都会のアルマジロ（SUPER BEAVER）",
                     "ヤバイ農協ランキング（ヤバイTシャツ屋さん）",
-                    "gnu魂(オムニバス)",
-                    "ハンブレッダーズ",
-                    "yutori",
-                    "バーサーカーフォレスト（オムニバス）"
+                    "gnu魂(オムニバス)"
                 ],
                 "timetable_items": [
+                    {
+                        "type": "band",
+                        "name": "馬鳴(オムニバス)",
+                        "minutes": "30"
+                    },
                     {
                         "type": "band",
                         "name": "ずんまよ（ずっと真夜中でいいのに。）",
@@ -71,6 +75,11 @@
                     },
                     {
                         "type": "band",
+                        "name": "都会のアルマジロ（SUPER BEAVER）",
+                        "minutes": "30"
+                    },
+                    {
+                        "type": "band",
                         "name": "ヤバイ農協ランキング（ヤバイTシャツ屋さん）",
                         "minutes": "30"
                     },
@@ -80,23 +89,8 @@
                         "minutes": "30"
                     },
                     {
-                        "type": "band",
-                        "name": "ハンブレッダーズ",
-                        "minutes": "20"
-                    },
-                    {
-                        "type": "band",
-                        "name": "yutori",
-                        "minutes": "20"
-                    },
-                    {
-                        "type": "band",
-                        "name": "バーサーカーフォレスト（オムニバス）",
-                        "minutes": "15"
-                    },
-                    {
                         "type": "break",
-                        "minutes": 15
+                        "minutes": 60
                     }
                 ]
             },
@@ -106,17 +100,103 @@
                 "start": "10:00",
                 "end": "16:00",
                 "bands": [
-                    "都会のアルマジロ（SUPER BEAVER）"
+                    "ハンブレッダーズ",
+                    "Kanb Back（オムニバス）",
+                    "アオ(RADWIMPS)",
+                    "kenshi yonezu",
+                    "ONE CHANs(WANIMA)",
+                    "ポルカドットスティングレイ",
+                    "Dear bro. (オムニバス)",
+                    "ELLEGARDEN"
                 ],
                 "timetable_items": [
                     {
                         "type": "band",
-                        "name": "都会のアルマジロ（SUPER BEAVER）",
+                        "name": "ハンブレッダーズ",
+                        "minutes": "20"
+                    },
+                    {
+                        "type": "band",
+                        "name": "Kanb Back（オムニバス）",
+                        "minutes": "20"
+                    },
+                    {
+                        "type": "band",
+                        "name": "アオ(RADWIMPS)",
+                        "minutes": "20"
+                    },
+                    {
+                        "type": "band",
+                        "name": "kenshi yonezu",
+                        "minutes": "15"
+                    },
+                    {
+                        "type": "band",
+                        "name": "ONE CHANs(WANIMA)",
+                        "minutes": "15"
+                    },
+                    {
+                        "type": "band",
+                        "name": "ポルカドットスティングレイ",
+                        "minutes": "15"
+                    },
+                    {
+                        "type": "band",
+                        "name": "Dear bro. (オムニバス)",
                         "minutes": "30"
+                    },
+                    {
+                        "type": "band",
+                        "name": "ELLEGARDEN",
+                        "minutes": "20"
                     }
                 ]
             }
         ],
-        "updated_at": "2026-06-25 19:03:25"
+        "updated_at": "2026-07-09 03:45:40"
+    },
+    "9月ライブ": {
+        "live_name": "9月ライブ",
+        "schedules": [
+            {
+                "day": 1,
+                "date": "2026-09-04",
+                "start": "10:00",
+                "end": "18:00",
+                "bands": [
+                    "馬鳴(オムニバス)",
+                    "ずんまよ（ずっと真夜中でいいのに。）"
+                ],
+                "timetable_items": [
+                    {
+                        "type": "band",
+                        "name": "馬鳴(オムニバス)",
+                        "minutes": "30"
+                    },
+                    {
+                        "type": "band",
+                        "name": "ずんまよ（ずっと真夜中でいいのに。）",
+                        "minutes": "30"
+                    }
+                ]
+            },
+            {
+                "day": 2,
+                "date": "2026-09-05",
+                "start": "10:00",
+                "end": "18:00",
+                "bands": [],
+                "timetable_items": []
+            },
+            {
+                "day": 3,
+                "date": "2026-09-06",
+                "start": "10:00",
+                "end": "16:30",
+                "bands": [],
+                "timetable_items": []
+            }
+        ],
+        "updated_at": "2026-07-09 03:31:44"
     }
 }

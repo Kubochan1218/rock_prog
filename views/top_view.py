@@ -34,47 +34,121 @@ class MainView(ctk.CTkFrame):
             pass
 
         # 通常モードのレイアウト（大きなタイルボタンでモダンに変身）
-        grid_frame = ctk.CTkFrame(self, fg_color="transparent")
-        grid_frame.pack(pady=10, fill="both", expand=True)
-        grid_frame.grid_columnconfigure((0, 1), weight=1)
+        main_frame = ctk.CTkFrame(self, fg_color="transparent")
+        main_frame.pack(pady=0, fill='both', expand=True, padx=0)
+        main_frame.grid_rowconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(1, weight=1)
+        main_frame.grid_rowconfigure(1, weight=1)
+        nest_live_frame = ctk.CTkFrame(main_frame)
+        nest_live_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        live_mgmt_frame = ctk.CTkFrame(main_frame)
+        live_mgmt_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
         
-        ctk.CTkLabel(grid_frame, text=f'次のライブ: {self.get_next_live_date()}', font=config.FONT_LABEL_BUTTON).pack(pady=(5, 0), anchor="w")
+        next_live = self.get_next_live()
+        ctk.CTkLabel(nest_live_frame, text=f'次のライブ', font=config.FONT_TITLE).pack(padx=10, pady=5)
+        if next_live:
+            ctk.CTkLabel(nest_live_frame, justify="left", anchor="w",
+                         text=f'ライブ名: {next_live["name"]}\n日程: {next_live["closest_date"].strftime("%Y-%m-%d")}～\n開始まで: {next_live["days_diff"]}日',
+                         font=(config.FONT_NAME, 18)).pack(padx=10, pady=5, anchor="w")
+            bands_frame = ctk.CTkFrame(nest_live_frame, fg_color="#a3caa3")
+            bands_frame.pack(padx=5, pady=(0, 5), fill="both", expand=True)
+            ctk.CTkLabel(bands_frame, text='タイムテーブル追加済みバンド', font=(config.FONT_NAME, 18, 'bold'), text_color='black').pack(pady=5)
+            bands = self.get_live_bands(next_live["name"])[:5]  # 上位5件まで表示
+            num_bands = len(self.get_live_bands(next_live["name"])) # バンド総数を取得
+            if bands:
+                for band in bands:
+                    ctk.CTkLabel(bands_frame, text=f'🎵 {band}', font=(config.FONT_NAME, 16), text_color='black').pack(padx=10, anchor="w")
+                ctk.CTkLabel(bands_frame, text=f'全 {num_bands} バンド', font=(config.FONT_NAME, 16), text_color='gray20').pack(padx=10, anchor="w")
+            else:
+                ctk.CTkLabel(bands_frame, text='タイムテーブル追加済みバンド情報なし', font=(config.FONT_NAME, 16), text_color='black').pack(padx=10, anchor="w")
+        else:
+            ctk.CTkLabel(nest_live_frame, text='情報なし', font=(config.FONT_NAME, 18)).pack(padx=10, pady=5, anchor="w")
 
-        btn_attendance = ctk.CTkButton(grid_frame, text='📅 出席をとる・出欠状況確認', height=80, command=self.show_attendance_date_select, fg_color='#bfff80', text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_attendance.grid(row=0, column=0, padx=15, pady=15, sticky="ew")
 
-        btn_check = ctk.CTkButton(grid_frame, text='📊 出欠状況の確認\n(出席率計算)', height=80, fg_color='#80d4ff', text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_check.grid(row=0, column=1, padx=15, pady=15, sticky="ew")
 
-        btn_register = ctk.CTkButton(grid_frame, text='🎤 バンドの追加・編集・削除', height=80, command=self.register_band, fg_color='#ffff00', text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_register.grid(row=1, column=0, padx=15, pady=15, sticky="ew")
-        
-        btn_select = ctk.CTkButton(grid_frame, text='🔶 出演バンド選出', height=80, command=self.register_band, fg_color='#ffd480', text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_select.grid(row=1, column=1, padx=15, pady=15, sticky="ew")
-
-        btn_timetable = ctk.CTkButton(grid_frame, text='⏱️ タイムテーブル作成 (別ウィンドウ)', height=80, command=self.make_timetable, fg_color="#d080ff", text_color='black', font=config.FONT_LABEL_BUTTON)
-        btn_timetable.grid(row=2, column=0, columnspan=2, padx=15, pady=15, sticky="ew")
-    
-    def get_next_live_date(self):
-        """次回ライブの日付を取得"""
+    def get_next_live(self):
+        """日付が最も近いライブを取得"""
+        LIVE_JSON_PATH = self.app.get_config_path('live_info.json')
+        if not os.path.exists(LIVE_JSON_PATH):
+            return None
         try:
-            live_info_path = self.app.get_config_path('live_info.json')
-            if not os.path.exists(live_info_path):
-                return "未登録"
-            
-            with open(live_info_path, 'r', encoding='utf-8') as f:
-                live_data = json.load(f)
-            
-            # ライブ情報が存在する場合、最も近い日付を取得
-            next_live_date = None
-            for live in live_data.values():
-                for schedule in live.get('schedules', []):
-                    date_str = schedule.get('date')
-                    if date_str:
-                        date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-                        if next_live_date is None or date_obj < next_live_date:
-                            next_live_date = date_obj
-            
-            return next_live_date.strftime('%Y/%m/%d') if next_live_date else "未登録"
+            with open(LIVE_JSON_PATH, 'r', encoding='utf-8') as f:
+                existing_lives = json.load(f)
         except Exception:
-            return "未登録"
+            return None
+
+        if not existing_lives:
+            return None
+
+        today = datetime.date.today()
+        future_lives = []
+        past_lives = []
+
+        for live_name, live_data in existing_lives.items():
+            schedules = live_data.get('schedules', [])
+            if not schedules:
+                continue
+            
+            # ライブに含まれる全日程の日付を datetime.date 型に変換してリスト化
+            live_dates = []
+            for s in schedules:
+                d_str = s.get('date')
+                if d_str:
+                    # YYYY-MM-DD または YYYY/MM/DD の両方の形式に対応
+                    for fmt in ('%Y-%m-%d', '%Y/%m/%d'):
+                        try:
+                            d_obj = datetime.datetime.strptime(d_str, fmt).date()
+                            live_dates.append(d_obj)
+                            break
+                        except ValueError:
+                            continue
+            
+            if not live_dates:
+                continue
+            
+            # 今日以降（未来・当日）の日程があるか判定
+            upcoming_dates = [d for d in live_dates if d >= today]
+            if upcoming_dates:
+                # 未来の日程の中で、最も今日に近い日（ライブ初日など）
+                min_future_date = min(upcoming_dates)
+                future_lives.append({
+                    'name': live_name,
+                    'data': live_data,
+                    'closest_date': min_future_date,
+                    'days_diff': (min_future_date - today).days,
+                    'is_upcoming': True
+                })
+
+        # 未来のライブがあれば、今日に一番近いものを最優先で返す
+        if future_lives:
+            next_live = min(future_lives, key=lambda x: x['days_diff'])
+            return next_live
+        
+        return None
+    
+    def get_live_bands(self, live_name):
+        """次のライブに出演するバンドのリストを取得"""
+        LIVE_JSON_PATH = self.app.get_config_path('live_info.json')
+        if not os.path.exists(LIVE_JSON_PATH):
+            return []
+        try:
+            with open(LIVE_JSON_PATH, 'r', encoding='utf-8') as f:
+                existing_lives = json.load(f)
+        except Exception:
+            return []
+
+        live_data = existing_lives.get(live_name, {}).get("schedules", [])
+        if not live_data:
+            return []
+        added_bands = []
+        for live in live_data:
+            bands = live.get('bands', [])
+            added_bands.extend(bands)
+        return added_bands
+
+
+
+
+
+

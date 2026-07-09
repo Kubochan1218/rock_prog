@@ -374,9 +374,15 @@ class BandView(ctk.CTkFrame):
         btn_select.pack(pady=20, padx=10, fill="x")
         
         # 結果表示エリア
-        result_lbl = ctk.CTkLabel(scroll_frame, text="📋 選出結果出力", font=config.FONT_LABEL_BUTTON)
-        result_lbl.pack(pady=5, anchor="w", padx=10)
+        result_header_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        result_header_frame.pack(fill="x", pady=0, padx=0)
         
+        result_lbl = ctk.CTkLabel(result_header_frame, text="📋 選出結果出力", font=config.FONT_LABEL_BUTTON)
+        result_lbl.pack(pady=5, anchor="w", padx=10, side="left")
+
+        copy_btn = ctk.CTkButton(result_header_frame, text="📋 結果をクリップボードにコピー", font=(config.FONT_NAME, 14), fg_color="#80d4ff", text_color="black", command=self.copy_result_to_clipboard)
+        copy_btn.pack(pady=5, padx=10, side="left")
+
         self.result_textbox = ctk.CTkTextbox(scroll_frame, height=250, font=(config.FONT_NAME, 14))
         self.result_textbox.pack(fill="both", expand=True, pady=5, padx=10)
 
@@ -655,3 +661,13 @@ class BandView(ctk.CTkFrame):
         except Exception as e:
             self.result_textbox.delete("1.0", "end")
             messagebox.showerror("実行エラー", f"選出処理中にエラーが発生しました:\n{str(e)}")
+
+    def copy_result_to_clipboard(self):
+        """結果テキストをクリップボードにコピー"""
+        result_text = self.result_textbox.get("1.0", "end").strip()
+        if result_text:
+            self.master.clipboard_clear()
+            self.master.clipboard_append(result_text)
+            messagebox.showinfo("コピー完了", "選出結果をクリップボードにコピーしました。")
+        else:
+            messagebox.showwarning("コピー失敗", "コピーする内容がありません。")
