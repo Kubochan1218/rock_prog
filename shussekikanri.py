@@ -120,10 +120,10 @@ class AttendanceApp:
         self.attendance_view = AttendanceView(self.main_frame, app=self)
         self.attendance_view.pack(fill='both', expand=True)
 
-    def register_live(self):
+    def register_live(self, default_live_name=None):
         """ライブ情報の登録・編集画面を表示 (JSON保存・時刻選択版)"""
         self.clear()
-        self.live_view = LiveView(self.main_frame, app=self)
+        self.live_view = LiveView(self.main_frame, app=self, default_live_name=default_live_name)
         self.live_view.pack(fill='both', expand=True)
 
     def register_band(self):

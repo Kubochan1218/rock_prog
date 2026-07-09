@@ -4,9 +4,10 @@ from tkinter import messagebox
 import config
 
 class LiveView(ctk.CTkFrame):
-    def __init__(self, master, app, **kwargs):
+    def __init__(self, master, app, default_live_name=None, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.app = app
+        self.default_live_name = default_live_name
 
         self.show_live_input()
 
@@ -43,6 +44,8 @@ class LiveView(ctk.CTkFrame):
         # 既存のライブ名をリストアップ
         live_names_list = list(existing_lives.keys())
         
+        schedule_rows = [] # 追加された日程行のウィジェットを管理するリスト
+        
         def on_live_select(choice):
             """プルダウンから既存ライブを選んだら、日程リストを復元する"""
             if choice in existing_lives:
@@ -62,7 +65,10 @@ class LiveView(ctk.CTkFrame):
             width=300,
             command=on_live_select
         )
-        live_name_combo.set("") # 初期値は空
+        if self.default_live_name and self.default_live_name in live_names_list:
+            live_name_combo.set(f"{self.default_live_name}") # 初期値は指定されたライブ名
+        else:
+            live_name_combo.set("") # 初期値は空
         live_name_combo.pack(side='left', padx=10)
 
         # 日程設定エリア（複数日対応・スクロール可能・時刻選択式）
@@ -71,8 +77,6 @@ class LiveView(ctk.CTkFrame):
         # スクロール可能なフレームを使用（日程が増えても大丈夫なように）
         schedule_frame = ctk.CTkScrollableFrame(self, height=250)
         schedule_frame.pack(fill='both', expand=True, padx=10, pady=5)
-        
-        schedule_rows = [] # 追加された日程行のウィジェットを管理するリスト
         
         # 15分刻みの時刻リストを生成 (07:00 〜 20:45)
         time_options = [f"{h:02d}:{m:02d}" for h in range(7,21) for m in (0, 30)]
@@ -201,3 +205,6 @@ class LiveView(ctk.CTkFrame):
 
         btn_save = ctk.CTkButton(btn_frame, text='💾 ライブ情報を保存', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', width=160, height=40, command=save_live_info)
         btn_save.pack(side='right', padx=5)
+        
+        if live_name_combo.get() and live_name_combo.get() in existing_lives:
+            on_live_select(live_name_combo.get())  # 選択時の処理を呼び出して日程を復元
