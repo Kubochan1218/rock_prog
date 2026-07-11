@@ -19,7 +19,7 @@ class MainView(ctk.CTkFrame):
     def show_dashboard(self):
         self.clear_frame()
         
-        ctk.CTkLabel(self, text='ロック部 出席管理ダッシュボード', font=config.FONT_TITLE).pack(pady=15, anchor="w")
+        ctk.CTkLabel(self, text='ホーム', font=config.FONT_TITLE).pack(pady=15, anchor="w")
 
         # 前回起動日が設定されている場合、30日以上経過していれば確認ダイアログを表示
         try:
@@ -39,14 +39,25 @@ class MainView(ctk.CTkFrame):
         main_frame.grid_columnconfigure(0, weight=1, uniform="col1")
         main_frame.grid_columnconfigure(1, weight=1, uniform="col1")
         main_frame.grid_rowconfigure(0, weight=1)
-        # memo:17:3
-        nest_live_frame = ctk.CTkFrame(main_frame, border_color=("gray30", "gray70"), border_width=1)
-        nest_live_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        live_mgmt_frame = ctk.CTkFrame(main_frame)
-        live_mgmt_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
         
+        left_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        left_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        left_frame.grid_rowconfigure(0, weight=1)
+        left_frame.grid_columnconfigure(0, weight=1)
+        
+        right_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        right_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        right_frame.grid_rowconfigure(0, weight=5, uniform="row1")
+        right_frame.grid_rowconfigure(1, weight=3, uniform="row1")
+        right_frame.grid_columnconfigure(0, weight=1)
+
+        nest_live_frame = ctk.CTkFrame(left_frame, border_color=("gray30", "gray70"), border_width=0)
+        nest_live_frame.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+        
+        # 次のライブ情報表示枠
         next_live = self.get_next_live()
-        ctk.CTkLabel(nest_live_frame, text=f'次のライブ', font=config.FONT_TITLE).pack(padx=10, pady=5)
+        ctk.CTkLabel(nest_live_frame, text=f'次のライブ', font=config.FONT_TITLE).pack(padx=10, pady=5, anchor="w")
+        ctk.CTkLabel(nest_live_frame, text='登録されている直近のライブ', font=config.FONT_SUBTITLE, text_color='gray50').pack(padx=10, pady=(0, 5), anchor="w")
         if next_live:
             # ライブ情報を表示
             ctk.CTkLabel(
@@ -63,7 +74,7 @@ class MainView(ctk.CTkFrame):
             
             # タイムテーブル追加済みバンド情報を表示
             added_bands_frame = ctk.CTkFrame(bands_frame, fg_color="#a3caa3")
-            added_bands_frame.grid(row=0, column=0, padx=5, pady=(0, 5), sticky="nsew")
+            added_bands_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
             ctk.CTkLabel(added_bands_frame, text='✔ タイムテーブル追加済みバンド', font=(config.FONT_NAME, 18, 'bold'), text_color='black').pack(pady=(5, 0))
             
             bands = self.get_live_bands(next_live["name"])[:3]  # 上位3件まで表示
@@ -113,11 +124,11 @@ class MainView(ctk.CTkFrame):
                 ).pack(pady=10, padx=2, side="left")
             ctk.CTkButton(
                 button_frame,
-                text='タイムテーブル作成',
+                text='バンド選出',
                 font=config.FONT_LABEL_BUTTON,
                 fg_color='transparent',
                 text_color=("#3e909b", "#65e1f1"),
-                command=lambda: self.app.make_timetable(default_live_name=next_live["name"])
+                command=lambda: self.app.register_band(default_tab="バンド選出", default_live_name=next_live["name"])
                 ).pack(pady=10, padx=2, side="left")
         else:
             ctk.CTkLabel(nest_live_frame, text='情報なし', font=(config.FONT_NAME, 18)).pack(padx=10, pady=5, anchor="center")
@@ -130,6 +141,96 @@ class MainView(ctk.CTkFrame):
                 command=lambda: self.app.register_live()
                 ).pack(pady=10, padx=10, fill="x")
 
+        # 最近の出席率表示枠
+        atteendance_frame = ctk.CTkFrame(right_frame, border_color=("gray30", "gray70"), border_width=0)
+        atteendance_frame.grid(row=0, column=0, padx=0, pady=(0, 5), sticky="nsew")
+        title_frame = ctk.CTkFrame(atteendance_frame, fg_color="transparent")
+        title_frame.pack(padx=0, pady=0, fill="x")
+        ctk.CTkLabel(title_frame, text='最近の出席', font=config.FONT_TITLE).pack(side="left", padx=10, pady=5, anchor="w")
+        ctk.CTkButton(
+            title_frame,
+            text='出欠管理・確認',
+            font=config.FONT_LABEL_BUTTON,
+            fg_color='transparent',
+            text_color=("#3e909b", "#65e1f1"),
+            command=lambda: self.app.show_attendance_date_select()
+            ).pack(side="right", padx=10, pady=5)
+        ctk.CTkLabel(atteendance_frame, text='登録されている最近の出席情報', font=config.FONT_SUBTITLE, text_color='gray50').pack(padx=10, pady=(0, 5), anchor="w")
+        date_frame = ctk.CTkFrame(atteendance_frame, fg_color="transparent")
+        date_frame.pack(padx=0, pady=5, fill="both", expand=True)
+        date_frame.grid_rowconfigure(0, weight=5, uniform="row1")
+        date_frame.grid_rowconfigure(1, weight=3, uniform="row1")
+        date_frame.grid_rowconfigure(2, weight=3, uniform="row1")
+        date_frame.grid_columnconfigure(0, weight=1)
+        latest_frame = ctk.CTkFrame(date_frame, fg_color="transparent")
+        latest_frame.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+        second_frame = ctk.CTkFrame(date_frame, fg_color="transparent")
+        second_frame.grid(row=1, column=0, padx=0, pady=0, sticky="nsew")
+        third_frame = ctk.CTkFrame(date_frame, fg_color="transparent")
+        third_frame.grid(row=2, column=0, padx=0, pady=0, sticky="nsew")
+
+        attendance_data = self.get_attendance()[:3]
+        if attendance_data:
+            # 最新の出席日付を表示
+            ctk.CTkLabel(latest_frame, text=f'{attendance_data[0]["date"]}', width=80, anchor="e", font=(config.FONT_NAME, 32)).pack(side="left", padx=10, pady=5)
+            if attendance_data[0]["attendance_rate"] >= 80:
+                fg_color = ("#45965d", "#a3caaf")  # 緑系
+            elif attendance_data[0]["attendance_rate"] >= 50:
+                fg_color = ("#cf6c0f", "#f5dfc6")  # 黄系
+            else:
+                fg_color = ("#ff4343", "#f5baba")  # 赤系
+            ctk.CTkFrame(latest_frame, fg_color=fg_color, width=5).pack(side="left", fill="y", padx=0, pady=2)
+            ctk.CTkLabel(latest_frame, text=f'出席率: {attendance_data[0]["attendance_rate"]}%', font=(config.FONT_NAME, 20, "bold"), anchor="w").pack(fill="x", padx=10, pady=(5, 0))
+            ctk.CTkLabel(
+                latest_frame, 
+                text=f'○ 出席: {attendance_data[0]["present"]}\n△ 連絡あり: {attendance_data[0]["absent_with_contact"]}  × 無断欠席: {attendance_data[0]["absent_without_contact"]}\nオンライン: {attendance_data[0]["online"]}  忌引き等: {attendance_data[0]["bereavement"]}', 
+                font=(config.FONT_NAME, 18), 
+                anchor="w", 
+                justify="left"
+                ).pack(fill="x", padx=10, pady=(0, 5))
+
+
+            # 2番目に新しい出席日付を表示
+            if len(attendance_data) > 1:
+                ctk.CTkLabel(second_frame, text=f'{attendance_data[1]["date"]}', width=80, anchor="e", font=(config.FONT_NAME, 32)).pack(side="left", padx=10, pady=5)
+                if attendance_data[1]["attendance_rate"] >= 80:
+                    fg_color = ("#45965d", "#a3caaf")  # 緑系
+                elif attendance_data[1]["attendance_rate"] >= 50:
+                    fg_color = ("#cf6c0f", "#f5dfc6")  # 黄系
+                else:
+                    fg_color = ("#ff4343", "#f5baba")  # 赤系
+                ctk.CTkFrame(second_frame, fg_color=fg_color, width=5).pack(side="left", fill="y", padx=0, pady=2)
+                ctk.CTkLabel(
+                    second_frame, 
+                    text=f'出席率: {attendance_data[1]["attendance_rate"]}%\n○ 出席: {attendance_data[1]["present"]}  △ 連絡あり: {attendance_data[1]["absent_with_contact"]}  × 無断欠席: {attendance_data[1]["absent_without_contact"]}\nオンライン・忌引き等: {attendance_data[1]["online"] + attendance_data[1]["bereavement"]}',
+                    font=(config.FONT_NAME, 16),
+                    anchor="w",
+                    justify="left"
+                    ).pack(side="left", padx=10, pady=5)
+
+            # 3番目に新しい出席日付を表示
+            if len(attendance_data) > 2:
+                ctk.CTkLabel(third_frame, text=f'{attendance_data[2]["date"]}', width=80, anchor="e", font=(config.FONT_NAME, 32)).pack(side="left", padx=10, pady=5)
+                if attendance_data[2]["attendance_rate"] >= 80:
+                    fg_color = ("#45965d", "#a3caaf")  # 緑系
+                elif attendance_data[2]["attendance_rate"] >= 50:
+                    fg_color = ("#cf6c0f", "#f5dfc6")  # 黄系
+                else:
+                    fg_color = ("#ff4343", "#f5baba")  # 赤系
+                ctk.CTkFrame(third_frame, fg_color=fg_color, width=5).pack(side="left", fill="y", padx=0, pady=2)
+                ctk.CTkLabel(
+                    third_frame,
+                    text=f'出席率: {attendance_data[2]["attendance_rate"]}%\n○ 出席: {attendance_data[2]["present"]}  △ 連絡あり: {attendance_data[2]["absent_with_contact"]}  × 無断欠席: {attendance_data[2]["absent_without_contact"]}\nオンライン・忌引き等: {attendance_data[2]["online"] + attendance_data[2]["bereavement"]}',
+                    font=(config.FONT_NAME, 16),
+                    anchor="w",
+                    justify="left"
+                    ).pack(side="left", padx=10, pady=5)
+
+        # クイックアクセスボタン表示枠
+        quick_button_frame = ctk.CTkFrame(right_frame, border_color=("gray30", "gray70"), border_width=0)
+        quick_button_frame.grid(row=1, column=0, padx=0, pady=(5, 0), sticky="nsew")
+        ctk.CTkLabel(quick_button_frame, text='クイックアクセス', font=config.FONT_TITLE).pack(padx=10, pady=5, anchor="w")
+        ctk.CTkLabel(quick_button_frame, text='よく使う機能', font=config.FONT_SUBTITLE, text_color='gray50').pack(padx=10, pady=(0, 5), anchor="w")
 
 
     def get_next_live(self):
@@ -234,5 +335,85 @@ class MainView(ctk.CTkFrame):
             return []
         return bands
 
+    def get_attendance(self):
+        """出席情報を取得"""
+        try:
+            wb = openpyxl.load_workbook(config.FILE_PATH, data_only=True)
+            ws = wb[config.SHEET_NAME]
+            date_list = []
+            for col in range(7, ws.max_column + 1):
+                date_str = ws.cell(row=2, column=col).value
+                if date_str:
+                    try:
+                        parts = date_str.split('/')
+                        if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+                            date_list.append(date_str)
+                    except:
+                        continue
+            
+            def calculate_days_attendance_rate(date_str):
+                """指定された日付の出席率を計算"""
+                try:
+                    date_col = None
+                    for col in range(7, ws.max_column + 1):
+                        cell_value = ws.cell(row=2, column=col).value
+                        if cell_value and str(cell_value).strip() == date_str:
+                            date_col = col
+                            break
+                    if date_col is None:
+                        return {"total": 0, "present": 0, "absent_with_contact": 0, "absent_without_contact": 0, "online": 0, "bereavement": 0, "attendance_rate": 0.0}
+                    
+                    total_count = 0 # 有効な出席情報の総数
+                    present_count = 0 # 出席の数
+                    absent_with_contact_count = 0 # 連絡あり欠席の数
+                    absent_without_contact_count = 0 # 無断欠席の数
+                    online_count = 0 # オンライン出席の数
+                    bereavement_count = 0 # 忌引き等の数
 
+                    for row in range(3, ws.max_row + 1):
+                        status = ws.cell(row=row, column=date_col).value
+                        if status is not None:
+                            total_count += 1
+                            if str(status).strip() == '出席':
+                                present_count += 1
+                            elif str(status).strip() == '連絡あり':
+                                absent_with_contact_count += 1
+                            elif str(status).strip() == '無断欠席':
+                                absent_without_contact_count += 1
+                            elif str(status).strip() == 'オ':
+                                online_count += 1
+                            elif str(status).strip() == '忌引':
+                                bereavement_count += 1
+                    if total_count == 0:
+                        return {"total": 0, "present": 0, "absent_with_contact": 0, "absent_without_contact": 0, "online": 0, "bereavement": 0, "attendance_rate": 0.0}
+                    
+                    attendance_rate = (present_count + online_count) / total_count * 100
+                    return {
+                        "total": total_count,
+                        "present": present_count,
+                        "absent_with_contact": absent_with_contact_count,
+                        "absent_without_contact": absent_without_contact_count,
+                        "online": online_count,
+                        "bereavement": bereavement_count,
+                        "attendance_rate": round(attendance_rate, 2)
+                    }
+                except Exception:
+                    return {"total": 0, "present": 0, "absent_with_contact": 0, "absent_without_contact": 0, "online": 0, "bereavement": 0, "attendance_rate": 0.0}
+            
+            attendance_data = []
+            for date_str in reversed(date_list):  # 日付を逆順にして最新のものから処理
+                stats = calculate_days_attendance_rate(date_str)
+                attendance_data.append({
+                    "date": date_str,
+                    "total": stats["total"],
+                    "present": stats["present"],
+                    "absent_with_contact": stats["absent_with_contact"],
+                    "absent_without_contact": stats["absent_without_contact"],
+                    "online": stats["online"],
+                    "bereavement": stats["bereavement"],
+                    "attendance_rate": stats["attendance_rate"]
+                })      
+            return attendance_data
+        except Exception:
+            return []
 

@@ -397,6 +397,10 @@ class BandView(ctk.CTkFrame):
         self.result_textbox = ctk.CTkTextbox(scroll_frame, height=250, font=(config.FONT_NAME, 14))
         self.result_textbox.pack(fill="both", expand=True, pady=5, padx=10)
 
+        if self.default_live_name and self.default_live_name in existing_lives:
+            self.live_combo.set(self.default_live_name)
+            update_max_time(None)
+
     # 各種機能
     def parse_and_match(self, live_name, file_path, parent_tab, existing_lives):
         """Excelのパースと自動名寄せ処理"""

@@ -29,6 +29,7 @@ class AttendanceApp:
         master.title('ロック部 出席管理')
         master.geometry('1150x680')
         master.minsize(1150, 680)
+        master.iconbitmap(default='rock_icon.ico')  # アイコン設定（Windows用）
         
         # ウィンドウの×ボタンに確認ダイアログを設定
         try:
@@ -187,47 +188,6 @@ class AttendanceApp:
         appearance_combo.set(appearance_key[0] if appearance_key else "")
         appearance_combo.pack(pady=5, anchor="w")
 
-    def show_operation_support_settings(self):
-        settings_win = ctk.CTkToplevel(self.master)
-        settings_win.title('操作支援の設定')
-        settings_win.geometry('450x220')
-        settings_win.attributes("-topmost", True)
-        
-        ctk.CTkLabel(settings_win, text='操作支援・ナビゲーションシステム', font=ctk.CTkFont(family=FONT_NAME, size=16, weight='bold')).pack(pady=12)
-        
-        op_var = tk.BooleanVar(value=self.settings.get('operation_support', True))
-        chk = ctk.CTkCheckBox(settings_win, text='ボタンホバー時の操作支援（ツールチップ）を有効化', variable=op_var, font=(FONT_NAME, 16))
-        chk.pack(pady=10)
-
-        def save_op_setting():
-            self.settings['operation_support'] = bool(op_var.get())
-            try:
-                self.save_settings()
-                messagebox.showinfo('設定', '設定を保存しました。', parent=self.master)
-                settings_win.destroy()
-                self.show_top()
-            except Exception as e:
-                messagebox.showerror('エラー', f'設定の保存に失敗しました:\n{e}', parent=settings_win)
-
-        btn_frame_ops = ctk.CTkFrame(settings_win, fg_color="transparent")
-        btn_frame_ops.pack(pady=15)
-
-        btn_save = ctk.CTkButton(btn_frame_ops, text='設定を保存', font=config.FONT_LABEL_BUTTON, command=save_op_setting, width=110, fg_color='#bfff80', text_color='black')
-        btn_save.pack(side='left', padx=10)
-
-        def rerun_walkthrough():
-            self.settings['seen_walkthrough'] = False
-            try:
-                self.save_settings()
-            except Exception:
-                pass
-            messagebox.showinfo('案内', '次回トップ起動時にチュートリアルを再実行します。', parent=settings_win)
-            settings_win.destroy()
-            self.show_walkthrough()
-
-        btn_rerun = ctk.CTkButton(btn_frame_ops, text='チュートリアル再表示', font=(FONT_NAME, 16), command=rerun_walkthrough, width=150, fg_color='#ffd480', text_color='black')
-        btn_rerun.pack(side='left', padx=10)
-
     def on_close(self):
         if messagebox.askokcancel('確認', 'アプリを終了しますか？', parent=self.master):
             try:
@@ -263,91 +223,6 @@ class AttendanceApp:
                 json.dump(self.settings, f, ensure_ascii=False, indent=2)
         except Exception as e:
             messagebox.showerror('エラー', f'設定の保存に失敗しました:\n{e}', parent=self.master)
-
-    def maybe_show_walkthrough(self):
-        try:
-            if self.settings.get('operation_support', False) and not self.settings.get('seen_walkthrough', False):
-                self.show_walkthrough()
-        except Exception:
-            pass
-
-    def show_walkthrough(self):
-        """モーダル形式のウォークスルーガイド"""
-        steps = [
-            ('ようこそ！', '幹部専用の出席管理・タイムテーブル作成システムへ案内します。\n左メニューまたはトップ画面から順番に進めていきます。'),
-            ('① 出欠をとる', '「出欠をとる」メニューから日付（今日または過去の日付）を選択し、部員の出欠状態をテンポよく入力・記録できます。'),
-            ('② 出席率の計算', '「出欠状況の確認」から、ライブ選考の指標となる出席率の「集計開始日」と「集計終了日」を選んで一括計算します。'),
-            ('③ バンド登録', '「バンド登録」から応募フォーム等のExcelをインポート。部員名簿との自動名寄せ確認を経て、システムに安全に登録されます。'),
-            ('④ バンド選出', '「出演バンド選出」で総演奏時間や募集枠数を入力することで、出席率ベースのオート選出ロジックを実行します。'),
-            ('⑤ タイムテーブル作成', '確定した出演バンドデータを元に、別ウィンドウのインタラクティブ・タイムテーブルエディタを立ち上げて最終調整を行います。')
-        ]
-
-        win = ctk.CTkToplevel(self.master)
-        win.title('システム操作手順案内')
-        win.geometry('550x260')
-        win.transient(self.master)
-        win.grab_set()
-        win.attributes("-topmost", True)
-
-        idx_var = tk.IntVar(value=0)
-        text_title = ctk.CTkLabel(win, text=steps[0][0], font=ctk.CTkFont(family=FONT_NAME, size=15, weight='bold'))
-        text_title.pack(pady=(15, 5))
-        text_body = ctk.CTkLabel(win, text=steps[0][1], font=(FONT_NAME, 12), wraplength=480, justify='left')
-        text_body.pack(padx=15, pady=5)
-
-        chk_var = tk.BooleanVar(value=False)
-        chk = ctk.CTkCheckBox(win, text='今後は起動時にこの案内を表示しない', variable=chk_var, font=(FONT_NAME, 11))
-        chk.pack(pady=10)
-
-        btn_frame = ctk.CTkFrame(win, fg_color="transparent")
-        btn_frame.pack(pady=10)
-
-        def update_step():
-            i = idx_var.get()
-            text_title.configure(text=steps[i][0])
-            text_body.configure(text=steps[i][1])
-            if i == 0:
-                btn_back.configure(state='disabled')
-            else:
-                btn_back.configure(state='normal')
-            if i == len(steps)-1:
-                btn_next.configure(text='案内完了', fg_color="#00ff62", text_color='black')
-            else:
-                btn_next.configure(text='次へ', fg_color="#00ff62", text_color='black')
-
-        def on_next():
-            i = idx_var.get()
-            if i < len(steps)-1:
-                idx_var.set(i+1)
-                update_step()
-            else:
-                self.settings['seen_walkthrough'] = bool(chk_var.get())
-                self.save_settings()
-                win.grab_release()
-                win.destroy()
-
-        def on_back():
-            i = idx_var.get()
-            if i > 0:
-                idx_var.set(i-1)
-                update_step()
-
-        def on_close():
-            if chk_var.get():
-                self.settings['seen_walkthrough'] = True
-                self.save_settings()
-            win.grab_release()
-            win.destroy()
-
-        btn_back = ctk.CTkButton(btn_frame, text='戻る', width=90, command=on_back)
-        btn_back.pack(side='left', padx=6)
-        btn_next = ctk.CTkButton(btn_frame, text='次へ', width=90, command=on_next, fg_color='#00ff62', text_color='black')
-        btn_next.pack(side='left', padx=6)
-        btn_close = ctk.CTkButton(btn_frame, text='閉じる', width=90, command=on_close, fg_color='#ff0000', text_color='white')
-        btn_close.pack(side='left', padx=6)
-
-        update_step()
-        win.protocol('WM_DELETE_WINDOW', on_close)
 
 
 if __name__ == '__main__':
