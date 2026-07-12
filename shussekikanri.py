@@ -1,6 +1,6 @@
 # 2026年7月5日更新 (CustomTkinterモダンデザイン版)
 
-import datetime, os, sys
+import datetime, os, sys, json
 import tkinter as tk
 from tkinter import messagebox, filedialog
 import tkinter.font as tkfont
@@ -30,6 +30,7 @@ class AttendanceApp:
         master.geometry('1150x680')
         master.minsize(1150, 680)
         master.iconbitmap(default='rock_icon.ico')  # アイコン設定（Windows用）
+        self.top_showen = True
         
         # ウィンドウの×ボタンに確認ダイアログを設定
         try:
@@ -50,7 +51,7 @@ class AttendanceApp:
         self.master.grid_rowconfigure(0, weight=1)
         
         # 左側：サイドバーフレーム
-        self.sidebar = SidebarFrame(self.master, on_menu_select=self.change_screen)
+        self.sidebar = SidebarFrame(self.master, on_menu_select=self.change_screen, app=self)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         
         # 右側：メインコンテンツ表示用フレーム
@@ -89,6 +90,7 @@ class AttendanceApp:
         self.clear()
         self.top_view = MainView(self.main_frame, app=self)
         self.top_view.pack(fill='both', expand=True)
+        self.top_showen = True
 
     def get_available_dates(self):
         """Excelシートから有効な日付列を取得"""
@@ -120,24 +122,28 @@ class AttendanceApp:
         self.clear()
         self.attendance_view = AttendanceView(self.main_frame, app=self)
         self.attendance_view.pack(fill='both', expand=True)
+        self.top_showen = False
 
     def register_live(self, default_live_name=None):
         """ライブ情報の登録・編集画面を表示 (JSON保存・時刻選択版)"""
         self.clear()
         self.live_view = LiveView(self.main_frame, app=self, default_live_name=default_live_name)
         self.live_view.pack(fill='both', expand=True)
+        self.top_showen = False
 
     def register_band(self, default_tab=None, default_live_name=None):
         """バンド登録画面を表示 (タブ切り替え・一括一覧表示＆ライブ名紐付け版)"""
         self.clear()
         self.band_view = BandView(self.main_frame, app=self, default_tab=default_tab, default_live_name=default_live_name)
         self.band_view.pack(fill='both', expand=True)
+        self.top_showen = False
 
     def make_timetable(self, default_live_name=None):
         """タイムテーブル作成画面を表示"""
         self.clear()
         self.timetable_view = TimetableView(self.main_frame, app=self, default_live_name=default_live_name)
         self.timetable_view.pack(fill='both', expand=True)
+        self.top_showen = False
 
     def show_settings(self):
         """システム設定画面を表示"""
@@ -187,6 +193,7 @@ class AttendanceApp:
         appearance_combo = ctk.CTkComboBox(appearance_frame, values=list(mode.keys()), font=(config.FONT_NAME, 16), width=120, command=change_appearance)
         appearance_combo.set(appearance_key[0] if appearance_key else "")
         appearance_combo.pack(pady=5, anchor="w")
+        self.top_showen = False
 
     def on_close(self):
         if messagebox.askokcancel('確認', 'アプリを終了しますか？', parent=self.master):
@@ -224,6 +231,123 @@ class AttendanceApp:
         except Exception as e:
             messagebox.showerror('エラー', f'設定の保存に失敗しました:\n{e}', parent=self.master)
 
+    def is_pinned(self, name):
+        """現在のピン止め状態を確認する"""
+        settings_path = self.get_config_path('settings.json')
+        if not os.path.exists(settings_path):
+            return False
+        try:
+            with open(settings_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                items = data.get("quick_access", {}).get("items", [])
+                # リストの中に同じ名前があるかチェック
+                for item in items:
+                    if item.get("name") == name:
+                        return True
+        except Exception:
+            pass
+        return False
+
+    def pin_to_quick_access(self, widget, name, fg_color, command_str):
+        """指定された機能をクイックアクセスに登録"""
+        settings_path = self.get_config_path('settings.json') # パス取得関数に合わせて変更してください
+
+        # JSONの読み込み（ファイルがない場合は初期化）
+        if os.path.exists(settings_path):
+            try:
+                with open(settings_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except Exception:
+                data = {}
+        else:
+            data = {}
+
+        # 構造の初期化を保証
+        if "quick_access" not in data:
+            data["quick_access"] = {}
+        if "items" not in data["quick_access"]:
+            data["quick_access"]["items"] = []
+
+        items = data["quick_access"]["items"]
+
+        # 重複チェック（既に同じ名前が登録されているか）
+        for item in items:
+            if item.get("name") == name:
+                messagebox.showinfo("お知らせ", f"「{name}」は既にピン止めされています。")
+                return
+
+        # リストに追加して保存
+        items.append({"name": name, "fg_color": fg_color, "command": command_str})
+        
+        try:
+            with open(settings_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            messagebox.showerror("エラー", f"ピン止めの保存に失敗しました:\n{e}")
+        if self.top_showen:
+            self.show_top()  # トップ画面を再表示してクイックアクセスを更新
+
+    def delete_from_quick_access(self, widget, name):
+        """指定された機能をクイックアクセスから削除"""
+        settings_path = self.get_config_path('settings.json')
+
+        # JSONの読み込み（ファイルがない場合は初期化）
+        if os.path.exists(settings_path):
+            try:
+                with open(settings_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except Exception:
+                data = {}
+        else:
+            data = {}
+
+        # 構造の初期化を保証
+        if "quick_access" not in data:
+            data["quick_access"] = {}
+        if "items" not in data["quick_access"]:
+            data["quick_access"]["items"] = []
+
+        items = data["quick_access"]["items"]
+
+        # 指定された名前のアイテムを削除
+        new_items = [item for item in items if item.get("name") != name]
+        
+        if len(new_items) == len(items):
+            return
+
+        data["quick_access"]["items"] = new_items
+        
+        try:
+            with open(settings_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            messagebox.showerror("エラー", f"削除の保存に失敗しました:\n{e}")
+        if self.top_showen:
+            self.show_top()  # トップ画面を再表示してクイックアクセスを更新
+
+    def bind_pin_menu(self, widget, name, fg_color, command_str):
+        """ウィジェットに右クリックメニュー（ピン止め）を付与する汎用メソッド"""
+        def show_menu(event):
+            # tkinterの標準メニューを作成
+            menu = tk.Menu(widget, tearoff=0, font=(FONT_NAME, 11))
+            if self.is_pinned(name):
+                # 既にピン止めされている場合 → 「解除」メニューを表示
+                menu.add_command(
+                    label="ピン止めを解除", 
+                    command=lambda: self.delete_from_quick_access(widget, name)
+                )
+            else:
+                # まだピン止めされていない場合 → 「ピン止め」メニューを表示
+                menu.add_command(
+                    label="クイックアクセスにピン止め", 
+                    command=lambda: self.pin_to_quick_access(widget, name, fg_color, command_str)
+                )
+            
+            menu.tk_popup(event.x_root, event.y_root)
+
+        # Windows/Linux の右クリック (<Button-3>) にバインド
+        widget.bind("<Button-3>", show_menu)
+    
 
 if __name__ == '__main__':
     root = ctk.CTk()

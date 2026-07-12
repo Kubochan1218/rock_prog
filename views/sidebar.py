@@ -2,12 +2,12 @@ import customtkinter as ctk
 import config
 
 class SidebarFrame(ctk.CTkFrame):
-    def __init__(self, master, on_menu_select, **kwargs):
+    def __init__(self, master, on_menu_select, app, **kwargs):
         super().__init__(master, width=220, corner_radius=0, **kwargs)
         self.grid_rowconfigure(6, weight=1)
 
         self.on_menu_select = on_menu_select  # メニュー選択時のコールバック関数
-        
+        self.app = app  # アプリケーションインスタンス
         # サークルロゴ/タイトル
         self.logo_label = ctk.CTkLabel(self, text="🎸 ロック部 出席管理", font=ctk.CTkFont(family=config.FONT_NAME, size=18, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=25)
@@ -31,3 +31,9 @@ class SidebarFrame(ctk.CTkFrame):
         # 下部の固定設定ボタン
         self.btn_nav_settings = ctk.CTkButton(self, text="⚙️ 設定メニュー", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("settings"))
         self.btn_nav_settings.grid(row=6, column=0, padx=20, pady=25, sticky="sew")
+
+        # 右クリック用のバインド
+        self.app.bind_pin_menu(widget=self.btn_nav_attend, name="👥 出欠管理・確認", fg_color="#bfff80", command_str="show_attendance_date_select")
+        self.app.bind_pin_menu(widget=self.btn_nav_check, name="📅 ライブ管理", fg_color="#00ccff", command_str="register_live")
+        self.app.bind_pin_menu(widget=self.btn_nav_band, name="🎤 バンド登録・選出", fg_color="#ffcc00", command_str="register_band")
+        self.app.bind_pin_menu(widget=self.btn_nav_select, name="🕑 タイムテーブル", fg_color="#b566ff", command_str="make_timetable")

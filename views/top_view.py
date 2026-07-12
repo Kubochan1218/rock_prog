@@ -225,13 +225,70 @@ class MainView(ctk.CTkFrame):
                     anchor="w",
                     justify="left"
                     ).pack(side="left", padx=10, pady=5)
+        else:
+            ctk.CTkLabel(latest_frame, text='情報なし', font=(config.FONT_NAME, 18)).pack(padx=10, pady=5, anchor="center")
+            ctk.CTkButton(
+                latest_frame,
+                text='出席情報を登録する',
+                font=config.FONT_LABEL_BUTTON,
+                fg_color='transparent',
+                text_color=("#3e909b", "#65e1f1"),
+                command=lambda: self.app.show_attendance_date_select()
+                ).pack(pady=10, padx=10, fill="x")
 
         # クイックアクセスボタン表示枠
-        quick_button_frame = ctk.CTkFrame(right_frame, border_color=("gray30", "gray70"), border_width=0)
-        quick_button_frame.grid(row=1, column=0, padx=0, pady=(5, 0), sticky="nsew")
-        ctk.CTkLabel(quick_button_frame, text='クイックアクセス', font=config.FONT_TITLE).pack(padx=10, pady=5, anchor="w")
-        ctk.CTkLabel(quick_button_frame, text='よく使う機能', font=config.FONT_SUBTITLE, text_color='gray50').pack(padx=10, pady=(0, 5), anchor="w")
+        quick_access_frame = ctk.CTkFrame(right_frame, border_color=("gray30", "gray70"), border_width=0)
+        quick_access_frame.grid(row=1, column=0, padx=0, pady=(5, 0), sticky="nsew")
+        ctk.CTkLabel(quick_access_frame, text='クイックアクセス', font=config.FONT_TITLE).pack(padx=10, pady=5, anchor="w")
+        ctk.CTkLabel(quick_access_frame, text='よく使う機能', font=config.FONT_SUBTITLE, text_color='gray50').pack(padx=10, pady=(0, 5), anchor="w")
+        self.quick_button_frame = ctk.CTkFrame(quick_access_frame, fg_color="transparent")
+        self.quick_button_frame.pack(padx=0, pady=0, fill="both", expand=True)
+        self.quick_button_frame.grid_rowconfigure(0, weight=1, uniform="row1")
+        self.quick_button_frame.grid_rowconfigure(1, weight=1, uniform="row1")
+        self.quick_button_frame.grid_columnconfigure(0, weight=1, uniform="col1")
+        self.quick_button_frame.grid_columnconfigure(1, weight=1, uniform="col1")
+        
+        self.show_quick_access_buttons()
+        
+    def clear_quick_buttons(self):
+        """quick_button_frame 内のウィジェットをすべて削除"""
+        for widget in self.quick_button_frame.winfo_children():
+            widget.destroy()
 
+    def show_quick_access_buttons(self, event=None):
+        """クイックアクセスのボタンを表示"""
+        if not hasattr(self, 'quick_button_frame') or not self.quick_button_frame.winfo_exists():
+            return  # quick_button_frame が存在しない場合は何もしない
+
+        self.clear_quick_buttons()
+        self.app.load_settings()  # 設定を再読み込み
+        quick_access_items = self.app.settings.get('quick_access', {}).get('items', [])
+        if not quick_access_items:
+            ctk.CTkLabel(self.quick_button_frame, text='クイックアクセスに登録されていません', font=(config.FONT_NAME, 16, "bold")).pack(padx=10, pady=5, anchor="center")
+            ctk.CTkLabel(self.quick_button_frame, text='メニューを右クリックしてピン止めできます', font=(config.FONT_NAME, 14), text_color='gray50').pack(padx=10, pady=(0, 5), anchor="center")
+            return
+        
+        vaild_btn_count = 0
+        for item in quick_access_items:
+            name = item.get("name", "不明な機能")
+            fg_color = item.get("fg_color", "transparent")
+            command_str = item.get("command", "")
+            if hasattr(self.app, command_str):
+                target_command = getattr(self.app, command_str)
+                btn = ctk.CTkButton(
+                    self.quick_button_frame,
+                    text=name,
+                    font=config.FONT_LABEL_BUTTON,
+                    fg_color=fg_color,
+                    text_color="black",
+                    command=target_command
+                )
+                r = vaild_btn_count // 2
+                c = vaild_btn_count % 2
+                btn.grid(row=r, column=c, pady=5, padx=10, sticky="nsew")
+                # 右クリックメニューのバインド
+                self.app.bind_pin_menu(widget=btn, name=name, fg_color=fg_color, command_str=command_str)
+                vaild_btn_count += 1
 
     def get_next_live(self):
         """日付が最も近いライブを取得"""
