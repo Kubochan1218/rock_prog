@@ -611,7 +611,7 @@ class BandView(ctk.CTkFrame):
                 except Exception:
                     pass            
                 messagebox.showinfo('一括登録完了', f'計 {len(parsed_bands)} バンドを「{live_name}」として登録しました。')
-                self.app.show_top()
+                self.show_band_input()
             except Exception as e:
                 messagebox.showerror('保存エラー', f'Excel保存に失敗しました:\n{e}')
 

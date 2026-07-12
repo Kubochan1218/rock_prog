@@ -141,10 +141,6 @@
                         "type": "band",
                         "name": "ずんまよ（ずっと真夜中でいいのに。）",
                         "minutes": "30"
-                    },
-                    {
-                        "type": "break",
-                        "minutes": 60
                     }
                 ]
             },
@@ -165,6 +161,6 @@
                 "timetable_items": []
             }
         ],
-        "updated_at": "2026-07-09 17:10:24"
+        "updated_at": "2026-07-13 02:30:49"
     }
 }

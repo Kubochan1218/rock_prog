@@ -199,7 +199,7 @@ class LiveView(ctk.CTkFrame):
                 with open(LIVE_JSON_PATH, 'w', encoding='utf-8') as f:
                     json.dump(existing_lives, f, ensure_ascii=False, indent=4)
                 messagebox.showinfo("保存完了", f"「{live_name}」の情報を保存しました。")
-                self.app.show_top()
+                self.show_live_input()
             except Exception as ex:
                 messagebox.showerror("保存エラー", f"JSONファイルへの保存に失敗しました:\n{ex}")
 
