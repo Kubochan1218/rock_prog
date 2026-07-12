@@ -203,11 +203,14 @@ class AttendanceApp:
                 pass
 
     def get_config_path(self, filename='settings.json'):
-        if hasattr(sys, '_MEIPASS'):
-            base_dir = os.path.dirname(sys.executable)
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            if filename == 'rock_icon.ico':
+                return os.path.join(sys._MEIPASS, filename)
+            
+            return os.path.join(os.path.dirname(sys.executable), filename)
         else:
             base_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(base_dir, filename)
+            return os.path.join(base_dir, filename)
 
     def load_settings(self):
         path = self.get_config_path()

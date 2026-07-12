@@ -72,8 +72,18 @@ class AttendanceView(ctk.CTkFrame):
         self.start_attendance(date=today)
 
     def start_attendance_otherday(self):
-        while True:
-            date = simpledialog.askstring('日付入力', '日付を「M/D」形式で入力してください（例: 10/2）')
+        win = ctk.CTkToplevel(self.winfo_toplevel())
+        win.title("日付入力")
+        win.geometry("380x180")
+        win.after(200, lambda: win.focus())
+        win.attributes("-topmost", True)
+        win.grab_set()
+        ctk.CTkLabel(win, text='日付を「M/D」形式で入力してください（例: 10/2）', font=(config.FONT_NAME, 16)).pack(pady=20)
+        entry = ctk.CTkEntry(win, font=(config.FONT_NAME, 16), width=200)
+        entry.pack(pady=10)
+
+        def on_ok():
+            date = entry.get()
             if date is None:
                 return
             if re.fullmatch(r'\s*\d{1,2}/\d{1,2}\s*', date):
@@ -81,6 +91,7 @@ class AttendanceView(ctk.CTkFrame):
                     m, d = map(int, date.strip().split('/'))
                     if 1 <= m <= 12 and 1 <= d <= 31:
                         self.start_attendance(date=date.strip())
+                        win.destroy()
                         return
                     else:
                         messagebox.showerror('入力エラー', '月日は正しい範囲で入力してください。')
@@ -88,6 +99,7 @@ class AttendanceView(ctk.CTkFrame):
                     messagebox.showerror('入力エラー', '日付の形式が正しくありません。')
             else:
                 messagebox.showerror('入力エラー', '日付は「M/D」形式で入力してください（例: 10/2）')
+        ctk.CTkButton(win, text="OK", command=on_ok).pack(side='bottom', pady=10)
 
     def start_attendance(self, date):
         self.df = pd.read_excel(config.FILE_PATH, sheet_name=config.SHEET_NAME, header=1, index_col=None)
