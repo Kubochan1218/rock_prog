@@ -1,6 +1,6 @@
 # 2026年7月5日更新 (CustomTkinterモダンデザイン版)
 
-import datetime, os, sys, json
+import os, sys, json
 import tkinter as tk
 from tkinter import messagebox, filedialog
 import tkinter.font as tkfont

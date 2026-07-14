@@ -1,7 +1,7 @@
 import datetime, re, math, openpyxl
 import pandas as pd
 import customtkinter as ctk
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox
 import config
 import attendance_calculation as ac
 

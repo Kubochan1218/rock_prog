@@ -1,6 +1,5 @@
-import json, datetime, os, openpyxl, pandas, re
+import json, datetime, os, openpyxl
 import customtkinter as ctk
-from tkinter import messagebox
 
 import config
 
