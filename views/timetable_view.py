@@ -6,15 +6,6 @@ import customtkinter as ctk
 import config
 
 class TimetableView(ctk.CTkFrame):
-    def get_json_path(self, filename, mode="r"):
-        if hasattr(sys, '_MEIPASS'):
-            # PyInstallerでexe化した場合も、常にexeのある場所を参照
-            base_dir = os.path.dirname(sys.executable)
-        else:
-            # スクリプト実行時はtop.pyのあるディレクトリ
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(base_dir, "..", filename)
-
     def __init__(self, master, app, default_live_name=None, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.app = app
@@ -504,7 +495,7 @@ class TimetableView(ctk.CTkFrame):
             return  # ライブが選択されていない場合は何もしない
 
         # 最新の live_info.json を一度読み込む（他データの誤消去を防ぐため）
-        json_path = self.get_json_path("live_info.json")
+        json_path = self.app.get_json_path("live_info.json")
         try:
             with open(json_path, "r", encoding="utf-8") as f:
                 live_data = json.load(f)
