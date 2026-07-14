@@ -203,14 +203,15 @@ class AttendanceApp:
                 pass
 
     def get_config_path(self, filename='settings.json'):
-        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-            if filename == 'rock_icon.ico':
-                return os.path.join(sys._MEIPASS, filename)
-            
-            return os.path.join(os.path.dirname(sys.executable), filename)
+        if getattr(sys, 'frozen', False) or '__compiled__' in globals():
+            # Nuitkaの--onefile、またはPyInstallerで実行されている場合
+            # sys.executable は「実行されているexeファイル自体の絶対パス」を指します
+            base_dir = os.path.dirname(os.path.abspath(sys.executable))
         else:
+            # 通常のPythonスクリプトとして実行されている場合
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            return os.path.join(base_dir, filename)
+            
+        return os.path.join(base_dir, filename)
 
     def load_settings(self):
         path = self.get_config_path()
