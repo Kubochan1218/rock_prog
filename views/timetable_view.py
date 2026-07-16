@@ -495,7 +495,7 @@ class TimetableView(ctk.CTkFrame):
             return  # ライブが選択されていない場合は何もしない
 
         # 最新の live_info.json を一度読み込む（他データの誤消去を防ぐため）
-        json_path = self.app.get_json_path("live_info.json")
+        json_path = self.app.get_config_path("live_info.json")
         try:
             with open(json_path, "r", encoding="utf-8") as f:
                 live_data = json.load(f)

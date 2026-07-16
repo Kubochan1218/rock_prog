@@ -57,13 +57,8 @@ class AttendanceApp:
         # 右側：メインコンテンツ表示用フレーム
         self.main_frame = ctk.CTkFrame(self.master, fg_color="transparent")
         self.main_frame.grid(row=0, column=1, padx=25, pady=25, sticky="nsew")
+               
         
-        # 起動時ウォークスルー表示
-        try:
-            self.maybe_show_walkthrough()
-        except Exception:
-            pass
-                    
         self.change_screen("top")
 
     def change_screen(self, screen_name):
@@ -206,11 +201,11 @@ class AttendanceApp:
         if getattr(sys, 'frozen', False) or '__compiled__' in globals():
             # Nuitkaの--onefile、またはPyInstallerで実行されている場合
             # sys.executable は「実行されているexeファイル自体の絶対パス」を指します
-            base_dir = os.path.dirname(os.path.abspath(sys.executable))
+            base_dir = os.path.abspath(os.getcwd())
         else:
             # 通常のPythonスクリプトとして実行されている場合
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            
+
         return os.path.join(base_dir, filename)
 
     def load_settings(self):

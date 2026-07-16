@@ -1,5 +1,6 @@
 """定数・設定値をまとめたファイル"""
 
+VERSION = '2.0.1'
 FILE_PATH = 'attend_data.xlsx'
 SHEET_NAME = '出欠状況'
 FONT_NAME = 'Yu Gothic UI'
