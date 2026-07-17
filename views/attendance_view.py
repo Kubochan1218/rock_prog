@@ -2,7 +2,6 @@ import datetime, re, math, openpyxl
 import pandas as pd
 import customtkinter as ctk
 from tkinter import messagebox
-from tkcalendar import Calendar
 import config
 import attendance_calculation as ac
 
@@ -22,7 +21,7 @@ class AttendanceView(ctk.CTkFrame):
         self.clear_frame()
         
         ctk.CTkLabel(self, text='👥 出欠管理', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
-        ctk.CTkLabel(self, text='出席をとる日付を選択します。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=(0, 5), anchor="w")
+        ctk.CTkLabel(self, text='出席をとる日付を選択します。\n過去・別日の出席をとる場合は、月・日を選択してください。', font=config.FONT_SUBTITLE, anchor="w", justify="left", text_color='gray50').pack(pady=(0, 5), anchor="w")
 
         btn_today = ctk.CTkButton(
             self, text='📅 今日の出席をとる', width=200, height=45, 
@@ -35,6 +34,26 @@ class AttendanceView(ctk.CTkFrame):
             fg_color='#ff9900', text_color='black', font=config.FONT_LABEL_BUTTON, 
             command=self.start_attendance_otherday)
         btn_other.pack(pady=10)
+        
+        month_day_frame = ctk.CTkFrame(self, height=2)
+        month_day_frame.pack(padx=0, pady=0)
+        month_day_frame.rowconfigure(0, weight=1)
+        month_day_frame.columnconfigure(0, weight=1, uniform="col")
+        month_day_frame.columnconfigure(1, weight=1, uniform="col")
+        
+        month_frame = ctk.CTkFrame(month_day_frame, width=100, fg_color=('gray70', 'gray30'))
+        month_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        ctk.CTkLabel(month_frame, text='月', font=config.FONT_LABEL_BUTTON).pack(pady=5)        
+        self.month_entry = ctk.CTkComboBox(month_frame, font=config.FONT_LABEL_BUTTON, width=80, values=[str(i) for i in range(1, 13)], state='readonly')
+        self.month_entry.pack(padx=5, pady=5)
+        self.month_entry.set('選択')
+        
+        day_frame = ctk.CTkFrame(month_day_frame, width=100, fg_color=('gray70', 'gray30'))
+        day_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        ctk.CTkLabel(day_frame, text='日', font=config.FONT_LABEL_BUTTON).pack(pady=5)
+        self.day_entry = ctk.CTkComboBox(day_frame, font=config.FONT_LABEL_BUTTON, width=80, values=[str(i) for i in range(1, 32)], state='readonly')
+        self.day_entry.pack(padx=5, pady=5)
+        self.day_entry.set('選択')
         
         ctk.CTkLabel(self, text='', font=config.FONT_TITLE).pack(pady=15, anchor="w")
         ctk.CTkLabel(self, text='👥 出欠状況の確認', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
@@ -73,40 +92,28 @@ class AttendanceView(ctk.CTkFrame):
         self.start_attendance(date=today)
 
     def start_attendance_otherday(self):
-        self.clear_frame()
-        ctk.CTkLabel(self, text='📆 過去・別日の出席をとる', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
-        ctk.CTkLabel(self, text='日付（月・日）を選択してください。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=(0, 5), anchor="w")
-        
-        
-        win = ctk.CTkToplevel(self.winfo_toplevel())
-        win.title("日付入力")
-        icon_path = self.app.get_config_path('rock_icon.ico')
-        win.after(200, lambda: win.iconbitmap(icon_path))
-        win.geometry("380x180")
-        win.after(200, lambda: win.focus())
-        win.grab_set()
-        ctk.CTkLabel(win, text='日付を「M/D」形式で入力してください（例: 10/2）', font=(config.FONT_NAME, 16)).pack(pady=20)
-        entry = ctk.CTkEntry(win, font=(config.FONT_NAME, 16), width=200)
-        entry.pack(pady=10)
-
-        def on_ok():
-            date = entry.get()
-            if date is None:
+        month = self.month_entry.get()
+        day = self.day_entry.get()
+        if month is None or day is None:
+            messagebox.showerror('入力エラー', '月と日を選択してください。')
+            return
+        elif month == '選択' or day == '選択':
+            messagebox.showerror('入力エラー', '月と日を選択してください。')
+            return
+        if month in ('4', '6', '9', '11') and day == '31':
+            messagebox.showerror('入力エラー', f'{month}月は30日までです。正しい日付を選択してください。')
+            return
+        elif month == '2' and day in ('30', '31'):
+            messagebox.showerror('入力エラー', '2月は29日までです。正しい日付を選択してください。')
+            return
+        else:
+            try:
+                date = f"{month}/{day}"
+                self.start_attendance(date=date.strip())
                 return
-            if re.fullmatch(r'\s*\d{1,2}/\d{1,2}\s*', date):
-                try:
-                    m, d = map(int, date.strip().split('/'))
-                    if 1 <= m <= 12 and 1 <= d <= 31:
-                        self.start_attendance(date=date.strip())
-                        win.destroy()
-                        return
-                    else:
-                        messagebox.showerror('入力エラー', '月日は正しい範囲で入力してください。')
-                except Exception:
-                    messagebox.showerror('入力エラー', '日付の形式が正しくありません。')
-            else:
-                messagebox.showerror('入力エラー', '日付は「M/D」形式で入力してください（例: 10/2）')
-        ctk.CTkButton(win, text="OK", command=on_ok).pack(side='bottom', pady=10)
+            except Exception as e:
+                messagebox.showerror('エラー', f'出欠登録の開始に失敗しました: {e}')
+                return
 
     def start_attendance(self, date):
         self.df = pd.read_excel(config.FILE_PATH, sheet_name=config.SHEET_NAME, header=1, index_col=None)
