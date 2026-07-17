@@ -2,6 +2,7 @@ import datetime, re, math, openpyxl
 import pandas as pd
 import customtkinter as ctk
 from tkinter import messagebox
+from tkcalendar import Calendar
 import config
 import attendance_calculation as ac
 
@@ -72,11 +73,17 @@ class AttendanceView(ctk.CTkFrame):
         self.start_attendance(date=today)
 
     def start_attendance_otherday(self):
+        self.clear_frame()
+        ctk.CTkLabel(self, text='📆 過去・別日の出席をとる', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
+        ctk.CTkLabel(self, text='日付（月・日）を選択してください。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=(0, 5), anchor="w")
+        
+        
         win = ctk.CTkToplevel(self.winfo_toplevel())
         win.title("日付入力")
+        icon_path = self.app.get_config_path('rock_icon.ico')
+        win.after(200, lambda: win.iconbitmap(icon_path))
         win.geometry("380x180")
         win.after(200, lambda: win.focus())
-        win.attributes("-topmost", True)
         win.grab_set()
         ctk.CTkLabel(win, text='日付を「M/D」形式で入力してください（例: 10/2）', font=(config.FONT_NAME, 16)).pack(pady=20)
         entry = ctk.CTkEntry(win, font=(config.FONT_NAME, 16), width=200)

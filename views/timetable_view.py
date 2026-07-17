@@ -155,9 +155,10 @@ class TimetableView(ctk.CTkFrame):
     def show_option_dialog(self):
         win = ctk.CTkToplevel(self.winfo_toplevel())
         win.title("絞り込みオプション")
+        icon_path = self.app.get_config_path('rock_icon.ico')
+        win.after(200, lambda: win.iconbitmap(icon_path))
         win.geometry("380x180")
         win.after(200, lambda: win.focus())
-        win.attributes("-topmost", True)
         win.grab_set()  # モーダル化
         
         labels = ["オプション1", "オプション2", "オプション3"]
@@ -336,10 +337,10 @@ class TimetableView(ctk.CTkFrame):
 
         win = ctk.CTkToplevel(self.winfo_toplevel())
         win.title("特別枠追加")
+        icon_path = self.app.get_config_path('rock_icon.ico')
+        win.after(200, lambda: win.iconbitmap(icon_path))
         win.geometry("360x200")
         win.after(200, lambda: win.focus())
-
-        win.attributes("-topmost", True)
         win.grab_set()  # モーダル化
         
         kinds_frame = ctk.CTkFrame(win, fg_color="transparent")

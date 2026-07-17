@@ -1,6 +1,7 @@
 import json, re, os
 import customtkinter as ctk
 from tkinter import messagebox
+from tkcalendar import DateEntry, Calendar
 import config
 
 class LiveView(ctk.CTkFrame):
@@ -58,6 +59,23 @@ class LiveView(ctk.CTkFrame):
                 for sch in existing_lives[choice].get('schedules', []):
                     add_date_row(date_val=sch.get('date', ''), start_val=sch.get('start', ''), end_val=sch.get('end', ''))
 
+        def delete_live():
+            """選択中のライブ情報を削除する"""
+            live_name = live_name_combo.get().strip()
+            if live_name in existing_lives:
+                confirm = messagebox.askyesno("確認", f"「{live_name}」の情報を削除してもよろしいですか？")
+                if confirm:
+                    del existing_lives[live_name]
+                    try:
+                        with open(LIVE_JSON_PATH, 'w', encoding='utf-8') as f:
+                            json.dump(existing_lives, f, ensure_ascii=False, indent=4)
+                        messagebox.showinfo("削除完了", f"「{live_name}」の情報を削除しました。")
+                        self.show_live_input()  # 再描画
+                    except Exception as ex:
+                        messagebox.showerror("削除エラー", f"JSONファイルへの書き込みに失敗しました:\n{ex}")
+            else:
+                messagebox.showerror("エラー", "削除対象のライブが存在しません。")
+
         live_name_combo = ctk.CTkComboBox(
             name_frame, 
             values=live_names_list if live_names_list else [""], 
@@ -70,6 +88,9 @@ class LiveView(ctk.CTkFrame):
         else:
             live_name_combo.set("") # 初期値は空
         live_name_combo.pack(side='left', padx=10)
+        
+        delete_btn = ctk.CTkButton(name_frame, text="ライブを削除", font=(config.FONT_NAME, 14), width=80, fg_color="#ff6666", hover_color="#cc0000", command=delete_live)
+        delete_btn.pack(side='left', padx=5)
 
         # 日程設定エリア（複数日対応・スクロール可能・時刻選択式）
         ctk.CTkLabel(self, text='日程設定（開始・終了時刻）', font=config.FONT_LABEL_BUTTON).pack(pady=(15, 5), anchor="w", padx=10)
@@ -100,11 +121,12 @@ class LiveView(ctk.CTkFrame):
             # カレンダー機能
             def open_calendar():
                 try:
-                    from tkcalendar import Calendar
                     cal_win = ctk.CTkToplevel(self.master)
                     cal_win.title("日付を選択")
-                    cal_win.attributes("-topmost", True)
-                    cal = Calendar(cal_win, selectmode='day', date_pattern='yyyy-mm-dd')
+                    icon_path = self.app.get_config_path('rock_icon.ico')
+                    cal_win.after(200, lambda: cal_win.iconbitmap(icon_path))
+                    cal_win.grab_set()
+                    cal = Calendar(cal_win, selectmode='day', date_pattern='yyyy-mm-dd', font=(config.FONT_NAME, 12))
                     cal.pack(padx=15, pady=15)
                     
                     def set_date():
@@ -112,7 +134,7 @@ class LiveView(ctk.CTkFrame):
                         date_entry.insert(0, cal.get_date())
                         cal_win.destroy()
                         
-                    ctk.CTkButton(cal_win, text='決定', command=set_date).pack(pady=10)
+                    ctk.CTkButton(cal_win, text='決定', font=config.FONT_LABEL_BUTTON, command=set_date).pack(side='bottom', pady=10)
                 except Exception:
                     messagebox.showinfo("お知らせ", "tkcalendarモジュールがインストールされていません。手入力してください。")
 
@@ -139,7 +161,7 @@ class LiveView(ctk.CTkFrame):
                 for idx, r_data in enumerate(schedule_rows):
                     r_data['lbl'].configure(text=f"{idx+1}日目:")
                     
-            btn_del = ctk.CTkButton(row, text="削除", width=50, fg_color="#ff6666", hover_color="#cc0000", command=remove_row)
+            btn_del = ctk.CTkButton(row, text="削除", font=(config.FONT_NAME, 14), width=50, fg_color="#ff6666", hover_color="#cc0000", command=remove_row)
             btn_del.pack(side='right', padx=10)
             
             row_data = {"frame": row, "lbl": lbl_num, "date": date_entry, "start": start_combo, "end": end_combo}

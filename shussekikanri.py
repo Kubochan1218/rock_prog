@@ -30,6 +30,7 @@ class AttendanceApp:
         master.geometry('1150x680')
         master.minsize(1150, 680)
         master.iconbitmap(default='rock_icon.ico')  # アイコン設定（Windows用）
+        
         self.top_showen = True
         
         # ウィンドウの×ボタンに確認ダイアログを設定
@@ -57,7 +58,6 @@ class AttendanceApp:
         # 右側：メインコンテンツ表示用フレーム
         self.main_frame = ctk.CTkFrame(self.master, fg_color="transparent")
         self.main_frame.grid(row=0, column=1, padx=25, pady=25, sticky="nsew")
-               
         
         self.change_screen("top")
 

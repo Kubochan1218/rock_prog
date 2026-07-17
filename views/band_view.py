@@ -1,7 +1,8 @@
 import json, os, difflib, re, openpyxl
 import tkinter as tk
 import customtkinter as ctk
-from tkinter import messagebox, filedialog
+from customtkinter import filedialog
+from tkinter import messagebox
 import pandas as pd
 import config
 import attendance_calculation as ac
@@ -193,8 +194,9 @@ class BandView(ctk.CTkFrame):
                 def open_manage_edit_popup(target_row, name, current_m):
                     popup = ctk.CTkToplevel(self.master)
                     popup.title(f"バンド編集: {name}")
+                    icon_path = self.app.get_config_path('rock_icon.ico')
+                    popup.after(200, lambda: popup.iconbitmap(icon_path))
                     popup.geometry("500x520")
-                    popup.attributes("-topmost", True)
                     popup.grab_set()
 
                     ctk.CTkLabel(popup, text=f'🎤 バンド名: {name}', font=config.FONT_LABEL_BUTTON).pack(pady=10, anchor='w', padx=15)
@@ -508,9 +510,10 @@ class BandView(ctk.CTkFrame):
             def open_edit_popup(current_band=b_data, update_label=mem_lbl):
                 popup = ctk.CTkToplevel(self.master)
                 popup.title(f"メンバー手動修正: {current_band['band_name']}")
+                icon_path = self.app.get_config_path('rock_icon.ico')
+                popup.after(200, lambda: popup.iconbitmap(icon_path))
                 popup.resizable(False, False)
                 popup.geometry("600x480")
-                popup.attributes("-topmost", True)
                 popup.grab_set()
 
                 ctk.CTkLabel(popup, text='元の応募テキスト:', font=config.FONT_LABEL_BUTTON).pack(pady=(10, 0), anchor='w', padx=15)
