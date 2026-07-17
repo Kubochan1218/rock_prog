@@ -1,5 +1,6 @@
 import json, datetime, os, openpyxl
 import customtkinter as ctk
+from tkinter import messagebox
 
 import config
 
@@ -249,6 +250,12 @@ class MainView(ctk.CTkFrame):
         
         self.show_quick_access_buttons()
         
+        if self.unknown_format_count > 0:
+            messagebox.showwarning("警告", f"出欠データの形式が最新ではありません。\n詳細は、「attendance_data_format.txt」または「README.txt」をご確認ください。")
+            # テキストファイルに出力
+            with open('attendance_data_format.txt', 'w', encoding='utf-8') as f:
+                f.write(config.UPDATE_LOG)
+        
     def clear_quick_buttons(self):
         """quick_button_frame 内のウィジェットをすべて削除"""
         for widget in self.quick_button_frame.winfo_children():
@@ -425,6 +432,7 @@ class MainView(ctk.CTkFrame):
                     absent_without_contact_count = 0 # 無断欠席の数
                     online_count = 0 # オンライン出席の数
                     bereavement_count = 0 # 忌引き等の数
+                    self.unknown_format_count = 0 # 不明な形式の数
 
                     for row in range(3, ws.max_row + 1):
                         status = ws.cell(row=row, column=date_col).value
@@ -440,6 +448,8 @@ class MainView(ctk.CTkFrame):
                                 online_count += 1
                             elif str(status).strip() == '忌引':
                                 bereavement_count += 1
+                            if str(status).strip() in ['〇', '○', '△', '×']:
+                                self.unknown_format_count += 1
                     if total_count == 0:
                         return {"total": 0, "present": 0, "absent_with_contact": 0, "absent_without_contact": 0, "online": 0, "bereavement": 0, "attendance_rate": 0.0}
                     

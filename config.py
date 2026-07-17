@@ -1,6 +1,5 @@
 """定数・設定値をまとめたファイル"""
 
-VERSION = '2.0.1'
 FILE_PATH = 'attend_data.xlsx'
 SHEET_NAME = '出欠状況'
 FONT_NAME = 'Yu Gothic UI'
@@ -9,3 +8,6 @@ APP_COLOR = 'green'  # 'blue' or 'green' or 'dark-blue'
 FONT_TITLE = (FONT_NAME, 20, 'bold')
 FONT_LABEL_BUTTON = (FONT_NAME, 16, 'bold')
 FONT_SUBTITLE = (FONT_NAME, 14)
+
+VERSION = '2.0.1'
+UPDATE_LOG = "Excelファイルへの出席データの書き込み形式を変更し、目視で確認しやすくなったほか、○（漢数字）と○（記号）などの差異によって出席率計算に誤差が出る現象を修正しました。\n※この変更によって、既存の出欠データを書き換える必要があります。書き換えには、専用のツール（convert.exe）を使用してください。"
