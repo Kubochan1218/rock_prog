@@ -14,6 +14,7 @@ class BandView(ctk.CTkFrame):
         self.app = app
         self.default_tab = default_tab
         self.default_live_name = default_live_name
+        self.file_path = self.app.settings.get('excel_file_path', config.FILE_PATH)
 
         self.show_band_input()
 
@@ -124,7 +125,7 @@ class BandView(ctk.CTkFrame):
                 return
 
             try:
-                wb = openpyxl.load_workbook(config.FILE_PATH, data_only=True)
+                wb = openpyxl.load_workbook(self.file_path, data_only=True)
                 if '登録済みバンド' not in wb.sheetnames:
                     ctk.CTkLabel(list_container, text='登録されているバンドはありません。', font=(config.FONT_NAME, 16)).pack(pady=20)
                     return
@@ -138,7 +139,7 @@ class BandView(ctk.CTkFrame):
 
             # メンバー再編集用の名簿データ取得
             try:
-                df_roster = pd.read_excel(config.FILE_PATH, sheet_name=config.SHEET_NAME, header=1)
+                df_roster = pd.read_excel(self.file_path, sheet_name=config.SHEET_NAME, header=1)
                 roster_names = list(df_roster['氏名'].dropna().astype(str))
             except Exception:
                 roster_names = []
@@ -182,10 +183,10 @@ class BandView(ctk.CTkFrame):
                 def delete_band(target_row, name):
                     if messagebox.askyesno('確認', f'本当にバンド「{name}」を削除しますか？'):
                         try:
-                            edit_wb = openpyxl.load_workbook(config.FILE_PATH)
+                            edit_wb = openpyxl.load_workbook(self.file_path)
                             edit_ws = edit_wb['登録済みバンド']
                             edit_ws.delete_rows(target_row) # 該当行を丸ごと削除
-                            edit_wb.save(config.FILE_PATH)
+                            edit_wb.save(self.file_path)
                             messagebox.showinfo('成功', f'「{name}」を削除しました。')
                             refresh_managed_bands() # 画面リフレッシュ
                         except Exception as e:
@@ -243,7 +244,7 @@ class BandView(ctk.CTkFrame):
                             new_members.append('')
 
                         try:
-                            edit_wb = openpyxl.load_workbook(config.FILE_PATH)
+                            edit_wb = openpyxl.load_workbook(self.file_path)
                             edit_ws = edit_wb['登録済みバンド']
                             
                             # メンバー上書き (2~11列目)
@@ -254,7 +255,7 @@ class BandView(ctk.CTkFrame):
                             edit_ws.cell(row=target_row, column=12).value = time_entry.get()
                             edit_ws.cell(row=target_row, column=13).value = date_entry.get()
 
-                            edit_wb.save(config.FILE_PATH)
+                            edit_wb.save(self.file_path)
                             messagebox.showinfo('成功', 'バンド情報を更新しました。')
                             popup.grab_release()
                             popup.destroy()
@@ -411,7 +412,7 @@ class BandView(ctk.CTkFrame):
             df_all = pd.read_excel(file_path)
             df_band = df_all.iloc[:, 2:]
                 
-            df_roster = pd.read_excel(config.FILE_PATH, sheet_name=config.SHEET_NAME, header=1)
+            df_roster = pd.read_excel(self.file_path, sheet_name=config.SHEET_NAME, header=1)
             roster_names = list(df_roster['氏名'].dropna().astype(str))
         except Exception as e:
             messagebox.showerror('エラー', f'ファイルの読み込みに失敗しました:\n{e}')
@@ -572,7 +573,7 @@ class BandView(ctk.CTkFrame):
         # Excelへの一括書き込み処理
         def register_all_to_excel():
             try:
-                wb = openpyxl.load_workbook(config.FILE_PATH)
+                wb = openpyxl.load_workbook(self.file_path)
                 sheet_name = '登録済みバンド'
                 if sheet_name not in wb.sheetnames:
                     ws = wb.create_sheet(sheet_name)
@@ -607,7 +608,7 @@ class BandView(ctk.CTkFrame):
                     
                     row_idx += 1
 
-                wb.save(config.FILE_PATH)
+                wb.save(self.file_path)
                 try:
                     self.app.settings['last_startup'] = __import__('datetime').date.today().isoformat()
                     self.app.save_settings()
@@ -639,7 +640,7 @@ class BandView(ctk.CTkFrame):
         period = f"{start_date}～{end_date}"
 
         # 指定期間の出席率計算
-        ac.calculate_attendance_rate(start_date, end_date, config.FILE_PATH, config.SHEET_NAME)
+        ac.calculate_attendance_rate(start_date, end_date, self.file_path, config.SHEET_NAME)
             
         # 募集バンド数（未入力時は上限なし -> 9999）
         max_bands_val = self.entry_max_bands.get().strip()
@@ -665,7 +666,7 @@ class BandView(ctk.CTkFrame):
                     slots=max_bands,
                     total_time=total_time,
                     change_time=rehearsal_time,
-                    file_path=config.FILE_PATH,
+                    file_path=self.file_path,
                     live_name=live_name
                 )
                 

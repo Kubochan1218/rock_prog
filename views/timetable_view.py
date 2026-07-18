@@ -11,6 +11,7 @@ class TimetableView(ctk.CTkFrame):
         self.app = app
         self.default_live_name = default_live_name
         LIVE_JSON_PATH = self.app.get_config_path('live_info.json')
+        self.file_path = self.app.get_config_path(config.FILE_PATH)
         self.existing_lives = {}
         self.schedules = []        
         self.tabs = {}
@@ -196,7 +197,7 @@ class TimetableView(ctk.CTkFrame):
 
     def load_band_infos(self):
         """Excelファイルからバンド情報を読み込む"""
-        wb = openpyxl.load_workbook(config.FILE_PATH, data_only=True)
+        wb = openpyxl.load_workbook(self.file_path, data_only=True)
         ws = wb['登録済みバンド']
         self.bands = []
         for row in range(1, ws.max_row + 1):

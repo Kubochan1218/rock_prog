@@ -8,7 +8,8 @@ class MainView(ctk.CTkFrame):
     def __init__(self, master, app, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.app = app
-        
+        self.file_path = self.app.settings.get('excel_file_path', config.FILE_PATH)
+
         self.show_dashboard()
 
     def clear_frame(self):
@@ -250,12 +251,6 @@ class MainView(ctk.CTkFrame):
         
         self.show_quick_access_buttons()
         
-        if self.unknown_format_count > 0:
-            messagebox.showwarning("警告", f"出欠データの形式が最新ではありません。\n詳細は、「attendance_data_format.txt」または「README.txt」をご確認ください。")
-            # テキストファイルに出力
-            with open('attendance_data_format.txt', 'w', encoding='utf-8') as f:
-                f.write(config.UPDATE_LOG)
-        
     def clear_quick_buttons(self):
         """quick_button_frame 内のウィジェットをすべて削除"""
         for widget in self.quick_button_frame.winfo_children():
@@ -379,7 +374,7 @@ class MainView(ctk.CTkFrame):
     def get_selected_bands(self, live_name):
         """指定されたライブに出演確定のバンドを取得"""
         try:
-            wb = openpyxl.load_workbook(config.FILE_PATH, data_only=True)
+            wb = openpyxl.load_workbook(self.file_path, data_only=True)
             ws = wb['登録済みバンド']
             bands = []
             for row in range(1, ws.max_row + 1):
@@ -401,7 +396,7 @@ class MainView(ctk.CTkFrame):
     def get_attendance(self):
         """出席情報を取得"""
         try:
-            wb = openpyxl.load_workbook(config.FILE_PATH, data_only=True)
+            wb = openpyxl.load_workbook(self.file_path, data_only=True)
             ws = wb[config.SHEET_NAME]
             date_list = []
             for col in range(7, ws.max_column + 1):
@@ -432,7 +427,6 @@ class MainView(ctk.CTkFrame):
                     absent_without_contact_count = 0 # 無断欠席の数
                     online_count = 0 # オンライン出席の数
                     bereavement_count = 0 # 忌引き等の数
-                    self.unknown_format_count = 0 # 不明な形式の数
 
                     for row in range(3, ws.max_row + 1):
                         status = ws.cell(row=row, column=date_col).value
@@ -448,8 +442,6 @@ class MainView(ctk.CTkFrame):
                                 online_count += 1
                             elif str(status).strip() == '忌引':
                                 bereavement_count += 1
-                            if str(status).strip() in ['〇', '○', '△', '×']:
-                                self.unknown_format_count += 1
                     if total_count == 0:
                         return {"total": 0, "present": 0, "absent_with_contact": 0, "absent_without_contact": 0, "online": 0, "bereavement": 0, "attendance_rate": 0.0}
                     
@@ -483,3 +475,19 @@ class MainView(ctk.CTkFrame):
         except Exception:
             return []
 
+    def check_attendance_data_format(self):
+        """出席データの形式が最新かどうかをチェック"""
+        try:
+            wb = openpyxl.load_workbook(self.file_path, data_only=True)
+            ws = wb[config.SHEET_NAME]
+            # 2行目の7列目以降のセルを確認
+            for col in range(7, ws.max_column + 1):
+                cell_value = ws.cell(row=2, column=col).value
+                if cell_value is not None:
+                    for row in range(3, ws.max_row + 1):
+                        status = ws.cell(row=row, column=col).value
+                        if status not in ['出席', '連絡あり', '無断欠席', 'オ', '忌引']:
+                            return False
+            return True
+        except Exception:
+            return False

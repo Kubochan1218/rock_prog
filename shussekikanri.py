@@ -42,6 +42,7 @@ class AttendanceApp:
         # 設定読み込み（操作支援など）
         self.load_settings()
         appearance_mode = self.settings.get('appearance_mode', config.APP_MODE)
+        globals()['FILE_PATH'] = self.settings.get('excel_file_path', config.FILE_PATH)
         try:
             ctk.set_appearance_mode(appearance_mode)
         except Exception:
@@ -60,6 +61,12 @@ class AttendanceApp:
         self.main_frame.grid(row=0, column=1, padx=25, pady=25, sticky="nsew")
         
         self.change_screen("top")
+
+        if not MainView.check_attendance_data_format(self):
+            messagebox.showwarning(
+                "出席データ形式の確認",
+                config.UPDATE_LOG,
+            )
 
     def change_screen(self, screen_name):
         """サイドバーのメニュー選択に応じて右側の画面を切り替える"""
@@ -166,6 +173,8 @@ class AttendanceApp:
             if f_path:
                 file_path_var.set(f_path)
                 globals()['FILE_PATH'] = f_path
+                self.settings['excel_file_path'] = f_path
+                self.save_settings()
             
         btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color='#80d4ff', text_color='black', font=(config.FONT_NAME, 16), command=select_file)
         btn_file.pack(side='left')
@@ -218,8 +227,6 @@ class AttendanceApp:
                     self.settings = json.load(f)
         except Exception:
             self.settings = {}
-        self.settings.setdefault('operation_support', True)
-        self.settings.setdefault('seen_walkthrough', False)
 
     def save_settings(self):
         path = self.get_config_path()

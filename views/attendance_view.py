@@ -9,6 +9,7 @@ class AttendanceView(ctk.CTkFrame):
     def __init__(self, master, app, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.app = app
+        self.file_path = self.app.settings.get('excel_file_path', config.FILE_PATH)
 
         self.show_attendance_date_select()
 
@@ -84,7 +85,7 @@ class AttendanceView(ctk.CTkFrame):
         ctk.CTkLabel(date_frame, text='ⓘ', font=(config.FONT_NAME, 18)).pack(side='left', anchor="w", padx=(15, 5))
         ctk.CTkLabel(date_frame, text='開始日と終了日を同じ日付に設定すると\nその日の出欠状況のみを確認できます。', font=(config.FONT_NAME, 14), anchor="w", justify="left").pack(side='left', padx=0)
         
-        btn_check = ctk.CTkButton(self, text='👁 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=config.FONT_LABEL_BUTTON, command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), config.FILE_PATH, config.SHEET_NAME))
+        btn_check = ctk.CTkButton(self, text='👁 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=config.FONT_LABEL_BUTTON, command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), self.file_path, config.SHEET_NAME))
         btn_check.pack(pady=10)
 
     def start_attendance_today(self):
@@ -116,7 +117,7 @@ class AttendanceView(ctk.CTkFrame):
                 return
 
     def start_attendance(self, date):
-        self.df = pd.read_excel(config.FILE_PATH, sheet_name=config.SHEET_NAME, header=1, index_col=None)
+        self.df = pd.read_excel(self.file_path, sheet_name=config.SHEET_NAME, header=1, index_col=None)
         self.df = self.df.loc[:, ~self.df.columns.str.contains('^Unnamed')]
         self.date = date
         if date not in self.df.columns:
@@ -201,7 +202,7 @@ class AttendanceView(ctk.CTkFrame):
 
     def save_and_back_to_top(self):
         try:
-            wb = openpyxl.load_workbook(config.FILE_PATH)
+            wb = openpyxl.load_workbook(self.file_path)
             ws = wb[config.SHEET_NAME]
             target_col = None
             for col in range(1, ws.max_column + 1):
@@ -253,7 +254,7 @@ class AttendanceView(ctk.CTkFrame):
                     cell.border = copy(left_cell.border)
                     cell.fill = copy(left_cell.fill)
                 cell.value = row[self.date]
-            wb.save(config.FILE_PATH)
+            wb.save(self.file_path)
             messagebox.showinfo('保存完了', 'Excelファイルを保存しました。')
         except Exception as e:
             messagebox.showerror('保存エラー', f'Excel保存に失敗しました: {e}')
