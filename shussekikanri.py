@@ -62,11 +62,18 @@ class AttendanceApp:
         
         self.change_screen("top")
 
-        if not MainView.check_attendance_data_format(self):
-            messagebox.showwarning(
+        if not MainView.check_attendance_data_format(self, FILE_PATH):
+            launch_converter = messagebox.askyesno(
                 "出席データ形式の確認",
                 config.UPDATE_LOG,
             )
+            if launch_converter:
+                converter_path = self.get_config_path('Converter.exe')
+                if os.path.exists(converter_path):
+                    try:
+                        os.startfile(converter_path)
+                    except Exception as e:
+                        messagebox.showerror("エラー", f"変換ツールの起動に失敗しました:\n{e}")
 
     def change_screen(self, screen_name):
         """サイドバーのメニュー選択に応じて右側の画面を切り替える"""
@@ -197,6 +204,12 @@ class AttendanceApp:
         appearance_combo = ctk.CTkComboBox(appearance_frame, values=list(mode.keys()), font=(config.FONT_NAME, 16), width=120, command=change_appearance)
         appearance_combo.set(appearance_key[0] if appearance_key else "")
         appearance_combo.pack(pady=5, anchor="w")
+        
+        # バージョン情報
+        version_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        version_frame.pack(side='bottom', pady=10, fill='x')
+        ctk.CTkLabel(version_frame, text=f'ロック部 出席管理 version {config.VERSION}', font=(config.FONT_NAME, 12), text_color='gray').pack(side='left', padx=10, anchor="w")
+        ctk.CTkLabel(version_frame, text='© 2026 Rock Club', font=(config.FONT_NAME, 12), text_color='gray').pack(side='right', padx=10, anchor="e")
         self.top_showen = False
 
     def on_close(self):

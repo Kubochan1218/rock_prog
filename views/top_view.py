@@ -19,9 +19,13 @@ class MainView(ctk.CTkFrame):
 
     def show_dashboard(self):
         self.clear_frame()
-        
-        ctk.CTkLabel(self, text='ホーム', font=config.FONT_TITLE).pack(pady=15, anchor="w")
 
+        title_frame = ctk.CTkFrame(self, fg_color="transparent")
+        title_frame.pack(padx=0, pady=0, fill='x')
+        ctk.CTkLabel(title_frame, text='🏠 ホーム', font=config.FONT_TITLE).pack(side='left', pady=15, anchor="w")
+        message_label = ctk.CTkLabel(title_frame, text='', font=config.FONT_TITLE, text_color='gray50')
+        message_label.pack(side='left', padx=10, pady=15, anchor="w")
+        
         # 前回起動日が設定されている場合、30日以上経過していれば確認ダイアログを表示
         try:
             prev = self.app.settings.get('last_startup')
@@ -30,9 +34,14 @@ class MainView(ctk.CTkFrame):
                 prev_date = datetime.date.fromisoformat(prev)
                 delta_days = (today - prev_date).days
                 if delta_days >= 30:
-                    ctk.CTkLabel(self, text=f'最後のバンド登録から{delta_days}日経過しています。登録済みバンドを確認しましょう！', font=config.FONT_SUBTITLE, text_color='green').pack(pady=10, anchor="w")
+                    message_label.configure(text=f'最後のバンド登録から{delta_days}日経過しています。登録済みバンドを確認しましょう！', font=config.FONT_SUBTITLE, text_color=("#45965d", "#a3caaf"))
         except Exception:
             pass
+        
+        # 設定されたExcelファイルが存在しなければ警告表示
+        if not os.path.exists(self.file_path):
+            message_label.configure(text=f'設定されたExcelファイルが存在しません。設定を確認してください。', font=config.FONT_TITLE, text_color=("#ff4343", "#f5baba"))
+            messagebox.showwarning("警告", "設定されたExcelファイルが存在しません。設定を確認してください。")
 
         # 通常モードのレイアウト（大きなタイルボタンでモダンに変身）
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -475,18 +484,20 @@ class MainView(ctk.CTkFrame):
         except Exception:
             return []
 
-    def check_attendance_data_format(self):
+    def check_attendance_data_format(self, file_path):
         """出席データの形式が最新かどうかをチェック"""
+        if not os.path.exists(file_path):
+            return True  # ファイルが存在しない場合は形式チェックをスキップ
         try:
-            wb = openpyxl.load_workbook(self.file_path, data_only=True)
+            wb = openpyxl.load_workbook(file_path, data_only=True)
             ws = wb[config.SHEET_NAME]
-            # 2行目の7列目以降のセルを確認
+            # 3行目の7列目以降のセルを確認
             for col in range(7, ws.max_column + 1):
                 cell_value = ws.cell(row=2, column=col).value
                 if cell_value is not None:
                     for row in range(3, ws.max_row + 1):
                         status = ws.cell(row=row, column=col).value
-                        if status not in ['出席', '連絡あり', '無断欠席', 'オ', '忌引']:
+                        if status not in ['出席', '連絡あり', '無断欠席', 'オ', '忌引', '', None]:
                             return False
             return True
         except Exception:
