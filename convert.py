@@ -34,7 +34,7 @@ class ExcelConverter:
         title_label = ctk.CTkLabel(self.top_view, text='出席データ形式変換', font=(FONT_NAME, 20, 'bold'))
         title_label.pack(pady=(15, 5), anchor='w')
         file_label = ctk.CTkLabel(self.top_view, text='出席データ形式を変換するExcelファイルを選択してください。', font=(FONT_NAME, 14), text_color='gray50')
-        file_label.pack(pady=10, anchor='w')
+        file_label.pack(pady=(0, 10), anchor='w')
 
         file_path_var = ctk.StringVar(value='Excelファイルを選択してください')
         file_frame = ctk.CTkFrame(self.top_view, fg_color="transparent")
@@ -52,7 +52,7 @@ class ExcelConverter:
         btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color='#80d4ff', text_color='black', font=(FONT_NAME, 16), command=select_file)
         btn_file.pack(side='left')
 
-        self.copy_check_box = ctk.CTkCheckBox(self.top_view, text='変換前に元のファイルをコピーする', font=(FONT_NAME, 14), text_color='gray50')
+        self.copy_check_box = ctk.CTkCheckBox(self.top_view, text='元のファイルのコピーを作成する', font=(FONT_NAME, 14), text_color='gray50')
         self.copy_check_box.pack(pady=10, anchor='w')
 
         # 変換ボタン
