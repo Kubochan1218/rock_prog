@@ -141,8 +141,14 @@ class AttendanceView(ctk.CTkFrame):
         student_id = safe_str(row['学籍番号'])
         grade = safe_str(row['学年']) if '学年' in self.df.columns else ''
         faculty = safe_str(row['学部']) if '学部' in self.df.columns else ''
+        
+        faculty_dict = {
+            'T': '工学部',
+            'S': '理学部',
+            'H': '環境人間学部',
+            }
 
-        info = f'No. {self.current_idx+1} / 全 {len(self.df)} 名\n氏名: {name}\n学籍番号: {student_id}\n学年: {grade}  学部: {faculty}\n対象日: {self.date}'
+        info = f'No. {self.current_idx+1} / 全 {len(self.df)} 名\n氏名: {name}\n学籍番号: {student_id}\n学年: {grade}  学部: {faculty_dict.get(faculty, faculty)}\n対象日: {self.date}'
         ctk.CTkLabel(self, text=info, font=ctk.CTkFont(family=config.FONT_NAME, size=16, weight='bold'), justify='left', anchor="w").pack(pady=15, fill="x")
 
         mark_defs = [
@@ -224,9 +230,6 @@ class AttendanceView(ctk.CTkFrame):
                 if target_col > 1:
                     left_cell = ws.cell(row=2, column=target_col-1)
                     date_cell.font = copy(left_cell.font)
-                    date_cell.alignment = copy(left_cell.alignment)
-                    date_cell.border = copy(left_cell.border)
-                    date_cell.fill = copy(left_cell.fill)
                 date_cell.value = self.date
 
             id_col = None
@@ -250,9 +253,6 @@ class AttendanceView(ctk.CTkFrame):
                 if target_col > 1:
                     left_cell = ws.cell(row=excel_row, column=target_col-1)
                     cell.font = copy(left_cell.font)
-                    cell.alignment = copy(left_cell.alignment)
-                    cell.border = copy(left_cell.border)
-                    cell.fill = copy(left_cell.fill)
                 cell.value = row[self.date]
             wb.save(self.file_path)
             messagebox.showinfo('保存完了', 'Excelファイルを保存しました。')
