@@ -370,17 +370,6 @@ class AttendanceApp:
 
 if __name__ == '__main__':
     root = ctk.CTk()
-    root.geometry('1150x680')
-    root.minsize(1050, 600)
     
-    # 既存のレガシーフォント設定補正マッピング
-    default_font = tkfont.nametofont("TkDefaultFont")
-    default_font.configure(family="Yu Gothic UI", size=11)
-    root.option_add("*Font", default_font)
-    try:
-        tkfont.Font(name=FONT_NAME, family=FONT_NAME, size=11)
-    except Exception:
-        pass
-        
     app = AttendanceApp(root)
     root.mainloop()
