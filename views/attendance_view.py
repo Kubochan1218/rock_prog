@@ -122,6 +122,7 @@ class AttendanceView(ctk.CTkFrame):
         self.date = date
         if date not in self.df.columns:
             self.df[date] = ''
+        self.df[date] = self.df[date].astype(object)
         self.current_idx = 0
         self.show_attendance_entry()
 
@@ -185,7 +186,8 @@ class AttendanceView(ctk.CTkFrame):
         btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def set_attendance(self, mark):
-        self.df.at[self.current_idx, self.date] = mark
+        self.df[self.date] = self.df[self.date].astype(object)
+        self.df.at[self.current_idx, self.date] = str(mark)
         self.next_person()
 
     def prev_person(self):
