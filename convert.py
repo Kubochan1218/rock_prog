@@ -164,6 +164,7 @@ class ExcelConverter:
             else:
                 wb.save(self.file_path)
             messagebox.showinfo("完了", "Excelファイルの変換が完了しました。")
+            self.show_top_view()
         except Exception as e:
             self.show_top_view()
             messagebox.showerror("エラー", f"Excelファイルの変換中にエラーが発生しました: {e}")
