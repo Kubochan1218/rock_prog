@@ -14,7 +14,8 @@
                     "ゼンジン未到とタロタロソース(Mrs. GREEN APPLE)",
                     "都会のアルマジロ（SUPER BEAVER）",
                     "ヤバイ農協ランキング（ヤバイTシャツ屋さん）",
-                    "gnu魂(オムニバス)"
+                    "gnu魂(オムニバス)",
+                    "yutori"
                 ],
                 "timetable_items": [
                     {
@@ -48,13 +49,18 @@
                         "minutes": "30"
                     },
                     {
+                        "type": "break",
+                        "minutes": 300
+                    },
+                    {
                         "type": "band",
                         "name": "gnu魂(オムニバス)",
                         "minutes": "30"
                     },
                     {
-                        "type": "break",
-                        "minutes": 60
+                        "type": "band",
+                        "name": "yutori",
+                        "minutes": "20"
                     }
                 ]
             },
