@@ -11,7 +11,7 @@ class TimetableView(ctk.CTkFrame):
         self.app = app
         self.default_live_name = default_live_name
         LIVE_JSON_PATH = self.app.get_config_path('live_info.json')
-        self.file_path = self.app.get_config_path(config.FILE_PATH)
+        self.file_path = self.app.settings.get('excel_file_path', config.FILE_PATH)
         self.existing_lives = {}
         self.schedules = []        
         self.tabs = {}
