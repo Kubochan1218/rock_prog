@@ -10,7 +10,6 @@
 /meiryo.ttc
 /PyFiles
 /rock_icon.jpg
-/schedule_data.json
 /select_band_log.txt
 /settings.json
 /shussekikanri.spec
@@ -25,3 +24,6 @@
 /shussekikanri.dist
 /shussekikanri.onefile-build
 /Converter.exe
+/Output
+/Rock_system Installer.iss
+/live_info.json
