@@ -227,6 +227,7 @@ class AttendanceApp:
         if messagebox.askokcancel('確認', 'アプリを終了しますか？', parent=self.master):
             try:
                 self.master.destroy()
+                self.save_settings()
             except Exception:
                 pass
 
