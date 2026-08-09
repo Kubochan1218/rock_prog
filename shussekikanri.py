@@ -8,6 +8,7 @@ import customtkinter as ctk
 import pandas as pd
 
 import config
+from check_update import UpdateChecker
 from views.sidebar import SidebarFrame
 from views.top_view import MainView
 from views.attendance_view import AttendanceView
@@ -30,7 +31,8 @@ class AttendanceApp:
         master.geometry('1150x680')
         master.minsize(1150, 680)
         master.iconbitmap(default='rock_icon.ico')  # アイコン設定（Windows用）
-        
+
+        self.settings = {}
         self.top_showen = True
         
         # ウィンドウの×ボタンに確認ダイアログを設定
@@ -47,6 +49,15 @@ class AttendanceApp:
             ctk.set_appearance_mode(appearance_mode)
         except Exception:
             ctk.set_appearance_mode(config.APP_MODE)
+
+        # アップデートチェック
+        update_checker = UpdateChecker()
+        check_date = self.settings.get('last_update_check', None)
+        if check_date != pd.Timestamp.now().strftime('%Y-%m-%d'): # 前回チェック日と今日の日付が異なる場合のみチェック
+            if update_checker.check_for_update():
+                if messagebox.askyesno("アップデート確認", f"新しいバージョン {update_checker.latest_version} が利用可能です。\n\nアップデートしますか？"):
+                    update_checker.update_from_github()
+            self.settings['last_update_check'] = pd.Timestamp.now().strftime('%Y-%m-%d')
 
         # 全体レイアウト：2カラム構成（左：固定サイドメニュー、右：動的画面）
         self.master.grid_columnconfigure(1, weight=1)
