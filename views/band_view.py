@@ -61,7 +61,7 @@ class BandView(ctk.CTkFrame):
         ctk.CTkLabel(tab, text='🎤 バンド応募データの一括インポート', font=config.FONT_TITLE).pack(pady=15, anchor="w")
 
         form_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        form_frame.pack(pady=5, fill='x', padx=10)
+        form_frame.pack(pady=5, fill='x', padx=5)
 
         # 1. ライブ名選択
         ctk.CTkLabel(form_frame, text='対象のライブを選択:', font=config.FONT_LABEL_BUTTON).pack(anchor='w', pady=0)
@@ -105,7 +105,7 @@ class BandView(ctk.CTkFrame):
         ctk.CTkLabel(tab, text='📝 登録済みバンドの管理（編集・削除）', font=config.FONT_TITLE).pack(pady=15, anchor="w")
 
         filter_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        filter_frame.pack(pady=5, fill='x', padx=10)
+        filter_frame.pack(pady=5, fill='x', padx=5)
 
         ctk.CTkLabel(filter_frame, text='表示するライブを選択:', font=config.FONT_LABEL_BUTTON).pack(side='left', padx=(0, 10))
         live_selector = ctk.CTkComboBox(filter_frame, values=list(existing_lives.keys()), width=250, font=(config.FONT_NAME, 16))
@@ -294,7 +294,7 @@ class BandView(ctk.CTkFrame):
         
         # 全体フレーム（すべてpackで配置）
         scroll_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        scroll_frame.pack(pady=5, fill='x', padx=10)
+        scroll_frame.pack(pady=5, fill='x', padx=5)
         
         # 各行のラベル幅を「300ピクセル」に固定し、入力欄の左端を綺麗に揃える
         LBL_WIDTH = 300
@@ -335,7 +335,7 @@ class BandView(ctk.CTkFrame):
         self.start_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_start, command=update_end_dates)
         self.start_combo.pack(side='left', padx=5, pady=6)
         
-        ctk.CTkLabel(date_frame, text='出席率計算 終了日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=6)
+        ctk.CTkLabel(date_frame, text='終了日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=6)
         self.end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_end)
         self.end_combo.pack(side='left', padx=5, pady=6)
         
