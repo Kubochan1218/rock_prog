@@ -13,6 +13,7 @@ from views.sidebar import SidebarFrame
 from views.top_view import MainView
 from views.attendance_view import AttendanceView
 from views.live_view import LiveView
+from views.make_from_view import FormCreator
 from views.band_view import BandView
 from views.timetable_view import TimetableView
 
@@ -58,6 +59,7 @@ class AttendanceApp:
                 if messagebox.askyesno("アップデート確認", f"新しいバージョン {update_checker.latest_version} が利用可能です。\n\nアップデートしますか？"):
                     update_checker.update_from_github()
             self.settings['last_update_check'] = pd.Timestamp.now().strftime('%Y-%m-%d')
+            self.save_settings()
 
         # 全体レイアウト：2カラム構成（左：固定サイドメニュー、右：動的画面）
         self.master.grid_columnconfigure(1, weight=1)
@@ -94,6 +96,8 @@ class AttendanceApp:
             self.show_attendance_date_select()
         elif screen_name == "live":
             self.register_live()
+        elif screen_name == "form":
+            self.create_form()
         elif screen_name == "band":
             self.register_band()
         elif screen_name == "timetable":
@@ -149,6 +153,13 @@ class AttendanceApp:
         self.clear()
         self.live_view = LiveView(self.main_frame, app=self, default_live_name=default_live_name)
         self.live_view.pack(fill='both', expand=True)
+        self.top_showen = False
+
+    def create_form(self):
+        """Google Formの新規作成画面を表示"""
+        self.clear()
+        self.form_view = FormCreator(self.main_frame, app=self)
+        self.form_view.pack(fill='both', expand=True)
         self.top_showen = False
 
     def register_band(self, default_tab=None, default_live_name=None):
