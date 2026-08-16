@@ -30,7 +30,7 @@ class FormCreator(ctk.CTkFrame):
             "title": "",
             "description": "",
             "dates": [],
-            "band_name_example": "",
+            "band_name_example": self.settings.get('example_band_name', "ロック部バンド（コピー元）"),
             "deadline": ""
         }
 
@@ -150,21 +150,34 @@ class FormCreator(ctk.CTkFrame):
                 messagebox.showinfo("お知らせ", "tkcalendarモジュールがインストールされていません。手入力してください。")
 
         btn_cal = ctk.CTkButton(deadline_frame, text="📅", width=30, fg_color="gray70", text_color="black", command=open_calendar)
-        btn_cal.pack(side='left', padx=(0, 15))
+        btn_cal.pack(side='left', padx=(0, 5))
+        
+        ctk.CTkLabel(deadline_frame, text='ⓘ設定しない場合は、フォームに締め切りが表示されません。', font=config.FONT_SUBTITLE, text_color='gray50').pack(side='left', padx=5, anchor="w")
 
         ctk.CTkLabel(self, text='フォームの注意事項', font=config.FONT_LABEL_BUTTON, anchor="w", justify="left").pack(pady=5, anchor="w")
         self.form_info["description"] = self.settings.get('form_instructions', config.FORM_DISCRIPTION) if self.settings else config.FORM_DISCRIPTION
-        form_instructions_textbox = ctk.CTkTextbox(self, width=1100, height=100, font=(config.FONT_NAME, 14), corner_radius=10, text_color='white')
+        form_instructions_textbox = ctk.CTkTextbox(self, width=1100, height=100, font=(config.FONT_NAME, 14), corner_radius=10)
         form_instructions_textbox.pack(padx=0, pady=0, fill='x')
         form_instructions_textbox.insert("1.0", self.form_info["description"])
 
         ctk.CTkLabel(self, text='ⓘ ライブ情報', font=config.FONT_LABEL_BUTTON, anchor="w", justify="left").pack(pady=5, anchor="w")
-        live_info = ctk.CTkTextbox(self, width=1100, height=160, font=(config.FONT_NAME, 14), corner_radius=10, text_color='white', state='disabled')
+        live_info = ctk.CTkTextbox(self, width=1100, height=160, font=(config.FONT_NAME, 14), corner_radius=10, state='disabled')
         live_info.pack(padx=0, pady=0, fill='x')
+        
+        button_frame = ctk.CTkFrame(self, fg_color="transparent")
+        button_frame.pack(side='bottom', padx=0, pady=10, fill='x')
+        button_frame.grid_columnconfigure(0, weight=1, uniform="button")
+        button_frame.grid_columnconfigure(1, weight=1, uniform="button")
+        button_frame.grid_columnconfigure(2, weight=1, uniform="button")
+        button_frame.grid_rowconfigure(0, weight=1)
+        self.custom_button = ctk.CTkButton(button_frame, text="カスタム設定", font=config.FONT_LABEL_BUTTON, fg_color='transparent', text_color=("#3e909b", "#65e1f1"), width=120, height=50, command=self.open_custom_form_window)
+        self.custom_button.grid(column=0, row=0, stick='w')
+        self.create_button = ctk.CTkButton(button_frame, text="Google Formを作成", font=config.FONT_LABEL_BUTTON, fg_color="#564080", width=300, height=50, command=self.start_create_form)
+        self.create_button.grid(column=1, row=0)
 
-        self.create_button = ctk.CTkButton(self, text="Google Formを作成", font=config.FONT_LABEL_BUTTON, fg_color="#564080", width=300, height=50, command=self.start_create_form)
-        self.create_button.pack(side='bottom', pady=20)
-
+        self.status_label = ctk.CTkLabel(self, text='', font=(config.FONT_NAME, 16), text_color=("green", "light green"))
+        self.status_label.pack(side='bottom', pady=0)
+        
     def start_create_form(self):
         """フォーム作成処理を開始する"""
         if self.live_name_combo.get().strip() == "":
@@ -177,6 +190,7 @@ class FormCreator(ctk.CTkFrame):
 
                 
         self.create_button.configure(text="フォーム作成中...", state="disabled")
+        self.custom_button.configure(state="disabled")
 
         threading.Thread(target=self.create_form, daemon=True).start()
 
@@ -389,7 +403,8 @@ class FormCreator(ctk.CTkFrame):
         self.form_service.forms().batchUpdate(formId=form_id, body=add_questions_requests).execute()
 
         self.create_button.configure(text="作成したフォームに移動", fg_color="#00A156", command=lambda: self.open_form_in_browser(form_id), state="normal")
-
+        self.custom_button.configure(state="normal")
+        self.status_label.configure(text="✔ フォーム作成が完了しました。", text_color=("green", "light green"))
 
     def make_date_choice(self):
         """日程の選択肢を作成する"""
@@ -438,6 +453,14 @@ class FormCreator(ctk.CTkFrame):
             return False, None
 
         return False, None
+
+    def open_custom_form_window(self):
+        """カスタムフォーム作成用のウィンドウを開く"""
+        if not self.check_login_status()[0]:
+            messagebox.showerror("エラー", "Googleアカウントが連携されていません。")
+            return
+        return
+
 
     def update_ui(self):
         is_logged_in, self.creds = self.check_login_status()

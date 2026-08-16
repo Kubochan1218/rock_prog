@@ -179,9 +179,11 @@ class AttendanceApp:
     def show_settings(self):
         """システム設定画面を表示"""
         self.clear()
-        ctk.CTkLabel(self.main_frame, text='システム環境設定', font=config.FONT_TITLE).pack(pady=20, anchor="w")
+        ctk.CTkLabel(self.main_frame, text='システム環境設定', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
+        settings_frame = ctk.CTkScrollableFrame(self.main_frame, corner_radius=0, fg_color="transparent")
+        settings_frame.pack(fill='both', expand=True)
         
-        excel_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        excel_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
         excel_frame.pack(pady=10, fill='x')
         ctk.CTkLabel(excel_frame, text='Excelデータソースの設定', font=config.FONT_LABEL_BUTTON).pack(pady=(5, 0), anchor="w")
         ctk.CTkLabel(excel_frame, text='出欠情報が格納されたExcelファイルを指定します。', font=config.FONT_SUBTITLE, text_color='gray').pack(pady=(0, 5), anchor="w")
@@ -208,7 +210,7 @@ class AttendanceApp:
         btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color='#80d4ff', text_color='black', font=(config.FONT_NAME, 16), command=select_file)
         btn_file.pack(side='left')
         
-        appearance_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        appearance_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
         appearance_frame.pack(pady=10, fill='x')
         ctk.CTkLabel(appearance_frame, text='外観設定', font=config.FONT_LABEL_BUTTON).pack(pady=5, anchor="w")
         
@@ -227,6 +229,26 @@ class AttendanceApp:
         appearance_combo.set(appearance_key[0] if appearance_key else "")
         appearance_combo.pack(pady=5, anchor="w")
         
+        form_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
+        form_frame.pack(pady=10, fill='x')
+        ctk.CTkLabel(form_frame, text='バンド募集フォームの設定', font=config.FONT_LABEL_BUTTON).pack(pady=5, anchor="w")
+        
+        example_band_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
+        example_band_frame.pack(anchor='w', fill='x')
+        ctk.CTkLabel(example_band_frame, text='バンド名の例', font=(config.FONT_NAME, 16), text_color='gray').pack(side='left', padx=(0, 5))
+        ex_band_entry = ctk.CTkEntry(example_band_frame, width=200, font=(config.FONT_NAME, 16), state='normal')
+        ex_band_entry.pack(side='left', padx=(5, 0))
+        ex_band_entry.insert(0, self.settings.get('example_band_name', ''))
+        
+        def save_example_band_name():
+            band_name = ex_band_entry.get().strip()
+            self.settings['example_band_name'] = band_name
+            self.save_settings()
+            messagebox.showinfo("保存完了", "バンド名の例を保存しました。", parent=self.master)
+
+        ctk.CTkButton(example_band_frame, text='保存', font=config.FONT_LABEL_BUTTON, fg_color="green", width=80, command=save_example_band_name).pack(side='left', padx=(5, 0))
+        ctk.CTkLabel(example_band_frame, text='既定：ロック部バンド（コピー元）', font=config.FONT_SUBTITLE, text_color='gray').pack(side='left', padx=5)
+
         # バージョン情報
         version_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         version_frame.pack(side='bottom', pady=10, fill='x')
