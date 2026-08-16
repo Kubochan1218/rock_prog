@@ -449,17 +449,17 @@ class TimetableView(ctk.CTkFrame):
             label = ctk.CTkLabel(wrapper, text=f"{start_str}～{end_str} {label_text}", anchor="w", font=config.FONT_LABEL_BUTTON, text_color="black" if bg_color else None)
             label.pack(side="left", fill="x", expand=True, padx=10)
                 
-            btn_del = ctk.CTkButton(wrapper, text="削除", anchor="center", width=24, height=12, fg_color="red", text_color="white", hover_color=("#FF5252", "#F00A38"), font=("Yu Gothic UI", 14))
+            btn_del = ctk.CTkButton(wrapper, text="削除", anchor="center", width=24, height=12, fg_color="red", text_color="white", hover_color=("#FF5252", "#F00A38"), font=(config.FONT_NAME, 14))
             btn_del.pack(side="right", padx=5)
             
-            btn_down = ctk.CTkButton(wrapper, text="∨", anchor="center", width=12, height=12, fg_color="#18DB8A", hover_color=("#34EB9F", "#0CC276"), text_color="white", font=("Yu Gothic UI", 14))
+            btn_down = ctk.CTkButton(wrapper, text="∨", anchor="center", width=12, height=12, fg_color="#18DB8A", hover_color=("#34EB9F", "#0CC276"), text_color="white", font=(config.FONT_NAME, 14))
             btn_down.pack(side="right", padx=2)
             
-            btn_up = ctk.CTkButton(wrapper, text="∧", anchor="center", width=12, height=12, fg_color="#18DB8A", hover_color=("#34EB9F", "#0CC276"), text_color="white", font=("Yu Gothic UI", 14))
+            btn_up = ctk.CTkButton(wrapper, text="∧", anchor="center", width=12, height=12, fg_color="#18DB8A", hover_color=("#34EB9F", "#0CC276"), text_color="white", font=(config.FONT_NAME, 14))
             btn_up.pack(side="right", padx=2)
             
             if item['type'] == 'band' and band_info is not None:
-                btn_info = ctk.CTkButton(wrapper, text="ⓘ", anchor="center", width=24, height=12, fg_color="#2196F3", text_color="white", hover_color=("#4DAEFD", "#087FE0"), font=("Yu Gothic UI", 14), command=lambda b=band_info: show_band_info(None, b))
+                btn_info = ctk.CTkButton(wrapper, text="ⓘ", anchor="center", width=24, height=12, fg_color="#2196F3", text_color="white", hover_color=("#4DAEFD", "#087FE0"), font=(config.FONT_NAME, 14), command=lambda b=band_info: show_band_info(None, b))
                 btn_info.pack(side="right", padx=2)
             
             def remove_item(idx=idx):
