@@ -243,7 +243,13 @@ class AttendanceApp:
                 pass
 
     def get_config_path(self, filename='settings.json'):
-        if getattr(sys, 'frozen', False) or '__compiled__' in globals():
+        if filename == 'settings.json' or filename == 'live_info.json':
+            # 設定ファイルはユーザーのAPPDATAに保存する
+            appdata_dir = os.getenv('APPDATA')
+            config_dir = os.path.join(appdata_dir, 'RockAttendanceApp')
+            os.makedirs(config_dir, exist_ok=True)
+            return os.path.join(config_dir, filename)
+        elif getattr(sys, 'frozen', False) or '__compiled__' in globals():
             # Nuitkaの--onefile、またはPyInstallerで実行されている場合
             # sys.executable は「実行されているexeファイル自体の絶対パス」を指します
             base_dir = os.path.abspath(os.getcwd())

@@ -1,7 +1,7 @@
 # 2026年6月19日更新
 # 出席率計算を行うクラス・関数をここに分割して記述
 
-import pandas as pd
+import pandas as pd, os
 import openpyxl, datetime
 from tkinter import messagebox
 
@@ -216,8 +216,9 @@ def calculate_rate_and_export(start_date, end_date, file_path, sheet_name):
                 '期間': f"{start_date}～{end_date}"
             })
                 
-        # テキストファイルに出力
-        with open('attendance_rates.txt', 'w', encoding='utf-8') as f:
+        # テキストファイルに出力(デスクトップに保存)
+        desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
+        with open(os.path.join(desktop_path, 'attendance_rates.txt'), 'w', encoding='utf-8') as f:
             f.write(f"出席率 - 対象期間: {start_date}～{end_date}\n")
             for result in results:
                 f.write(f"{result['氏名']} ({result['学籍番号']}): {result['出席率']}%\n")

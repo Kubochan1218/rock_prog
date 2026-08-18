@@ -1,7 +1,7 @@
 # バンド選出ロジック関連の関数・クラスをここに分割して記述
 # 引数：period, slots, total_time, change_time, file_path
 
-import openpyxl, datetime
+import openpyxl, datetime, os
 from tkinter import messagebox
 
 # 応募順で表示ボタン
@@ -128,9 +128,10 @@ def select_bands(period, slots, total_time, change_time, file_path, live_name):
         band_list = [b for b in band_list if b not in max_bands]
         round_num += 1
         log_lines.append('')
-    # ログ保存
+    # ログ保存(デスクトップに保存)
     try:
-        with open('select_band_log.txt', 'w', encoding='utf-8') as f:
+        desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
+        with open(os.path.join(desktop_path, 'select_band_log.txt'), 'w', encoding='utf-8') as f:
             f.write('\n'.join(log_lines))
             f.write('\n=== 選出バンド一覧 ===\n')
             for selected_band in selected_bands:
