@@ -23,7 +23,7 @@ class SidebarFrame(ctk.CTkFrame):
         self.btn_nav_check.grid(row=3, column=0, padx=20, pady=8, sticky="ew")
 
         self.btn_nav_form = ctk.CTkButton(self, text="📋 バンド募集フォーム作成", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("form"))
-        self.btn_nav_form.grid(row=4, column=0, padx=20, pady=8, sticky="ew")
+        # self.btn_nav_form.grid(row=4, column=0, padx=20, pady=8, sticky="ew")
 
         self.btn_nav_band = ctk.CTkButton(self, text="🎤 バンド登録・選出", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("band"))
         self.btn_nav_band.grid(row=5, column=0, padx=20, pady=8, sticky="ew")
@@ -36,8 +36,8 @@ class SidebarFrame(ctk.CTkFrame):
         self.btn_nav_settings.grid(row=7, column=0, padx=20, pady=25, sticky="sew")
 
         # 右クリック用のバインド
-        self.app.bind_pin_menu(widget=self.btn_nav_attend, name="👥 出欠管理・確認", fg_color="#bfff80", command_str="show_attendance_date_select")
-        self.app.bind_pin_menu(widget=self.btn_nav_check, name="📅 ライブ管理", fg_color="#00ccff", command_str="register_live")
-        self.app.bind_pin_menu(widget=self.btn_nav_form, name="📋 バンド募集フォーム作成", fg_color="#ff9999", command_str="create_form")
-        self.app.bind_pin_menu(widget=self.btn_nav_band, name="🎤 バンド登録・選出", fg_color="#ffcc00", command_str="register_band")
-        self.app.bind_pin_menu(widget=self.btn_nav_select, name="🕑 タイムテーブル", fg_color="#b566ff", command_str="make_timetable")
+        self.app.bind_pin_menu(widget=self.btn_nav_attend, name="👥 出欠管理・確認", fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, command_str="show_attendance_date_select")
+        self.app.bind_pin_menu(widget=self.btn_nav_check, name="📅 ライブ管理", fg_color=config.COLOR_BUTTON_BLUE, hover_color=config.HOVER_COLOR_BUTTON_BLUE, command_str="register_live")
+        self.app.bind_pin_menu(widget=self.btn_nav_form, name="📋 バンド募集フォーム作成", fg_color=config.COLOR_BUTTON_PINK, hover_color=config.HOVER_COLOR_BUTTON_PINK, command_str="create_form")
+        self.app.bind_pin_menu(widget=self.btn_nav_band, name="🎤 バンド登録・選出", fg_color=config.COLOR_BUTTON_YELLOW, hover_color=config.HOVER_COLOR_BUTTON_YELLOW, command_str="register_band")
+        self.app.bind_pin_menu(widget=self.btn_nav_select, name="🕑 タイムテーブル", fg_color=config.COLOR_BUTTON_PURPLE, hover_color=config.HOVER_COLOR_BUTTON_PURPLE, command_str="make_timetable")

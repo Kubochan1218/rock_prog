@@ -83,7 +83,7 @@ class BandView(ctk.CTkFrame):
             if f_path:
                 file_path_var.set(f_path)
             
-        btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color='#80d4ff', text_color='black', font=(config.FONT_NAME, 16), command=select_file)
+        btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color=config.COLOR_BUTTON_LIGHTBLUE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTBLUE, text_color='black', font=(config.FONT_NAME, 16), command=select_file)
         btn_file.pack(side='left')
 
         # 3. 実行ボタン
@@ -95,7 +95,7 @@ class BandView(ctk.CTkFrame):
                 return
             self.parse_and_match(target_live, target_file, tab, existing_lives)
 
-        btn_next = ctk.CTkButton(tab, text='🚀 データの読み込みを開始', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', width=300, height=45, command=process_excel)
+        btn_next = ctk.CTkButton(tab, text='🚀 データの読み込みを開始', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', width=300, height=45, command=process_excel)
         btn_next.pack(pady=40)
 
     def show_management_screen(self, tabview, existing_lives):
@@ -263,14 +263,14 @@ class BandView(ctk.CTkFrame):
                         except Exception as e:
                             messagebox.showerror('エラー', f'更新に失敗しました: {e}')
 
-                    btn_save_pop = ctk.CTkButton(popup, text='💾 変更を保存', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', command=save_managed_edit)
+                    btn_save_pop = ctk.CTkButton(popup, text='💾 変更を保存', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', command=save_managed_edit)
                     btn_save_pop.pack(pady=15)
 
                 # 右端配置ボタン（削除と編集）
-                btn_del = ctk.CTkButton(b_frame, text='× 削除', width=70, font=(config.FONT_NAME, 16), fg_color='#ff8080', text_color='black', command=make_delete_cmd())
+                btn_del = ctk.CTkButton(b_frame, text='× 削除', width=70, font=(config.FONT_NAME, 16), fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, text_color='black', command=make_delete_cmd())
                 btn_del.pack(side='right', padx=10, anchor='n', pady=6)
 
-                btn_edt = ctk.CTkButton(b_frame, text='✏ 編集', width=70, font=(config.FONT_NAME, 16), fg_color='#ffd480', text_color='black', command=make_edit_cmd())
+                btn_edt = ctk.CTkButton(b_frame, text='✏ 編集', width=70, font=(config.FONT_NAME, 16), fg_color=config.COLOR_BUTTON_LIGHTORANGE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTORANGE, text_color='black', command=make_edit_cmd())
                 btn_edt.pack(side='right', padx=5, anchor='n', pady=6)
 
             if not has_bands:
@@ -380,7 +380,8 @@ class BandView(ctk.CTkFrame):
             scroll_frame, 
             text="✨ この条件でバンドを選出する", 
             font=config.FONT_LABEL_BUTTON, 
-            fg_color="#00ff62", 
+            fg_color=config.COLOR_BUTTON_GREEN, 
+            hover_color=config.HOVER_COLOR_BUTTON_GREEN, 
             text_color="black", 
             height=40,
             command=self.execute_band_selection
@@ -394,7 +395,7 @@ class BandView(ctk.CTkFrame):
         result_lbl = ctk.CTkLabel(result_header_frame, text="📋 選出結果出力", font=config.FONT_LABEL_BUTTON)
         result_lbl.pack(pady=5, anchor="w", padx=10, side="left")
 
-        copy_btn = ctk.CTkButton(result_header_frame, text="📋 結果をクリップボードにコピー", font=(config.FONT_NAME, 14), fg_color="#80d4ff", text_color="black", command=self.copy_result_to_clipboard)
+        copy_btn = ctk.CTkButton(result_header_frame, text="📋 結果をクリップボードにコピー", font=(config.FONT_NAME, 14), fg_color=config.COLOR_BUTTON_LIGHTBLUE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTBLUE, text_color="black", command=self.copy_result_to_clipboard)
         copy_btn.pack(pady=5, padx=10, side="left")
 
         self.result_textbox = ctk.CTkTextbox(scroll_frame, height=250, font=(config.FONT_NAME, 14))
@@ -550,7 +551,7 @@ class BandView(ctk.CTkFrame):
                     popup.grab_release()
                     popup.destroy()
 
-                btn_save_pop = ctk.CTkButton(popup, text='決定して閉じる', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', command=save_popup)
+                btn_save_pop = ctk.CTkButton(popup, text='決定して閉じる', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', command=save_popup)
                 btn_save_pop.pack(pady=15)
 
             # クロージャ対策を施したインポート除外（削除）コマンドの生成
@@ -564,10 +565,10 @@ class BandView(ctk.CTkFrame):
                     self.show_list_screen(parsed_bands, live_name, live_data, roster_names, parent_tab)
 
             # 削除ボタンをコンテナの右側に配置
-            btn_del = ctk.CTkButton(row_frame, text='× 削除', width=70, font=(config.FONT_NAME, 16), fg_color='#ff8080', text_color='black', command=make_import_delete_cmd())
+            btn_del = ctk.CTkButton(row_frame, text='× 削除', width=70, font=(config.FONT_NAME, 16), fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, text_color='black', command=make_import_delete_cmd())
             btn_del.pack(side='right', padx=10, anchor='n', pady=6)
 
-            btn_edit = ctk.CTkButton(row_frame, text='✏ 修正', width=70, font=(config.FONT_NAME, 16), fg_color='#ffd480', text_color='black', command=open_edit_popup)
+            btn_edit = ctk.CTkButton(row_frame, text='✏ 修正', width=70, font=(config.FONT_NAME, 16), fg_color=config.COLOR_BUTTON_LIGHTORANGE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTORANGE, text_color='black', command=open_edit_popup)
             btn_edit.pack(side='right', padx=5, anchor='n', pady=6)
 
         # Excelへの一括書き込み処理
@@ -620,11 +621,11 @@ class BandView(ctk.CTkFrame):
                 messagebox.showerror('保存エラー', f'Excel保存に失敗しました:\n{e}')
 
         # 登録実行ボタン（右下に配置）
-        btn_register = ctk.CTkButton(parent_tab, text='✨ この内容で全て登録', font=config.FONT_LABEL_BUTTON, fg_color='#00ff62', text_color='black', height=40, command=register_all_to_excel)
+        btn_register = ctk.CTkButton(parent_tab, text='✨ この内容で全て登録', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color='black', height=40, command=register_all_to_excel)
         btn_register.place(relx=1.0, rely=1.0, anchor='se', x=-25, y=-21)
 
         # キャンセルボタン（左下に配置）
-        btn_cancel = ctk.CTkButton(parent_tab, text='キャンセル', font=(config.FONT_NAME, 16), fg_color='#ff0000', text_color='white', width=120, command=self.show_band_input)
+        btn_cancel = ctk.CTkButton(parent_tab, text='キャンセル', font=(config.FONT_NAME, 16), fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, text_color='white', width=120, command=self.show_band_input)
         btn_cancel.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def execute_band_selection(self):

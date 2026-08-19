@@ -70,10 +70,6 @@ class TimetableView(ctk.CTkFrame):
         messagebox.showerror(f"{friendly_name} コピー失敗", f"{filename} のコピーに失敗しました。手動で {filename} をアプリフォルダに置いてください。", parent=self)
         return None
 
-    def back_to_main_menu(self):
-        if messagebox.askyesno("確認", "タイムテーブル作成画面を閉じてメインメニューに戻りますか？\n保存していない変更は破棄されます。", parent=self):
-            self.app.show_top()
-
     def create_widgets(self):
         title_label = ctk.CTkLabel(self, text="🕑 タイムテーブル作成", font=config.FONT_TITLE)
         title_label.pack(pady=15, anchor="w")
@@ -139,10 +135,10 @@ class TimetableView(ctk.CTkFrame):
         menu_frame = ctk.CTkFrame(self.order_area, fg_color="transparent")
         menu_frame.pack(fill="x", padx=10, pady=3)
 
-        btn_export_excel = ctk.CTkButton(menu_frame, text="Excel出力", command=self.export_excel, font=config.FONT_LABEL_BUTTON, width=160, fg_color="#07ca6f", text_color="white", hover_color="#05964f")
+        btn_export_excel = ctk.CTkButton(menu_frame, text="Excel出力", command=self.export_excel, font=config.FONT_LABEL_BUTTON, width=160, fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color="white")
         btn_export_excel.pack(side="left", padx=10)
         
-        btn_option = ctk.CTkButton(menu_frame, text="絞り込み", command=self.show_option_dialog, font=config.FONT_LABEL_BUTTON, width=80, fg_color="#fff9c4", text_color="black", hover_color="#fff59d")
+        btn_option = ctk.CTkButton(menu_frame, text="絞り込み", command=self.show_option_dialog, font=config.FONT_LABEL_BUTTON, width=80, fg_color=config.COLOR_BUTTON_LIGHTORANGE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTORANGE, text_color="black")
         btn_option.pack(side="left", padx=10)
 
         # Tabviewへのアップグレード
@@ -190,9 +186,9 @@ class TimetableView(ctk.CTkFrame):
                 
         button_frame = ctk.CTkFrame(win, fg_color="transparent")
         button_frame.pack(side="bottom", anchor="center", pady=10)
-        btn_ok = ctk.CTkButton(button_frame, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON, width=100, fg_color="#c8e6c9", text_color="black", hover_color="#a5d6a7")
+        btn_ok = ctk.CTkButton(button_frame, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON, width=100, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color="black")
         btn_ok.pack(side="left", padx=5)
-        btn_clear = ctk.CTkButton(button_frame, text="全解除", command=on_clear, font=config.FONT_LABEL_BUTTON, width=100, fg_color="#ffcdd2", text_color="black", hover_color="#ef9a9a")
+        btn_clear = ctk.CTkButton(button_frame, text="全解除", command=on_clear, font=config.FONT_LABEL_BUTTON, width=100, fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, text_color="black")
         btn_clear.pack(side="left", padx=5)
 
     def load_band_infos(self):
@@ -237,10 +233,10 @@ class TimetableView(ctk.CTkFrame):
             combo = ctk.CTkComboBox(top_frame, width=200, font=config.FONT_LABEL_BUTTON, state="readonly")
             combo.pack(side="left", padx=5)
             
-            btn_add = ctk.CTkButton(top_frame, text="追加", command=lambda c=combo, t=label_text: self.add_band(c, t), font=config.FONT_LABEL_BUTTON, width=80, fg_color="#e0f7fa", text_color="black", hover_color="#b2dfdb")
+            btn_add = ctk.CTkButton(top_frame, text="追加", command=lambda c=combo, t=label_text: self.add_band(c, t), font=config.FONT_LABEL_BUTTON, width=80, fg_color=config.COLOR_BUTTON_LIGHTBLUE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTBLUE, text_color="black")
             btn_add.pack(side="left", padx=5)
             
-            btn_special = ctk.CTkButton(top_frame, text="特別枠追加", command=lambda t=label_text: self.add_special_frame(t), font=config.FONT_LABEL_BUTTON, width=100, fg_color="#ffe0b2", text_color="black", hover_color="#ffcc80")
+            btn_special = ctk.CTkButton(top_frame, text="特別枠追加", command=lambda t=label_text: self.add_special_frame(t), font=config.FONT_LABEL_BUTTON, width=100, fg_color=config.COLOR_BUTTON_LIGHTORANGE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTORANGE, text_color="black")
             btn_special.pack(side="left", padx=5)
             
             label_info = ctk.CTkLabel(top_frame, text="ⓘをクリックして\nバンド情報を表示", font=config.FONT_LABEL_BUTTON, justify="left")
@@ -365,7 +361,7 @@ class TimetableView(ctk.CTkFrame):
         combo_band = ctk.CTkComboBox(band_frame, values=all_band_names, width=180, font=config.FONT_LABEL_BUTTON)
         combo_band.pack(side="right", padx=10)
         
-        btn = ctk.CTkButton(win, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON)
+        btn = ctk.CTkButton(win, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color="black")
         btn.pack(side="bottom", padx=10, pady=10)
         
         def on_kind_change(choice):
@@ -449,17 +445,17 @@ class TimetableView(ctk.CTkFrame):
             label = ctk.CTkLabel(wrapper, text=f"{start_str}～{end_str} {label_text}", anchor="w", font=config.FONT_LABEL_BUTTON, text_color="black" if bg_color else None)
             label.pack(side="left", fill="x", expand=True, padx=10)
                 
-            btn_del = ctk.CTkButton(wrapper, text="削除", anchor="center", width=24, height=12, fg_color="red", text_color="white", hover_color=("#FF5252", "#F00A38"), font=(config.FONT_NAME, 14))
+            btn_del = ctk.CTkButton(wrapper, text="削除", anchor="center", width=24, height=12, fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, text_color="white", font=(config.FONT_NAME, 14))
             btn_del.pack(side="right", padx=5)
             
-            btn_down = ctk.CTkButton(wrapper, text="∨", anchor="center", width=12, height=12, fg_color="#18DB8A", hover_color=("#34EB9F", "#0CC276"), text_color="white", font=(config.FONT_NAME, 14))
+            btn_down = ctk.CTkButton(wrapper, text="∨", anchor="center", width=12, height=12, fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color="white", font=(config.FONT_NAME, 14))
             btn_down.pack(side="right", padx=2)
             
-            btn_up = ctk.CTkButton(wrapper, text="∧", anchor="center", width=12, height=12, fg_color="#18DB8A", hover_color=("#34EB9F", "#0CC276"), text_color="white", font=(config.FONT_NAME, 14))
+            btn_up = ctk.CTkButton(wrapper, text="∧", anchor="center", width=12, height=12, fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color="white", font=(config.FONT_NAME, 14))
             btn_up.pack(side="right", padx=2)
             
             if item['type'] == 'band' and band_info is not None:
-                btn_info = ctk.CTkButton(wrapper, text="ⓘ", anchor="center", width=24, height=12, fg_color="#2196F3", text_color="white", hover_color=("#4DAEFD", "#087FE0"), font=(config.FONT_NAME, 14), command=lambda b=band_info: show_band_info(None, b))
+                btn_info = ctk.CTkButton(wrapper, text="ⓘ", anchor="center", width=24, height=12, fg_color=config.COLOR_BUTTON_BLUE, text_color="white", hover_color=config.HOVER_COLOR_BUTTON_BLUE, font=(config.FONT_NAME, 14), command=lambda b=band_info: show_band_info(None, b))
                 btn_info.pack(side="right", padx=2)
             
             def remove_item(idx=idx):

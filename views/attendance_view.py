@@ -26,13 +26,13 @@ class AttendanceView(ctk.CTkFrame):
 
         btn_today = ctk.CTkButton(
             self, text='📅 今日の出席をとる', width=200, height=45, 
-            fg_color='#66ff66', text_color='black', font=config.FONT_LABEL_BUTTON, 
+            fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color='black', font=config.FONT_LABEL_BUTTON, 
             command=self.start_attendance_today)
         btn_today.pack(pady=10)
         
         btn_other = ctk.CTkButton(
             self, text='📆 過去・別日の出席をとる', width=200, height=45, 
-            fg_color='#ff9900', text_color='black', font=config.FONT_LABEL_BUTTON, 
+            fg_color=config.COLOR_BUTTON_ORANGE, hover_color=config.HOVER_COLOR_BUTTON_ORANGE, text_color='black', font=config.FONT_LABEL_BUTTON, 
             command=self.start_attendance_otherday)
         btn_other.pack(pady=10)
         
@@ -85,7 +85,7 @@ class AttendanceView(ctk.CTkFrame):
         ctk.CTkLabel(date_frame, text='ⓘ', font=(config.FONT_NAME, 18)).pack(side='left', anchor="w", padx=(15, 5))
         ctk.CTkLabel(date_frame, text='開始日と終了日を同じ日付に設定すると\nその日の出欠状況のみを確認できます。', font=(config.FONT_NAME, 14), anchor="w", justify="left").pack(side='left', padx=0)
         
-        btn_check = ctk.CTkButton(self, text='📥 出欠状況を出力(.txt)', width=200, height=45, fg_color='#4375ff', text_color='white', font=config.FONT_LABEL_BUTTON, command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), self.file_path, config.SHEET_NAME))
+        btn_check = ctk.CTkButton(self, text='📥 出欠状況を出力(.txt)', width=200, height=45, fg_color=config.COLOR_BUTTON_BLUE, hover_color=config.HOVER_COLOR_BUTTON_BLUE, text_color='black', font=config.FONT_LABEL_BUTTON, command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), self.file_path, config.SHEET_NAME))
         btn_check.pack(pady=10)
 
     def start_attendance_today(self):
@@ -153,11 +153,11 @@ class AttendanceView(ctk.CTkFrame):
         ctk.CTkLabel(self, text=info, font=ctk.CTkFont(family=config.FONT_NAME, size=16, weight='bold'), justify='left', anchor="w").pack(pady=15, fill="x")
 
         mark_defs = [
-            ('出席', '〇 出席', '#66ff66'),
-            ('連絡あり', '△ 連絡あり欠席', '#ffff66'),
-            ('無断欠席', '× 無断欠席', '#ff0000'),
-            ('オ', 'オンライン', '#cccccc'),
-            ('忌引', '忌引き等', '#cccccc'),
+            ('出席', '〇 出席', config.COLOR_BUTTON_GREEN, config.HOVER_COLOR_BUTTON_GREEN),
+            ('連絡あり', '△ 連絡あり欠席', config.COLOR_BUTTON_YELLOW, config.HOVER_COLOR_BUTTON_YELLOW),
+            ('無断欠席', '× 無断欠席', config.COLOR_BUTTON_RED, config.HOVER_COLOR_BUTTON_RED),
+            ('オ', 'オンライン', "gray50", ("gray60", "gray40")),
+            ('忌引', '忌引き等', "gray50", ("gray60", "gray40")),
         ]
         
         btn_frame1 = ctk.CTkFrame(self, fg_color="transparent")
@@ -165,24 +165,24 @@ class AttendanceView(ctk.CTkFrame):
         btn_frame2 = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame2.pack(pady=5)
         
-        for mark, label, color in mark_defs[:3]:
-            b = ctk.CTkButton(btn_frame1, text=label, width=140, height=40, fg_color=color, text_color='black', font=(config.FONT_NAME, 14, 'bold'), command=lambda m=mark: self.set_attendance(m))
+        for mark, label, color, hover_color in mark_defs[:3]:
+            b = ctk.CTkButton(btn_frame1, text=label, width=140, height=40, fg_color=color, hover_color=hover_color, text_color='black', font=(config.FONT_NAME, 14, 'bold'), command=lambda m=mark: self.set_attendance(m))
             b.pack(side='left', padx=6)
             
-        for mark, label, color in mark_defs[3:]:
-            b2 = ctk.CTkButton(btn_frame2, text=label, width=140, height=40, fg_color=color, text_color='black', font=(config.FONT_NAME, 14, 'bold'), command=lambda m=mark: self.set_attendance(m))
+        for mark, label, color, hover_color in mark_defs[3:]:
+            b2 = ctk.CTkButton(btn_frame2, text=label, width=140, height=40, fg_color=color, hover_color=hover_color, text_color='black', font=(config.FONT_NAME, 14, 'bold'), command=lambda m=mark: self.set_attendance(m))
             b2.pack(side='left', padx=6)
 
         nav_frame = ctk.CTkFrame(self, fg_color="transparent")
         nav_frame.pack(pady=20)
         
-        btn_prev = ctk.CTkButton(nav_frame, text='◀ 前の人へ', fg_color='#ff9900', text_color='black', font=(config.FONT_NAME, 14, 'bold'), command=self.prev_person)
+        btn_prev = ctk.CTkButton(nav_frame, text='◀ 前の人へ', fg_color=config.COLOR_BUTTON_ORANGE, hover_color=config.HOVER_COLOR_BUTTON_ORANGE, text_color='black', font=(config.FONT_NAME, 14, 'bold'), command=self.prev_person)
         btn_prev.pack(side='left', padx=10)
         
-        btn_next_nav = ctk.CTkButton(nav_frame, text='次の人へ ▶', fg_color='#66ff66', text_color='black', font=(config.FONT_NAME, 14, 'bold'), command=self.next_person)
+        btn_next_nav = ctk.CTkButton(nav_frame, text='次の人へ ▶', fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color='black', font=(config.FONT_NAME, 14, 'bold'), command=self.next_person)
         btn_next_nav.pack(side='left', padx=10)
 
-        btn_top = ctk.CTkButton(self, text='保存して終了', width=120, fg_color='#ff0000', text_color='white', font=(config.FONT_NAME, 14), command=self.save_and_back_to_top)
+        btn_top = ctk.CTkButton(self, text='保存して終了', width=120, fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, text_color='white', font=(config.FONT_NAME, 14), command=self.save_and_back_to_top)
         btn_top.place(relx=0.0, rely=1.0, anchor='sw', x=25, y=-21)
 
     def set_attendance(self, mark):

@@ -89,7 +89,7 @@ class LiveView(ctk.CTkFrame):
             live_name_combo.set("") # 初期値は空
         live_name_combo.pack(side='left', padx=10)
         
-        delete_btn = ctk.CTkButton(name_frame, text="ライブを削除", font=(config.FONT_NAME, 14), width=80, fg_color="#ff6666", hover_color="#cc0000", command=delete_live)
+        delete_btn = ctk.CTkButton(name_frame, text="ライブを削除", font=(config.FONT_NAME, 14), width=80, fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, command=delete_live)
         delete_btn.pack(side='left', padx=5)
 
         # 日程設定エリア（複数日対応・スクロール可能・時刻選択式）
@@ -138,7 +138,7 @@ class LiveView(ctk.CTkFrame):
                 except Exception:
                     messagebox.showinfo("お知らせ", "tkcalendarモジュールがインストールされていません。手入力してください。")
 
-            btn_cal = ctk.CTkButton(row, text="📅", width=30, fg_color="gray70", text_color="black", command=open_calendar)
+            btn_cal = ctk.CTkButton(row, text="📅", width=30, fg_color="gray50", hover_color=("gray60", "gray40"), text_color="black", command=open_calendar)
             btn_cal.pack(side='left', padx=(0, 15))
             
             # 開演時刻（コンボボックス）
@@ -161,7 +161,7 @@ class LiveView(ctk.CTkFrame):
                 for idx, r_data in enumerate(schedule_rows):
                     r_data['lbl'].configure(text=f"{idx+1}日目:")
                     
-            btn_del = ctk.CTkButton(row, text="削除", font=(config.FONT_NAME, 14), width=50, fg_color="#ff6666", hover_color="#cc0000", command=remove_row)
+            btn_del = ctk.CTkButton(row, text="削除", font=(config.FONT_NAME, 14), width=50, fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, command=remove_row)
             btn_del.pack(side='right', padx=10)
             
             row_data = {"frame": row, "lbl": lbl_num, "date": date_entry, "start": start_combo, "end": end_combo}
@@ -174,7 +174,7 @@ class LiveView(ctk.CTkFrame):
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(pady=15, fill='x', padx=10)
         
-        btn_add = ctk.CTkButton(btn_frame, text='➕ 日程を追加', font=config.FONT_LABEL_BUTTON, fg_color='#80d4ff', text_color='black', command=lambda: add_date_row())
+        btn_add = ctk.CTkButton(btn_frame, text='➕ 日程を追加', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_BLUE, hover_color=config.HOVER_COLOR_BUTTON_BLUE, text_color='black', command=lambda: add_date_row())
         btn_add.pack(side='left', padx=5)
 
         def save_live_info():
@@ -225,7 +225,7 @@ class LiveView(ctk.CTkFrame):
             except Exception as ex:
                 messagebox.showerror("保存エラー", f"JSONファイルへの保存に失敗しました:\n{ex}")
 
-        btn_save = ctk.CTkButton(btn_frame, text='💾 ライブ情報を保存', font=config.FONT_LABEL_BUTTON, fg_color='#bfff80', text_color='black', width=160, height=40, command=save_live_info)
+        btn_save = ctk.CTkButton(btn_frame, text='💾 ライブ情報を保存', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', width=160, height=40, command=save_live_info)
         btn_save.pack(side='right', padx=5)
         
         if live_name_combo.get() and live_name_combo.get() in existing_lives:

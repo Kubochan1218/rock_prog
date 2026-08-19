@@ -13,7 +13,7 @@ from views.sidebar import SidebarFrame
 from views.top_view import MainView
 from views.attendance_view import AttendanceView
 from views.live_view import LiveView
-from views.make_from_view import FormCreator
+# from views.make_from_view import FormCreator
 from views.band_view import BandView
 from views.timetable_view import TimetableView
 
@@ -157,10 +157,11 @@ class AttendanceApp:
 
     def create_form(self):
         """Google Formの新規作成画面を表示"""
-        self.clear()
+        """self.clear()
         self.form_view = FormCreator(self.main_frame, app=self)
         self.form_view.pack(fill='both', expand=True)
-        self.top_showen = False
+        self.top_showen = False"""
+        return
 
     def register_band(self, default_tab=None, default_live_name=None):
         """バンド登録画面を表示 (タブ切り替え・一括一覧表示＆ライブ名紐付け版)"""
@@ -207,7 +208,7 @@ class AttendanceApp:
                 self.settings['excel_file_path'] = f_path
                 self.save_settings()
             
-        btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color='#80d4ff', text_color='black', font=(config.FONT_NAME, 16), command=select_file)
+        btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color=config.COLOR_BUTTON_LIGHTBLUE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTBLUE, text_color='black', font=(config.FONT_NAME, 16), command=select_file)
         btn_file.pack(side='left')
         
         appearance_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
@@ -246,7 +247,7 @@ class AttendanceApp:
             self.save_settings()
             messagebox.showinfo("保存完了", "バンド名の例を保存しました。", parent=self.master)
 
-        ctk.CTkButton(example_band_frame, text='保存', font=config.FONT_LABEL_BUTTON, fg_color="green", width=80, command=save_example_band_name).pack(side='left', padx=(5, 0))
+        ctk.CTkButton(example_band_frame, text='保存', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color='black', width=80, command=save_example_band_name).pack(side='left', padx=(5, 0))
         ctk.CTkLabel(example_band_frame, text='既定：ロック部バンド（コピー元）', font=config.FONT_SUBTITLE, text_color='gray').pack(side='left', padx=5)
 
         # バージョン情報
@@ -318,7 +319,7 @@ class AttendanceApp:
             pass
         return False
 
-    def pin_to_quick_access(self, widget, name, fg_color, command_str):
+    def pin_to_quick_access(self, widget, name, fg_color, hover_color, command_str):
         """指定された機能をクイックアクセスに登録"""
         settings_path = self.get_config_path('settings.json') # パス取得関数に合わせて変更してください
 
@@ -347,7 +348,7 @@ class AttendanceApp:
                 return
 
         # リストに追加して保存
-        items.append({"name": name, "fg_color": fg_color, "command": command_str})
+        items.append({"name": name, "fg_color": fg_color, "hover_color": hover_color, "command": command_str})
         
         try:
             with open(settings_path, 'w', encoding='utf-8') as f:
@@ -395,7 +396,7 @@ class AttendanceApp:
         if self.top_showen:
             self.show_top()  # トップ画面を再表示してクイックアクセスを更新
 
-    def bind_pin_menu(self, widget, name, fg_color, command_str):
+    def bind_pin_menu(self, widget, name, fg_color, hover_color, command_str):
         """ウィジェットに右クリックメニュー（ピン止め）を付与する汎用メソッド"""
         def show_menu(event):
             # tkinterの標準メニューを作成
@@ -410,7 +411,7 @@ class AttendanceApp:
                 # まだピン止めされていない場合 → 「ピン止め」メニューを表示
                 menu.add_command(
                     label="クイックアクセスにピン止め", 
-                    command=lambda: self.pin_to_quick_access(widget, name, fg_color, command_str)
+                    command=lambda: self.pin_to_quick_access(widget, name, fg_color, hover_color, command_str)
                 )
             
             menu.tk_popup(event.x_root, event.y_root)

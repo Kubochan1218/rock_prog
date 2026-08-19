@@ -282,6 +282,7 @@ class MainView(ctk.CTkFrame):
         for item in quick_access_items:
             name = item.get("name", "不明な機能")
             fg_color = item.get("fg_color", "transparent")
+            hover_color = item.get("hover_color", "gray")
             command_str = item.get("command", "")
             if hasattr(self.app, command_str):
                 target_command = getattr(self.app, command_str)
@@ -290,6 +291,7 @@ class MainView(ctk.CTkFrame):
                     text=name,
                     font=config.FONT_LABEL_BUTTON,
                     fg_color=fg_color,
+                    hover_color=hover_color,
                     text_color="black",
                     command=target_command
                 )
@@ -297,7 +299,7 @@ class MainView(ctk.CTkFrame):
                 c = vaild_btn_count % 2
                 btn.grid(row=r, column=c, pady=5, padx=10, sticky="nsew")
                 # 右クリックメニューのバインド
-                self.app.bind_pin_menu(widget=btn, name=name, fg_color=fg_color, command_str=command_str)
+                self.app.bind_pin_menu(widget=btn, name=name, fg_color=fg_color, hover_color=hover_color, command_str=command_str)
                 vaild_btn_count += 1
 
     def get_next_live(self):
