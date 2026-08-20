@@ -1,7 +1,7 @@
 # バンド選出ロジック関連の関数・クラスをここに分割して記述
 # 引数：period, slots, total_time, change_time, file_path
 
-import openpyxl, datetime, os
+import openpyxl, datetime, os, winreg
 from tkinter import messagebox
 
 # 応募順で表示ボタン
@@ -130,7 +130,7 @@ def select_bands(period, slots, total_time, change_time, file_path, live_name):
         log_lines.append('')
     # ログ保存(デスクトップに保存)
     try:
-        desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
+        desktop_path = get_windows_desktop_path()
         with open(os.path.join(desktop_path, 'select_band_log.txt'), 'w', encoding='utf-8') as f:
             f.write('\n'.join(log_lines))
             f.write('\n=== 選出バンド一覧 ===\n')
@@ -154,3 +154,13 @@ def select_bands(period, slots, total_time, change_time, file_path, live_name):
     if not selected_bands:
         result_text += '条件に合致するバンドがありませんでした。\n'
     return result_text
+
+def get_windows_desktop_path():
+    """Windowsのレジストリから現在の正確なデスクトップパスを取得する"""
+    key_path = (
+        r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+    )
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+        desktop, _ = winreg.QueryValueEx(key, "Desktop")
+    # %USERPROFILE% などの環境変数を実際のパスに置き換える
+    return os.path.expandvars(desktop)

@@ -1,7 +1,7 @@
 # 2026年6月19日更新
 # 出席率計算を行うクラス・関数をここに分割して記述
 
-import pandas as pd, os
+import pandas as pd, os, winreg
 import openpyxl, datetime
 from tkinter import messagebox
 
@@ -217,7 +217,7 @@ def calculate_rate_and_export(start_date, end_date, file_path, sheet_name):
             })
                 
         # テキストファイルに出力(デスクトップに保存)
-        desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
+        desktop_path = get_windows_desktop_path()
         with open(os.path.join(desktop_path, 'attendance_rates.txt'), 'w', encoding='utf-8') as f:
             f.write(f"出席率 - 対象期間: {start_date}～{end_date}\n")
             for result in results:
@@ -228,3 +228,13 @@ def calculate_rate_and_export(start_date, end_date, file_path, sheet_name):
         
     except Exception as e:
         messagebox.showerror('エラー', f'出席率の計算中にエラーが発生しました:\n{str(e)}')
+
+def get_windows_desktop_path():
+    """Windowsのレジストリから現在の正確なデスクトップパスを取得する"""
+    key_path = (
+        r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+    )
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+        desktop, _ = winreg.QueryValueEx(key, "Desktop")
+    # %USERPROFILE% などの環境変数を実際のパスに置き換える
+    return os.path.expandvars(desktop)
