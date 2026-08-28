@@ -229,6 +229,17 @@ class AttendanceApp:
         appearance_combo.set(appearance_key[0] if appearance_key else "")
         appearance_combo.pack(pady=5, anchor="w")
         
+        check_close_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
+        check_close_frame.pack(pady=10, fill='x')
+        def change_check_close(choice):
+            self.settings['check_close'] = choice
+            self.save_settings()
+        
+        ctk.CTkLabel(check_close_frame, text='アプリ終了時の確認', font=config.FONT_LABEL_BUTTON).pack(pady=5, anchor="w")
+        check_close_var = tk.BooleanVar(value=self.settings.get('check_close', True))
+        check_close_checkbox = ctk.CTkCheckBox(check_close_frame, text='アプリ終了時に確認ダイアログを表示する', variable=check_close_var, onvalue=True, offvalue=False, font=(config.FONT_NAME, 16), command=lambda: change_check_close(check_close_var.get()))
+        check_close_checkbox.pack(pady=5, anchor="w")
+        
         form_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
         form_frame.pack(pady=10, fill='x')
         ctk.CTkLabel(form_frame, text='バンド募集フォームの設定', font=config.FONT_LABEL_BUTTON).pack(pady=5, anchor="w")
@@ -242,6 +253,9 @@ class AttendanceApp:
         
         def save_example_band_name():
             band_name = ex_band_entry.get().strip()
+            if not band_name:
+                messagebox.showwarning("入力エラー", "バンド名の例を入力してください。", parent=self.master)
+                return
             self.settings['example_band_name'] = band_name
             self.save_settings()
             messagebox.showinfo("保存完了", "バンド名の例を保存しました。", parent=self.master)
@@ -257,7 +271,13 @@ class AttendanceApp:
         self.top_showen = False
 
     def on_close(self):
-        if messagebox.askokcancel('確認', 'アプリを終了しますか？', parent=self.master):
+        if self.settings.get('check_close', True) == False:
+            try:
+                self.master.destroy()
+                self.save_settings()
+            except Exception:
+                pass
+        elif messagebox.askokcancel('確認', 'アプリを終了しますか？', parent=self.master):
             try:
                 self.master.destroy()
                 self.save_settings()
