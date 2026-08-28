@@ -31,7 +31,39 @@ class FormCreator(ctk.CTkFrame):
             "description": "",
             "dates": [],
             "band_name_example": self.settings.get('example_band_name', "ロック部バンド（コピー元）"),
-            "deadline": ""
+            "deadline": "",
+            "default_questions": [
+            {
+                "title": "バンド名（コピー元）",
+                "description": f"例：\n・{self.settings.get('example_band_name', 'ロック部バンド（コピー元）')}\n※バンド名とコピー元が異なる場合のみ、（）内にコピー元を記入してください。\n※入力した内容がそのままSNS（ロック部・学祭・大学公式）などに記載されます。",
+                "required": True,
+                "type": "text"
+            },
+            {
+                "title": "演奏時間",
+                "description": "半角数字のみ\n例：20分の場合：「20」と入力（「分」は入力しない）",
+                "required": True,
+                "type": "text"
+            },
+            {
+                "title": "メンバー",
+                "description": "パート・名前\n※例のように記述してください（パートと名前の間はスペースを空けてください）。\n例：Vo.Gt. ロック太郎\n※名前は「本名・フルネーム」でお願いします（苗字と名前の間のスペースは不要）。\n※複数人いる場合は改行して記入してください。",
+                "required": True,
+                "type": "text"
+            },
+            {
+                "title": "出演可能日について",
+                "description": "⚠️最も合う選択肢を選んで下さい。\n※欠席については、別途連絡してください（これは欠席連絡には該当しません）。",
+                "required": True,
+                "type": "choice"
+            },
+            {
+                "title": "その他（出演できない時間帯や要望などがあれば）",
+                "required": False,
+                "type": "text"
+            }
+            ],
+            "optional_questions": []
         }
 
         # JSONファイルからライブ情報読み込み
@@ -45,8 +77,9 @@ class FormCreator(ctk.CTkFrame):
 
     def authenticate(self):
         """認証トークンの読み込み・更新処理"""
-        if os.path.exists('token.json'):
-            self.creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        token_path = self.app.get_config_path('token.json')
+        if os.path.exists(token_path):
+            self.creds = Credentials.from_authorized_user_file(token_path, SCOPES)
         
         if not self.creds or not self.creds.valid:
             if self.creds and self.creds.expired and self.creds.refresh_token:
@@ -54,7 +87,7 @@ class FormCreator(ctk.CTkFrame):
             else:
                 flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
                 self.creds = flow.run_local_server(port=0)
-            with open('token.json', 'w') as token:
+            with open(token_path, 'w') as token:
                 token.write(self.creds.to_json())
 
         # Forms APIサービスのビルド
@@ -72,7 +105,7 @@ class FormCreator(ctk.CTkFrame):
         title_frame = ctk.CTkFrame(self, fg_color="transparent")
         title_frame.pack(padx=0, pady=0, fill='x')
         ctk.CTkLabel(title_frame, text='📋 バンド募集フォームの作成', font=config.FONT_TITLE).pack(side='left', pady=(15, 5), anchor="w")
-        ctk.CTkButton(title_frame, text='連携解除', font=config.FONT_LABEL_BUTTON, fg_color="red", width=80, command=self.unconnect_account).pack(side='right', padx=5, pady=(15, 5), anchor="w")
+        ctk.CTkButton(title_frame, text='連携解除', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_RED, hover_color=config.HOVER_COLOR_BUTTON_RED, width=80, command=self.unconnect_account).pack(side='right', padx=5, pady=(15, 5), anchor="w")
         self.message_label = ctk.CTkLabel(title_frame, text='', font=config.FONT_TITLE, text_color='gray50')
         self.message_label.pack(side='right', padx=5, pady=(15, 5), anchor="w")
         self.update_ui()  # Googleアカウント連携状況の表示更新
@@ -145,11 +178,11 @@ class FormCreator(ctk.CTkFrame):
 
                     cal_win.destroy()
                     
-                ctk.CTkButton(cal_win, text='決定', font=config.FONT_LABEL_BUTTON, command=set_date).pack(side='bottom', pady=10)
+                ctk.CTkButton(cal_win, text='決定', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color="black", command=set_date).pack(side='bottom', pady=10)
             except Exception:
                 messagebox.showinfo("お知らせ", "tkcalendarモジュールがインストールされていません。手入力してください。")
 
-        btn_cal = ctk.CTkButton(deadline_frame, text="📅", width=30, fg_color="gray70", text_color="black", command=open_calendar)
+        btn_cal = ctk.CTkButton(deadline_frame, text="📅", width=30, fg_color="gray50", hover_color=("gray60", "gray40"), text_color="black", command=open_calendar)
         btn_cal.pack(side='left', padx=(0, 5))
         
         ctk.CTkLabel(deadline_frame, text='ⓘ設定しない場合は、フォームに締め切りが表示されません。', font=config.FONT_SUBTITLE, text_color='gray50').pack(side='left', padx=5, anchor="w")
@@ -170,9 +203,9 @@ class FormCreator(ctk.CTkFrame):
         button_frame.grid_columnconfigure(1, weight=1, uniform="button")
         button_frame.grid_columnconfigure(2, weight=1, uniform="button")
         button_frame.grid_rowconfigure(0, weight=1)
-        self.custom_button = ctk.CTkButton(button_frame, text="カスタム設定", font=config.FONT_LABEL_BUTTON, fg_color='transparent', text_color=("#3e909b", "#65e1f1"), width=120, height=50, command=self.open_custom_form_window)
+        self.custom_button = ctk.CTkButton(button_frame, text="カスタム設定", font=config.FONT_LABEL_BUTTON, fg_color='transparent', text_color=("#3e909b", "#65e1f1"), width=120, height=16, command=self.open_custom_form_window)
         self.custom_button.grid(column=0, row=0, stick='w')
-        self.create_button = ctk.CTkButton(button_frame, text="Google Formを作成", font=config.FONT_LABEL_BUTTON, fg_color="#564080", width=300, height=50, command=self.start_create_form)
+        self.create_button = ctk.CTkButton(button_frame, text="Google Formを作成", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_PURPLE, hover_color=config.HOVER_COLOR_BUTTON_PURPLE, width=300, height=50, command=self.start_create_form)
         self.create_button.grid(column=1, row=0)
 
         self.status_label = ctk.CTkLabel(self, text='', font=(config.FONT_NAME, 16), text_color=("green", "light green"))
@@ -456,11 +489,107 @@ class FormCreator(ctk.CTkFrame):
 
     def open_custom_form_window(self):
         """カスタムフォーム作成用のウィンドウを開く"""
-        if not self.check_login_status()[0]:
-            messagebox.showerror("エラー", "Googleアカウントが連携されていません。")
-            return
-        return
+        popup = ctk.CTkToplevel(self.master)
+        popup.title("フォームのカスタム設定")
+        icon_path = self.app.get_config_path('rock_icon.ico')
+        popup.after(200, lambda: popup.iconbitmap(icon_path))
+        popup.geometry("600x660")
+        popup.grab_set()
 
+        ctk.CTkLabel(popup, text='オプション質問を追加する', font=config.FONT_TITLE).pack(padx=10, pady=(15, 5), anchor="w")
+        ctk.CTkLabel(popup, text='オプション質問を3つまで追加できます。', font=config.FONT_SUBTITLE, anchor="w", justify="left", text_color='gray50').pack(padx=10, pady=0, anchor="w")
+        question_tab = ctk.CTkTabview(popup, width=580, height=380, anchor='nw')
+        question_tab.pack(fill='both', expand=True, padx=5, pady=5)
+
+        for optional_question in self.form_info["optional_questions"]:
+            tab_name = optional_question["title"] if optional_question["title"] else "新しい質問"
+            question_tab.add(tab_name)
+            #question_tab.set(tab_name)
+
+            def question_change(event):
+                current_tab = question_tab.get()
+                tab_index = question_tab.index(current_tab)
+                new_title = title_entry.get()
+                new_description = description_entry.get("1.0", "end-1c")
+                self.form_info["optional_questions"][tab_index]["title"] = new_title
+                self.form_info["optional_questions"][tab_index]["description"] = new_description
+                self.form_info["optional_questions"][tab_index]["required"] = check_var.get()
+
+            ctk.CTkLabel(question_tab.tab(tab_name), text='質問タイトル', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w")
+            title_entry = ctk.CTkEntry(question_tab.tab(tab_name), width=500, font=(config.FONT_NAME, 16))
+            title_entry.insert(0, optional_question["title"])
+            title_entry.pack(padx=10, pady=(0, 5), anchor="w")
+            title_entry.bind("<KeyRelease>", question_change)
+
+            ctk.CTkLabel(question_tab.tab(tab_name), text='質問の説明（任意）', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w")
+            description_entry = ctk.CTkTextbox(question_tab.tab(tab_name), width=500, height=70, border_width=2, font=(config.FONT_NAME, 14))
+            description_entry.insert("1.0", optional_question["description"])
+            description_entry.pack(padx=10, pady=(0, 5), anchor="w")
+            description_entry.bind("<KeyRelease>", question_change)
+
+            check_var = ctk.BooleanVar(value=False)
+            ctk.CTkCheckBox(question_tab.tab(tab_name), text="必須質問にする", font=config.FONT_LABEL_BUTTON, variable=check_var, onvalue=True, offvalue=False).pack(padx=10, pady=5, anchor="w")
+
+        def add_new_question_tab():
+            question_tab.add("新しい質問")
+            question_tab.set("新しい質問")
+
+            def question_change(event):
+                current_tab = question_tab.get()
+                tab_index = question_tab.index(current_tab)
+                new_title = title_entry.get()
+                new_description = description_entry.get("1.0", "end-1c")
+                self.form_info["optional_questions"][tab_index]["title"] = new_title
+                self.form_info["optional_questions"][tab_index]["description"] = new_description
+                self.form_info["optional_questions"][tab_index]["required"] = check_var.get()
+
+            ctk.CTkLabel(question_tab.tab("新しい質問"), text='質問タイトル', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w")
+            title_entry = ctk.CTkEntry(question_tab.tab("新しい質問"), width=500, font=(config.FONT_NAME, 16))
+            title_entry.pack(padx=10, pady=(0, 5), anchor="w", fill='x')
+            title_entry.bind("<KeyRelease>", question_change)
+
+            ctk.CTkLabel(question_tab.tab("新しい質問"), text='質問の説明（任意）', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w")
+            description_entry = ctk.CTkTextbox(question_tab.tab("新しい質問"), width=500, height=70, border_width=2, font=(config.FONT_NAME, 14))
+            description_entry.pack(padx=10, pady=(0, 5), anchor="w", fill='x')
+            description_entry.bind("<KeyRelease>", question_change)
+
+            check_var = ctk.BooleanVar(value=False)
+            ctk.CTkCheckBox(question_tab.tab("新しい質問"), text="必須質問にする", font=config.FONT_LABEL_BUTTON, variable=check_var, onvalue=True, offvalue=False).pack(padx=10, pady=5, anchor="w")
+
+        if len(self.form_info["optional_questions"]) == 0:
+            new_question = {
+                "title": "新しい質問",
+                "description": "",
+                "required": False,
+                "type": "text"
+            }
+            self.form_info["optional_questions"].append(new_question)
+            add_new_question_tab()
+
+        def add_optional_question():
+            # optionnal_questionsのtitleをすべて取得
+            question_titles = [q["title"] for q in self.form_info["optional_questions"]]
+            if "新しい質問" in question_titles:
+                messagebox.showerror("エラー", "質問タイトルを入力してください。")
+                return
+            if len(self.form_info["optional_questions"]) >= 3:
+                messagebox.showinfo("お知らせ", "オプション質問は3つまで追加できます。")
+                return
+            
+            current_tab = question_tab.get()
+            tab_index = question_tab.index(current_tab)
+            question_tab.rename(current_tab, self.form_info["optional_questions"][tab_index].get("title", f"新しい質問{tab_index + 1}"))
+            new_question = {
+                "title": "新しい質問",
+                "description": "",
+                "required": False,
+                "type": "text"
+            }
+            self.form_info["optional_questions"].append(new_question)
+            add_new_question_tab()
+
+        ctk.CTkButton(popup, text="質問を追加", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_BLUE, hover_color=config.HOVER_COLOR_BUTTON_BLUE, text_color='black', width=120, height=20, command=add_optional_question).pack(side='left', padx=10, pady=5)
+        ctk.CTkButton(popup, text="OK", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', width=120, height=20).pack(side='bottom', pady=15)
 
     def update_ui(self):
         is_logged_in, self.creds = self.check_login_status()

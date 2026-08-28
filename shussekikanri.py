@@ -13,7 +13,7 @@ from views.sidebar import SidebarFrame
 from views.top_view import MainView
 from views.attendance_view import AttendanceView
 from views.live_view import LiveView
-# from views.make_from_view import FormCreator
+from views.make_from_view import FormCreator
 from views.band_view import BandView
 from views.timetable_view import TimetableView
 
@@ -157,11 +157,10 @@ class AttendanceApp:
 
     def create_form(self):
         """Google Formの新規作成画面を表示"""
-        """self.clear()
+        self.clear()
         self.form_view = FormCreator(self.main_frame, app=self)
         self.form_view.pack(fill='both', expand=True)
-        self.top_showen = False"""
-        return
+        self.top_showen = False
 
     def register_band(self, default_tab=None, default_live_name=None):
         """バンド登録画面を表示 (タブ切り替え・一括一覧表示＆ライブ名紐付け版)"""
@@ -266,7 +265,7 @@ class AttendanceApp:
                 pass
 
     def get_config_path(self, filename='settings.json'):
-        if filename == 'settings.json' or filename == 'live_info.json':
+        if filename == 'settings.json' or filename == 'live_info.json' or filename == 'token.json':
             # 設定ファイルはユーザーのAPPDATAに保存する
             appdata_dir = os.getenv('APPDATA')
             config_dir = os.path.join(appdata_dir, 'RockAttendanceApp')

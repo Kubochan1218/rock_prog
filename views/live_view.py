@@ -134,7 +134,7 @@ class LiveView(ctk.CTkFrame):
                         date_entry.insert(0, cal.get_date())
                         cal_win.destroy()
                         
-                    ctk.CTkButton(cal_win, text='決定', font=config.FONT_LABEL_BUTTON, command=set_date).pack(side='bottom', pady=10)
+                    ctk.CTkButton(cal_win, text='決定', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color="black", command=set_date).pack(side='bottom', pady=10)
                 except Exception:
                     messagebox.showinfo("お知らせ", "tkcalendarモジュールがインストールされていません。手入力してください。")
 

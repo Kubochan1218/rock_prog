@@ -23,7 +23,7 @@ class SidebarFrame(ctk.CTkFrame):
         self.btn_nav_check.grid(row=3, column=0, padx=20, pady=8, sticky="ew")
 
         self.btn_nav_form = ctk.CTkButton(self, text="📋 バンド募集フォーム作成", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("form"))
-        # self.btn_nav_form.grid(row=4, column=0, padx=20, pady=8, sticky="ew")
+        self.btn_nav_form.grid(row=4, column=0, padx=20, pady=8, sticky="ew")
 
         self.btn_nav_band = ctk.CTkButton(self, text="🎤 バンド登録・選出", fg_color="transparent", text_color=("gray10", "gray90"), font=config.FONT_LABEL_BUTTON, anchor="w", command=lambda: on_menu_select("band"))
         self.btn_nav_band.grid(row=5, column=0, padx=20, pady=8, sticky="ew")
