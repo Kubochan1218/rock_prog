@@ -30,6 +30,10 @@ class TimetableView(ctk.CTkFrame):
             except Exception:
                 pass
 
+        if not self.existing_lives:
+            messagebox.showerror('エラー', '登録済みのライブ情報がありません。\n先に「ライブ管理」からライブを作成してください。')
+            return
+
         self.load_band_infos()
         self.create_widgets()
 

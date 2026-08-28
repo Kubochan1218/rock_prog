@@ -15,6 +15,19 @@ class BandView(ctk.CTkFrame):
         self.default_tab = default_tab
         self.default_live_name = default_live_name
         self.file_path = self.app.settings.get('excel_file_path', config.FILE_PATH)
+        
+        LIVE_JSON_PATH = self.app.get_config_path('live_info.json')
+        self.existing_lives = {}
+        if os.path.exists(LIVE_JSON_PATH):
+            try:
+                with open(LIVE_JSON_PATH, 'r', encoding='utf-8') as f:
+                    self.existing_lives = json.load(f)
+            except Exception:
+                pass
+
+        if not self.existing_lives:
+            messagebox.showerror('エラー', '登録済みのライブ情報がありません。\n先に「ライブ管理」からライブを作成してください。')
+            return
 
         self.show_band_input()
 
@@ -25,28 +38,15 @@ class BandView(ctk.CTkFrame):
 
     def show_band_input(self):
         self.clear_frame()
-        
-        LIVE_JSON_PATH = self.app.get_config_path('live_info.json')
-        existing_lives = {}
-        if os.path.exists(LIVE_JSON_PATH):
-            try:
-                with open(LIVE_JSON_PATH, 'r', encoding='utf-8') as f:
-                    existing_lives = json.load(f)
-            except Exception:
-                pass
-
-        if not existing_lives:
-            messagebox.showerror('エラー', '登録済みのライブ情報がありません。\n先に「ライブ情報の登録・編集」からライブを作成してください。')
-            return
 
         # 上部に切り替え用のタブビューを作成
         tabview = ctk.CTkTabview(self, anchor="nw")
         tabview.pack(fill="both", expand=True, padx=0, pady=0)
 
-        self.show_setup_screen(tabview, existing_lives)
-        self.show_management_screen(tabview, existing_lives)
-        self.setup_band_selection_tab(tabview, existing_lives)
-        
+        self.show_setup_screen(tabview, self.existing_lives)
+        self.show_management_screen(tabview, self.existing_lives)
+        self.setup_band_selection_tab(tabview, self.existing_lives)
+
         if self.default_tab:
             try:
                 tabview.set(self.default_tab)
