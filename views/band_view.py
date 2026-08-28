@@ -65,7 +65,7 @@ class BandView(ctk.CTkFrame):
 
         # 1. ライブ名選択
         ctk.CTkLabel(form_frame, text='対象のライブを選択:', font=config.FONT_LABEL_BUTTON).pack(anchor='w', pady=0)
-        live_combo = ctk.CTkComboBox(form_frame, values=list(existing_lives.keys()), width=300, font=(config.FONT_NAME, 16))
+        live_combo = ctk.CTkComboBox(form_frame, values=list(existing_lives.keys()), width=300, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12))
         live_combo.pack(anchor='w', pady=(0, 15))
 
         # 2. ファイル選択
@@ -108,7 +108,7 @@ class BandView(ctk.CTkFrame):
         filter_frame.pack(pady=5, fill='x', padx=5)
 
         ctk.CTkLabel(filter_frame, text='表示するライブを選択:', font=config.FONT_LABEL_BUTTON).pack(side='left', padx=(0, 10))
-        live_selector = ctk.CTkComboBox(filter_frame, values=list(existing_lives.keys()), width=250, font=(config.FONT_NAME, 16))
+        live_selector = ctk.CTkComboBox(filter_frame, values=list(existing_lives.keys()), width=250, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12))
         live_selector.pack(side='left', padx=5)
 
         # リスト描画用のコンテナフレーム
@@ -225,7 +225,7 @@ class BandView(ctk.CTkFrame):
 
                     combos = []
                     for i in range(10):
-                        cb = ctk.CTkComboBox(edit_scroll, values=[''] + roster_names, width=200, font=(config.FONT_NAME, 16))
+                        cb = ctk.CTkComboBox(edit_scroll, values=[''] + roster_names, width=200, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12))
                         cb.pack(pady=4, anchor='w', padx=10)
                         if i < len(current_m):
                             cb.set(current_m[i])
@@ -332,11 +332,11 @@ class BandView(ctk.CTkFrame):
                 self.entry_total_time.insert(0, str(int(total_minutes)))
 
         ctk.CTkLabel(date_frame, text='出席率計算 開始日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=6)
-        self.start_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_start, command=update_end_dates)
+        self.start_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=130, values=date_candidates_start, command=update_end_dates)
         self.start_combo.pack(side='left', padx=5, pady=6)
         
         ctk.CTkLabel(date_frame, text='終了日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=6)
-        self.end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_end)
+        self.end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=130, values=date_candidates_end)
         self.end_combo.pack(side='left', padx=5, pady=6)
         
         ctk.CTkLabel(date_frame, text='ⓘ', font=(config.FONT_NAME, 18)).pack(side='left', anchor="w", padx=(15, 5))
@@ -347,7 +347,7 @@ class BandView(ctk.CTkFrame):
         row_live.pack(fill="x", pady=6, padx=10)
         lbl_live = ctk.CTkLabel(row_live, text="🎤 ライブを選択:", font=(config.FONT_NAME, 16), width=LBL_WIDTH, anchor="w")
         lbl_live.pack(side="left")
-        self.live_combo = ctk.CTkComboBox(row_live, font=(config.FONT_NAME, 16), width=180, values=list(existing_lives.keys()), command=update_max_time)
+        self.live_combo = ctk.CTkComboBox(row_live, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=180, values=list(existing_lives.keys()), command=update_max_time)
         self.live_combo.pack(side="left", padx=5)
         
         # 募集バンド数
@@ -528,7 +528,7 @@ class BandView(ctk.CTkFrame):
 
                 combos = []
                 for i in range(10):
-                    cb = ctk.CTkComboBox(edit_scroll, values=[''] + roster_names, width=200, font=(config.FONT_NAME, 16))
+                    cb = ctk.CTkComboBox(edit_scroll, values=[''] + roster_names, width=200, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12))
                     cb.pack(pady=4, anchor='w', padx=10)
                     if i < len(current_band['matched_members']):
                         cb.set(current_band['matched_members'][i])

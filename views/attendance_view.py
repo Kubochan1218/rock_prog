@@ -45,14 +45,14 @@ class AttendanceView(ctk.CTkFrame):
         month_frame = ctk.CTkFrame(month_day_frame, width=100, fg_color=('gray70', 'gray30'))
         month_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         ctk.CTkLabel(month_frame, text='月', font=config.FONT_LABEL_BUTTON).pack(pady=5)        
-        self.month_entry = ctk.CTkComboBox(month_frame, font=config.FONT_LABEL_BUTTON, width=80, values=[str(i) for i in range(1, 13)], state='readonly')
+        self.month_entry = ctk.CTkComboBox(month_frame, font=config.FONT_LABEL_BUTTON, dropdown_font=(config.FONT_NAME, 12), width=80, values=[str(i) for i in range(1, 13)], state='readonly')
         self.month_entry.pack(padx=5, pady=5)
         self.month_entry.set('選択')
         
         day_frame = ctk.CTkFrame(month_day_frame, width=100, fg_color=('gray70', 'gray30'))
         day_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         ctk.CTkLabel(day_frame, text='日', font=config.FONT_LABEL_BUTTON).pack(pady=5)
-        self.day_entry = ctk.CTkComboBox(day_frame, font=config.FONT_LABEL_BUTTON, width=80, values=[str(i) for i in range(1, 32)], state='readonly')
+        self.day_entry = ctk.CTkComboBox(day_frame, font=config.FONT_LABEL_BUTTON, dropdown_font=(config.FONT_NAME, 12), width=80, values=[str(i) for i in range(1, 32)], state='readonly')
         self.day_entry.pack(padx=5, pady=5)
         self.day_entry.set('選択')
         
@@ -75,11 +75,11 @@ class AttendanceView(ctk.CTkFrame):
                     end_combo.set(new_end_dates[0] if new_end_dates else '')
 
         ctk.CTkLabel(date_frame, text='開始日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=10)
-        start_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_start, command=update_end_dates)
+        start_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=130, values=date_candidates_start, command=update_end_dates)
         start_combo.pack(side='left', padx=5, pady=10)
         
         ctk.CTkLabel(date_frame, text='終了日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=10)
-        end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), width=130, values=date_candidates_end)
+        end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=130, values=date_candidates_end)
         end_combo.pack(side='left', padx=5, pady=10)
         
         ctk.CTkLabel(date_frame, text='ⓘ', font=(config.FONT_NAME, 18)).pack(side='left', anchor="w", padx=(15, 5))

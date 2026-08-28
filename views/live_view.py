@@ -79,7 +79,8 @@ class LiveView(ctk.CTkFrame):
         live_name_combo = ctk.CTkComboBox(
             name_frame, 
             values=live_names_list if live_names_list else [""], 
-            font=(config.FONT_NAME, 16), 
+            font=(config.FONT_NAME, 16),
+            dropdown_font=(config.FONT_NAME, 12),
             width=300,
             command=on_live_select
         )
@@ -143,13 +144,13 @@ class LiveView(ctk.CTkFrame):
             
             # 開演時刻（コンボボックス）
             ctk.CTkLabel(row, text="開始:", font=(config.FONT_NAME, 16)).pack(side='left')
-            start_combo = ctk.CTkComboBox(row, values=time_options, width=80, font=(config.FONT_NAME, 16))
+            start_combo = ctk.CTkComboBox(row, values=time_options, width=80, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12))
             start_combo.set(start_val if start_val else "10:00")
             start_combo.pack(side='left', padx=5)
             
             # 終演時刻（コンボボックス）
             ctk.CTkLabel(row, text="終了:", font=(config.FONT_NAME, 16)).pack(side='left', padx=(10, 0))
-            end_combo = ctk.CTkComboBox(row, values=time_options, width=80, font=(config.FONT_NAME, 16))
+            end_combo = ctk.CTkComboBox(row, values=time_options, width=80, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12))
             end_combo.set(end_val if end_val else "18:00")
             end_combo.pack(side='left', padx=5)
             

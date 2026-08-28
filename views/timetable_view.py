@@ -110,6 +110,7 @@ class TimetableView(ctk.CTkFrame):
             select_live_frame, 
             values=live_names_list if live_names_list else [""], 
             font=(config.FONT_NAME, 16), 
+            dropdown_font=(config.FONT_NAME, 12),
             width=240,
             state="readonly",
             command=on_live_select
@@ -234,7 +235,7 @@ class TimetableView(ctk.CTkFrame):
             label = ctk.CTkLabel(top_frame, text="バンドを選択：", font=config.FONT_LABEL_BUTTON)
             label.pack(side="left")
             
-            combo = ctk.CTkComboBox(top_frame, width=200, font=config.FONT_LABEL_BUTTON, state="readonly")
+            combo = ctk.CTkComboBox(top_frame, width=200, font=config.FONT_LABEL_BUTTON, dropdown_font=(config.FONT_NAME, 12), state="readonly")
             combo.pack(side="left", padx=5)
             
             btn_add = ctk.CTkButton(top_frame, text="追加", command=lambda c=combo, t=label_text: self.add_band(c, t), font=config.FONT_LABEL_BUTTON, width=80, fg_color=config.COLOR_BUTTON_LIGHTBLUE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTBLUE, text_color="black")
@@ -349,7 +350,7 @@ class TimetableView(ctk.CTkFrame):
         ctk.CTkLabel(kinds_frame, text="種別", font=config.FONT_LABEL_BUTTON).pack(side="left", anchor="w", padx=10, pady=5)
         var_kind = tk.StringVar(value='休憩')
         kinds = ['休憩', '転換', 'リハ']
-        combo_kind = ctk.CTkComboBox(kinds_frame, values=kinds, variable=var_kind, state="readonly", width=180, font=config.FONT_LABEL_BUTTON)
+        combo_kind = ctk.CTkComboBox(kinds_frame, values=kinds, variable=var_kind, state="readonly", width=180, font=config.FONT_LABEL_BUTTON, dropdown_font=(config.FONT_NAME, 12))
         combo_kind.pack(side="right", padx=10)
         
         minutes_frame = ctk.CTkFrame(win, fg_color="transparent")
@@ -362,7 +363,7 @@ class TimetableView(ctk.CTkFrame):
         band_frame.pack(pady=5, fill='x')
         ctk.CTkLabel(band_frame, text="バンド名(リハのみ)", font=config.FONT_LABEL_BUTTON).pack(side="left", anchor="w", padx=10, pady=5)
         all_band_names = [b['band_name'] for b in self.tabs[tab]['band_objs']]
-        combo_band = ctk.CTkComboBox(band_frame, values=all_band_names, width=180, font=config.FONT_LABEL_BUTTON)
+        combo_band = ctk.CTkComboBox(band_frame, values=all_band_names, width=180, font=config.FONT_LABEL_BUTTON, dropdown_font=(config.FONT_NAME, 12))
         combo_band.pack(side="right", padx=10)
         
         btn = ctk.CTkButton(win, text="OK", command=on_ok, font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color="black")

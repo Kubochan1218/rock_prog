@@ -225,7 +225,7 @@ class AttendanceApp:
         
         appearance_mode = self.settings.get('appearance_mode', config.APP_MODE)
         appearance_key = [k for k, v in mode.items() if v == appearance_mode]
-        appearance_combo = ctk.CTkComboBox(appearance_frame, values=list(mode.keys()), font=(config.FONT_NAME, 16), width=120, command=change_appearance)
+        appearance_combo = ctk.CTkComboBox(appearance_frame, values=list(mode.keys()), font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 14), width=120, command=change_appearance)
         appearance_combo.set(appearance_key[0] if appearance_key else "")
         appearance_combo.pack(pady=5, anchor="w")
         
