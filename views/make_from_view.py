@@ -37,30 +37,35 @@ class FormCreator(ctk.CTkFrame):
                 "title": "バンド名（コピー元）",
                 "description": f"例：\n・{self.settings.get('example_band_name', 'ロック部バンド（コピー元）')}\n※バンド名とコピー元が異なる場合のみ、（）内にコピー元を記入してください。\n※入力した内容がそのままSNS（ロック部・学祭・大学公式）などに記載されます。",
                 "required": True,
-                "type": "text"
+                "type": "text",
+                "options": []
             },
             {
                 "title": "演奏時間",
                 "description": "半角数字のみ\n例：20分の場合：「20」と入力（「分」は入力しない）",
                 "required": True,
-                "type": "text"
+                "type": "text",
+                "options": []
             },
             {
                 "title": "メンバー",
                 "description": "パート・名前\n※例のように記述してください（パートと名前の間はスペースを空けてください）。\n例：Vo.Gt. ロック太郎\n※名前は「本名・フルネーム」でお願いします（苗字と名前の間のスペースは不要）。\n※複数人いる場合は改行して記入してください。",
                 "required": True,
-                "type": "text"
+                "type": "paragraph",
+                "options": []
             },
             {
                 "title": "出演可能日について",
                 "description": "⚠️最も合う選択肢を選んで下さい。\n※欠席については、別途連絡してください（これは欠席連絡には該当しません）。",
                 "required": True,
-                "type": "choice"
+                "type": "choice",
+                "options": self.make_date_choice()
             },
             {
                 "title": "その他（出演できない時間帯や要望などがあれば）",
                 "required": False,
-                "type": "text"
+                "type": "paragraph",
+                "options": []
             }
             ],
             "optional_questions": []
@@ -228,6 +233,90 @@ class FormCreator(ctk.CTkFrame):
 
         threading.Thread(target=self.create_form, daemon=True).start()
 
+    def create_requests(self) -> list:
+        """フォーム作成のリクエストを生成する"""
+        requests = []
+        form_info = {
+            "updateFormInfo": {
+                "info": {
+                    "description": self.form_info["description"]
+                },
+                "updateMask": "description"
+            }
+        }
+        requests.append(form_info)
+        initial_section_item = {
+            "createItem": {
+                "item": {
+                    "title": "必要事項入力",
+                    "pageBreakItem": {}
+                },
+                "location": {"index": len(requests) - 1}
+            }
+        }
+        requests.append(initial_section_item)
+        # デフォルトの質問を追加
+        for question in self.form_info["default_questions"]:
+            item = {
+                "createItem": {
+                    "item": {
+                        "title": question["title"],
+                        "description": question.get("description", ""),
+                        "questionItem": {
+                            "question": {
+                                "required": question["required"]
+                            }
+                        }
+                    },
+                    "location": {"index": len(requests) - 1}
+                }
+            }
+
+            if question["type"] == "text":
+                item["createItem"]["item"]["questionItem"]["question"]["textQuestion"] = {"paragraph": False}
+            elif question["type"] == "paragraph":
+                item["createItem"]["item"]["questionItem"]["question"]["textQuestion"] = {"paragraph": True}
+            elif question["type"] == "choice":
+                item["createItem"]["item"]["questionItem"]["question"]["choiceQuestion"] = {
+                    "type": "RADIO",
+                    "options": question.get("options", ["選択肢1"])
+                }
+
+            requests.append(item)
+        
+        # 応募条件確認・締め切り表示のセクションを追加
+        confirm_section_item = {
+            "createItem": {
+                "item": {
+                    "title": "確認",
+                    "pageBreakItem": {}
+                },
+                "location": {"index": len(requests) - 1}
+            }
+        }
+        requests.append(confirm_section_item)
+        condition_section_item = {
+            "createItem": {
+                "item": {
+                    "title": "応募条件を満たしていることを確認してから応募してください。",
+                    "pageBreakItem": {}
+                },
+                "location": {"index": len(requests) - 1}
+            }
+        }
+        requests.append(condition_section_item)
+        deadline_section_item = {
+            "createItem": {
+                "item": {
+                    "title": f"入力した情報は、{self.form_info['deadline']}まで編集できます。",
+                    "pageBreakItem": {}
+                },
+                "location": {"index": len(requests) - 1}
+            }
+        }
+        requests.append(deadline_section_item)
+        return requests
+
     def create_form(self):
         """フォームを新規作成する"""
         self.authenticate()  # 認証を行う
@@ -241,137 +330,7 @@ class FormCreator(ctk.CTkFrame):
         form_id = res["formId"]
 
         update_requests = {
-            "requests": [
-                {
-                    "updateFormInfo": {
-                        "info": {
-                            "description": self.form_info["description"]
-                        },
-                        "updateMask": "description"
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": "必要事項入力",
-                            "pageBreakItem": {}
-                        },
-                        "location": {"index": 0}
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": "バンド名（コピー元）",
-                            "description": f"例：\n・{self.form_info['band_name_example']}\n※バンド名とコピー元が異なる場合のみ、（）内にコピー元を記入してください。\n※入力した内容がそのままSNS（ロック部・学祭・大学公式）などに記載されます。",
-                            "questionItem": {
-                                "question": {
-                                    "required": True,
-                                    "textQuestion": {
-                                        "paragraph": False
-                                    }
-                                }
-                            }
-                        },
-                        "location": {"index": 1}
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": "演奏時間",
-                            "description": f"半角数字のみ\n例：20分の場合：「20」と入力（「分」は入力しない）",
-                            "questionItem": {
-                                "question": {
-                                    "required": True,
-                                    "textQuestion": {
-                                        "paragraph": False
-                                    }
-                                }
-                            }
-                        },
-                        "location": {"index": 2}
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": "メンバー",
-                            "description": f"パート・名前\n※例のように記述してください（パートと名前の間はスペースを空けてください）。\n例：Vo.Gt. ロック太郎\n※名前は「本名・フルネーム」でお願いします（苗字と名前の間のスペースは不要）。\n※複数人いる場合は改行して記入してください。",
-                            "questionItem": {
-                                "question": {
-                                    "required": True,
-                                    "textQuestion": {
-                                        "paragraph": True
-                                    }
-                                }
-                            }
-                        },
-                        "location": {"index": 3}
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": "出演可能日について",
-                            "description": "⚠️最も合う選択肢を選んで下さい。\n※欠席については、別途連絡してください（これは欠席連絡には該当しません）。",
-                            "questionItem": {
-                                "question": {
-                                    "required": True,
-                                    "choiceQuestion": {
-                                        "type": "RADIO",
-                                        "options": self.make_date_choice()
-                                    }
-                                }
-                            }
-                        },
-                        "location": {"index": 4}
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": "その他（出演できない時間帯や要望などがあれば）",
-                            "questionItem": {
-                                "question": {
-                                    "required": False,
-                                    "textQuestion": {
-                                        "paragraph": True
-                                    }
-                                }
-                            }
-                        },
-                        "location": {"index": 5}
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": "確認",
-                            "pageBreakItem": {}
-                        },
-                        "location": {"index": 6}
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": "応募条件を満たしていることを確認してから応募してください。",
-                            "pageBreakItem": {} 
-                        },
-                        "location": {"index": 7}
-                    }
-                },
-                {
-                    "createItem": {
-                        "item": {
-                            "title": f"入力した情報は、{self.form_info['deadline']}まで編集できます。",
-                            "pageBreakItem": {} 
-                        },
-                        "location": {"index": 8}
-                    }
-                }
-            ]
+            "requests": self.create_requests()
         }
         # リクエストを送信してフォームを更新
         res = self.form_service.forms().batchUpdate(formId=form_id, body=update_requests).execute()
@@ -524,6 +483,13 @@ class FormCreator(ctk.CTkFrame):
                 optional_question["description"] = new_description
                 optional_question["required"] = new_required
                 optional_question["type"] = new_type
+                if new_type == "choice":
+                    options_entry.configure(state='normal')
+                    optional_question["options"] = options_entry.get("1.0", "end-1c").split("\n")
+                    optional_question["options"] = [opt for opt in optional_question["options"] if opt.strip() != ""]
+                else:
+                    options_entry.configure(state='disabled')
+                    optional_question["options"] = []
 
             # --- タイトル入力 ---
             ctk.CTkLabel(question_tab.tab(tab_name), text='質問タイトル', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w")
@@ -558,6 +524,14 @@ class FormCreator(ctk.CTkFrame):
             current_type_key = [k for k, v in question_type.items() if v == optional_question["type"]]
             if current_type_key:
                 type_combo.set(current_type_key[0])
+                
+            # --- 選択肢入力 ---
+            ctk.CTkLabel(question_tab.tab(tab_name), text='選択肢（選択肢を追加する場合は改行）', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w")
+            options_entry = ctk.CTkTextbox(question_tab.tab(tab_name), height=120, border_width=2, font=(config.FONT_NAME, 14))
+            options_entry.insert("1.0", "\n".join(optional_question["options"]))
+            options_entry.pack(padx=10, pady=(0, 5), anchor="w", fill='x')
+            options_entry.configure(state='normal' if optional_question["type"] == "choice" else 'disabled')
+            options_entry.bind("<KeyRelease>", question_change)
 
         def add_new_question_tab():
             """新しいオプション質問のタブを追加する"""
@@ -573,7 +547,8 @@ class FormCreator(ctk.CTkFrame):
                 "title": "新しい質問",
                 "description": "",
                 "required": False,
-                "type": "text"
+                "type": "text",
+                "options": []
             }
             self.form_info["optional_questions"].append(new_question)
 
@@ -599,7 +574,8 @@ class FormCreator(ctk.CTkFrame):
                 "title": "新しい質問",
                 "description": "",
                 "required": False,
-                "type": "text"
+                "type": "text",
+                "options": []
             }
             self.form_info["optional_questions"].append(new_question)
             
