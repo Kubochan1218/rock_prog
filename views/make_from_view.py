@@ -492,78 +492,83 @@ class FormCreator(ctk.CTkFrame):
         """カスタムフォーム作成用のウィンドウを開く"""
         popup = ctk.CTkToplevel(self.master)
         popup.title("フォームのカスタム設定")
-        icon_path = self.app.get_config_path('rock_icon.ico')
-        popup.after(200, lambda: popup.iconbitmap(icon_path))
+        
+        # アイコン設定（エラー回避のためtry-except推奨）
+        try:
+            icon_path = self.app.get_config_path('rock_icon.ico')
+            popup.after(200, lambda: popup.iconbitmap(icon_path))
+        except Exception as e:
+            print(f"アイコンの読み込みに失敗しました: {e}")
+            
         popup.geometry("600x660")
         popup.grab_set()
 
         ctk.CTkLabel(popup, text='オプション質問を追加する', font=config.FONT_TITLE).pack(padx=10, pady=(15, 5), anchor="w")
         ctk.CTkLabel(popup, text='オプション質問を3つまで追加できます。', font=config.FONT_SUBTITLE, anchor="w", justify="left", text_color='gray50').pack(padx=10, pady=0, anchor="w")
+        
         question_tab = ctk.CTkTabview(popup, width=580, height=380, anchor='nw')
         question_tab.pack(fill='both', expand=True, padx=5, pady=5)
 
         def create_tab_widgets(optional_question: dict, tab_name: str):
             """タブ内のウィジェットを作成する"""
             question_type = {"短文回答": "text", "長文回答": "paragraph", "選択肢": "choice"}
-            def question_change(event):
-                current_tab = question_tab.get()
-                tab_index = question_tab.index(current_tab)
+            
+            def question_change(*args): # *argsでbindとcommand両方の引数を受け取る
                 new_title = title_entry.get() if title_entry.get() else "新しい質問"
                 new_description = description_entry.get("1.0", "end-1c")
                 new_required = check_var.get()
                 new_type = question_type[type_combo.get()]
-                self.form_info["optional_questions"][tab_index]["title"] = new_title
-                self.form_info["optional_questions"][tab_index]["description"] = new_description
-                self.form_info["optional_questions"][tab_index]["required"] = new_required
-                self.form_info["optional_questions"][tab_index]["type"] = new_type
-                # 重複チェック
-                question_titles = [q["title"] for q in self.form_info["optional_questions"] if q["title"] != "新しい質問"]
-                if new_title in question_titles and new_title != current_tab:
-                    alert_label.configure(text="タイトルが重複しています", fg_color=config.COLOR_BUTTON_PINK)
-                else:
-                    alert_label.configure(text="", fg_color="transparent")
+                
+                # 辞書（参照）を直接更新する
+                optional_question["title"] = new_title
+                optional_question["description"] = new_description
+                optional_question["required"] = new_required
+                optional_question["type"] = new_type
 
-            title_frame = ctk.CTkFrame(question_tab.tab(tab_name), fg_color="transparent")
-            title_frame.pack(padx=0, pady=0, anchor="w", fill='x')
-            ctk.CTkLabel(title_frame, text='質問タイトル', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w", side='left')
-            alert_label = ctk.CTkLabel(title_frame, text='', font=config.FONT_LABEL_BUTTON, text_color="white", corner_radius=5)
-            alert_label.pack(padx=0, pady=5, anchor="w", side='left')
-            title_entry = ctk.CTkEntry(question_tab.tab(tab_name), width=500, font=(config.FONT_NAME, 16))
-            insert_text = optional_question["title"] if optional_question["title"] != "新しい質問" else ""
+            # --- タイトル入力 ---
+            ctk.CTkLabel(question_tab.tab(tab_name), text='質問タイトル', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w")
+            title_entry = ctk.CTkEntry(question_tab.tab(tab_name), font=(config.FONT_NAME, 16))
+            old_title = optional_question["title"]
+            insert_text = old_title if old_title != "新しい質問" else ""
             title_entry.insert(0, insert_text)
-            title_entry.pack(padx=10, pady=(0, 5), anchor="w")
+            title_entry.pack(padx=10, pady=(0, 5), anchor="w", fill='x')
             title_entry.bind("<KeyRelease>", question_change)
 
+            # --- 説明入力 ---
             ctk.CTkLabel(question_tab.tab(tab_name), text='質問の説明（任意）', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w")
-            description_entry = ctk.CTkTextbox(question_tab.tab(tab_name), width=500, height=70, border_width=2, font=(config.FONT_NAME, 14))
+            description_entry = ctk.CTkTextbox(question_tab.tab(tab_name), height=70, border_width=2, font=(config.FONT_NAME, 14))
             description_entry.insert("1.0", optional_question["description"])
-            description_entry.pack(padx=10, pady=(0, 5), anchor="w")
+            description_entry.pack(padx=10, pady=(0, 5), anchor="w", fill='x')
             description_entry.bind("<KeyRelease>", question_change)
 
-            check_var = ctk.BooleanVar(value=False)
-            require_check = ctk.CTkCheckBox(question_tab.tab(tab_name), text="必須質問にする", font=config.FONT_LABEL_BUTTON, variable=check_var, onvalue=True, offvalue=False)
+            # --- 必須チェック ---
+            check_var = ctk.BooleanVar(value=optional_question["required"])
+            # bindではなくcommandを使用
+            require_check = ctk.CTkCheckBox(question_tab.tab(tab_name), text="必須質問にする", font=config.FONT_LABEL_BUTTON, variable=check_var, command=question_change)
             require_check.pack(padx=10, pady=5, anchor="w")
-            if optional_question["required"]:
-                require_check.select()
-            require_check.bind("<ButtonRelease-1>", question_change)
 
+            # --- 質問タイプ ---
             type_frame = ctk.CTkFrame(question_tab.tab(tab_name), fg_color="transparent")
             type_frame.pack(padx=0, pady=0, anchor="w", fill='x')
             ctk.CTkLabel(type_frame, text='質問のタイプ', font=config.FONT_LABEL_BUTTON).pack(padx=10, pady=5, anchor="w", side='left')
+            
             type_combo = ctk.CTkComboBox(type_frame, values=list(question_type.keys()), font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=200, state="readonly", command=question_change)
             type_combo.pack(padx=0, pady=5, anchor="w", side='left')
-            type_combo.set([k for k, v in question_type.items() if v == optional_question["type"]][0])
+            # 辞書から現在のキーを逆引きしてセット
+            current_type_key = [k for k, v in question_type.items() if v == optional_question["type"]]
+            if current_type_key:
+                type_combo.set(current_type_key[0])
 
         def add_new_question_tab():
             """新しいオプション質問のタブを追加する"""
             optional_question = self.form_info["optional_questions"][-1]
-            tab_name = optional_question["title"] if optional_question["title"] else "新しい質問"
+            tab_name = f"オプション質問{len(self.form_info['optional_questions'])}"
             question_tab.add(tab_name)
             question_tab.set(tab_name)
             create_tab_widgets(optional_question, tab_name)
 
+        # 初期化：質問がない場合は1つ作成
         if len(self.form_info["optional_questions"]) == 0:
-            """オプション質問がまだない場合は、リストに追加する"""
             new_question = {
                 "title": "新しい質問",
                 "description": "",
@@ -572,9 +577,9 @@ class FormCreator(ctk.CTkFrame):
             }
             self.form_info["optional_questions"].append(new_question)
 
-        for optional_question in self.form_info["optional_questions"]:
-            """オプション質問のタブを追加する"""
-            tab_name = optional_question["title"] if optional_question["title"] else "新しい質問"
+        # 既存の質問タブを生成
+        for i, optional_question in enumerate(self.form_info["optional_questions"]):
+            tab_name = f"オプション質問{i + 1}"
             question_tab.add(tab_name)
             create_tab_widgets(optional_question, tab_name)
 
@@ -582,20 +587,14 @@ class FormCreator(ctk.CTkFrame):
             """オプション質問を追加する"""
             question_titles = [q["title"] for q in self.form_info["optional_questions"]]
             if "新しい質問" in question_titles:
+                import tkinter.messagebox as messagebox
                 messagebox.showerror("エラー", "質問タイトルを入力してください。")
                 return
             if len(self.form_info["optional_questions"]) >= 3:
+                import tkinter.messagebox as messagebox
                 messagebox.showinfo("お知らせ", "オプション質問は3つまで追加できます。")
                 return
             
-            current_tab = question_tab.get()
-            tab_index = question_tab.index(current_tab)
-            new_name = self.form_info["optional_questions"][tab_index].get("title", f"新しい質問{tab_index + 1}")
-            if new_name in question_titles and new_name != current_tab:
-                messagebox.showerror("エラー", "質問タイトルが重複しています。")
-                # return
-            if current_tab != new_name:
-                question_tab.rename(current_tab, new_name) # タイトルが変更されている場合はタブ名を更新
             new_question = {
                 "title": "新しい質問",
                 "description": "",
@@ -603,16 +602,23 @@ class FormCreator(ctk.CTkFrame):
                 "type": "text"
             }
             self.form_info["optional_questions"].append(new_question)
-            question_len = len(self.form_info["optional_questions"]) + 1
-            button_text = f"{question_len}つ目の質問を追加" if question_len <= 3 else "質問は3つまで追加可能"
+            
+            question_len = len(self.form_info["optional_questions"])
+            # 次の追加に向けたボタンのテキスト更新
+            button_text = f"{question_len + 1}つ目の質問を追加" if question_len < 3 else "質問は3つまで追加可能"
             self.add_question_button.configure(text=button_text)
+            
             add_new_question_tab()
 
-        question_len = len(self.form_info["optional_questions"]) + 1
-        button_text = f"{question_len}つ目の質問を追加" if question_len <= 3 else "質問は3つまで追加可能"
+        # 画面下部のボタン設定
+        question_len = len(self.form_info["optional_questions"])
+        button_text = f"{question_len + 1}つ目の質問を追加" if question_len < 3 else "質問は3つまで追加可能"
+        
         self.add_question_button = ctk.CTkButton(popup, text=button_text, font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_BLUE, hover_color=config.HOVER_COLOR_BUTTON_BLUE, text_color='black', width=180, height=20, command=add_optional_question)
         self.add_question_button.pack(side='left', padx=10, pady=5)
-        ctk.CTkButton(popup, text="OK", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', width=120, height=20).pack(side='bottom', pady=15)
+        
+        # OKボタンに command=popup.destroy を追加し、ウィンドウを閉じられるように設定
+        ctk.CTkButton(popup, text="OK", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', width=120, height=20, command=popup.destroy).pack(side='bottom', pady=15)
 
     def update_ui(self):
         is_logged_in, self.creds = self.check_login_status()
