@@ -5,8 +5,9 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 import customtkinter as ctk
-from tkinter import messagebox
+from tkinter import messagebox, Button, Label, Tk
 from tkcalendar import Calendar
+from PIL import Image, ImageTk
 
 import config
 
@@ -59,7 +60,7 @@ class FormCreator(ctk.CTkFrame):
                 "description": "⚠️最も合う選択肢を選んで下さい。\n※欠席については、別途連絡してください（これは欠席連絡には該当しません）。",
                 "required": True,
                 "type": "choice",
-                "options": self.make_date_choice()
+                "options": []
             },
             {
                 "title": "その他（出演できない時間帯や要望などがあれば）",
@@ -134,10 +135,10 @@ class FormCreator(ctk.CTkFrame):
                     continue
             live_info_text = ""
             if choice in self.existing_lives:
-                live_info_text = f"■ライブ名\n{choice}\n\n■日程\n{'\n'.join([f'{idx + 1}日目: {sch["date"].strftime("%m月%d日")}（{self.weeks[sch['date'].weekday()]}）' for idx, sch in (enumerate(self.schedules))])}" # 〇日目: yyyy-mm-dd
+                live_info_text = f"■ライブ名\n{choice}\n\n■日程\n{'\n'.join([f'{idx + 1}日目: {sch["date"].strftime("%m月%d日")}({self.weeks[sch['date'].weekday()]})' for idx, sch in (enumerate(self.schedules))])}" # 〇日目: yyyy-mm-dd
                 self.form_info["dates"].clear()
                 for sch in self.schedules:
-                    date_str = f"{sch['date'].strftime('%m月%d日')}（{self.weeks[sch['date'].weekday()]}）"  # m/d（曜日）形式に変換
+                    date_str = f"{sch['date'].strftime('%m月%d日')}({self.weeks[sch['date'].weekday()]})"  # m/d（曜日）形式に変換
                     self.form_info["dates"].append(date_str)
             live_info.configure(state='normal')
             live_info.delete("1.0", "end")
@@ -178,7 +179,7 @@ class FormCreator(ctk.CTkFrame):
                 def set_date():
                     date_input = cal.get_date()
                     date_input = datetime.strptime(date_input, "%Y-%m-%d").date()
-                    date_str = f"{date_input.strftime('%m/%d')}（{self.weeks[date_input.weekday()]}）23:59"  # m/d形式に変換
+                    date_str = f"{date_input.strftime('%m/%d')}({self.weeks[date_input.weekday()]}) 23:59"  # m/d形式に変換
                     self.date_entry.delete(0, 'end')
                     self.date_entry.insert(0, date_str)
 
@@ -255,6 +256,7 @@ class FormCreator(ctk.CTkFrame):
             }
         }
         requests.append(initial_section_item)
+        self.form_info["default_questions"][3]["options"] = self.make_date_choice()  # 日程の選択肢を作成
         # デフォルトの質問を追加
         for question in self.form_info["default_questions"]:
             item = {
@@ -317,6 +319,38 @@ class FormCreator(ctk.CTkFrame):
         requests.append(deadline_section_item)
         return requests
 
+    def create_optional_questions_requests(self) -> list:
+        """オプション質問のリクエストを生成する"""
+        requests = []
+        for i, question in enumerate(self.form_info["optional_questions"]):
+            item = {
+                "createItem": {
+                    "item": {
+                        "title": f"{question["title"]}[opt{i + 1}]",
+                        "description": question.get("description", ""),
+                        "questionItem": {
+                            "question": {
+                                "required": question["required"]
+                            }
+                        }
+                    },
+                    "location": {"index": 5 + len(requests)}  # その他の質問の前に追加
+                }
+            }
+
+            if question["type"] == "text":
+                item["createItem"]["item"]["questionItem"]["question"]["textQuestion"] = {"paragraph": False}
+            elif question["type"] == "paragraph":
+                item["createItem"]["item"]["questionItem"]["question"]["textQuestion"] = {"paragraph": True}
+            elif question["type"] == "choice":
+                item["createItem"]["item"]["questionItem"]["question"]["choiceQuestion"] = {
+                    "type": "RADIO",
+                    "options": [{"value": opt} for opt in question.get("options", ["選択肢1"])]
+                }
+
+            requests.append(item)
+        return requests
+    
     def create_form(self):
         """フォームを新規作成する"""
         self.authenticate()  # 認証を行う
@@ -394,6 +428,12 @@ class FormCreator(ctk.CTkFrame):
 
         # リクエストを送信して質問を追加
         self.form_service.forms().batchUpdate(formId=form_id, body=add_questions_requests).execute()
+
+        if self.form_info["optional_questions"]:
+            add_optional_questions_requests = {
+                "requests": self.create_optional_questions_requests()
+            }
+            self.form_service.forms().batchUpdate(formId=form_id, body=add_optional_questions_requests).execute()
 
         self.create_button.configure(text="作成したフォームに移動", fg_color="#00A156", command=lambda: self.open_form_in_browser(form_id), state="normal")
         self.custom_button.configure(state="normal")
@@ -592,9 +632,16 @@ class FormCreator(ctk.CTkFrame):
         
         self.add_question_button = ctk.CTkButton(popup, text=button_text, font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_BLUE, hover_color=config.HOVER_COLOR_BUTTON_BLUE, text_color='black', width=180, height=20, command=add_optional_question)
         self.add_question_button.pack(side='left', padx=10, pady=5)
+
+        def close_popup():
+            """ポップアップを閉じる前に、質問タイトルが未入力の質問がある場合は警告を表示する"""
+            question_titles = [q["title"] for q in self.form_info["optional_questions"]]
+            if "新しい質問" in question_titles:
+                self.form_info["optional_questions"].remove(next(q for q in self.form_info["optional_questions"] if q["title"] == "新しい質問")) # 未入力の質問を削除
+            popup.destroy()
         
         # OKボタンに command=popup.destroy を追加し、ウィンドウを閉じられるように設定
-        ctk.CTkButton(popup, text="OK", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', width=120, height=20, command=popup.destroy).pack(side='bottom', pady=15)
+        ctk.CTkButton(popup, text="OK", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', width=120, height=20, command=close_popup).pack(side='bottom', pady=15)
 
     def update_ui(self):
         is_logged_in, self.creds = self.check_login_status()
@@ -619,6 +666,10 @@ class FormCreator(ctk.CTkFrame):
         import webbrowser
         form_url = f"https://docs.google.com/forms/d/{form_id}/edit"
         webbrowser.open(form_url)
+
+    def start_gif(self):
+        """GIFアニメーションを開始する"""
+        
 
 if __name__ == '__main__':
     # テスト用の簡単なGUIを作成してフォーム作成を実行
