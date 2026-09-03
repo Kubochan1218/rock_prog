@@ -1,4 +1,4 @@
-import os, sys, json, shutil, openpyxl
+import os, sys, json, shutil, openpyxl, winreg, re
 from datetime import datetime, timedelta
 import tkinter as tk
 from tkinter import messagebox
@@ -586,6 +586,13 @@ class TimetableView(ctk.CTkFrame):
             if not self._ensure_font_file("meiryo.ttc", "Meiryo"):
                 return
 
+        raw_live_name = self.live_name_combo.get()
+        safe_live_name = re.sub(r'[\\/*?:"<>|]', '_', raw_live_name)
+        file_name = f"【{safe_live_name}】タイムテーブル.xlsx"
+
+        desktop_path = self.get_windows_desktop_path()
+        save_path = os.path.join(desktop_path, file_name)
+
         wb = openpyxl.Workbook()
         for tab, tabinfo in self.tabs.items():
             tab_title = tabinfo.get("tab_label")
@@ -639,11 +646,21 @@ class TimetableView(ctk.CTkFrame):
         if "Sheet" in wb.sheetnames:
             del wb["Sheet"]
         try:
-            wb.save(f"【{self.live_name_combo.get()}】タイムテーブル.xlsx")
-            msg = f"【{self.live_name_combo.get()}】タイムテーブル.xlsx を出力しました。"
+            wb.save(save_path)
+            msg = f"デスクトップに{file_name} を出力しました。"
             if getattr(self, '_last_font_copied', False):
                 msg += "\n※フォントファイルコピー済み"
             messagebox.showinfo("Excel出力", msg, parent=self)
             self._last_font_copied = False
         except Exception as e:
             messagebox.showerror("Excel出力エラー", str(e), parent=self)
+
+    def get_windows_desktop_path():
+        """Windowsのレジストリから現在の正確なデスクトップパスを取得する"""
+        key_path = (
+            r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+        )
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+            desktop, _ = winreg.QueryValueEx(key, "Desktop")
+        # %USERPROFILE% などの環境変数を実際のパスに置き換える
+        return os.path.expandvars(desktop)
