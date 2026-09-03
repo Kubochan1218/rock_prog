@@ -31,7 +31,7 @@ class AttendanceApp:
         master.title('ロック部 出席管理')
         master.geometry('1150x680')
         master.minsize(1150, 680)
-        master.iconbitmap(default='rock_icon.ico')  # アイコン設定（Windows用）
+        master.iconbitmap(default='assets\\icons\\rock_icon.ico')  # アイコン設定（Windows用）
 
         self.settings = {}
         self.top_showen = True

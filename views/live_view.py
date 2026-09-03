@@ -124,7 +124,7 @@ class LiveView(ctk.CTkFrame):
                 try:
                     cal_win = ctk.CTkToplevel(self.master)
                     cal_win.title("日付を選択")
-                    icon_path = self.app.get_config_path('rock_icon.ico')
+                    icon_path = self.app.get_config_path('assets\\icons\\rock_icon.ico')
                     cal_win.after(200, lambda: cal_win.iconbitmap(icon_path))
                     cal_win.grab_set()
                     cal = Calendar(cal_win, selectmode='day', date_pattern='yyyy-mm-dd', font=(config.FONT_NAME, 12))

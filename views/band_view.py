@@ -195,7 +195,7 @@ class BandView(ctk.CTkFrame):
                 def open_manage_edit_popup(target_row, name, current_m):
                     popup = ctk.CTkToplevel(self.master)
                     popup.title(f"バンド編集: {name}")
-                    icon_path = self.app.get_config_path('rock_icon.ico')
+                    icon_path = self.app.get_config_path('assets\\icons\\rock_icon.ico')
                     popup.after(200, lambda: popup.iconbitmap(icon_path))
                     popup.geometry("500x520")
                     popup.grab_set()
@@ -512,7 +512,7 @@ class BandView(ctk.CTkFrame):
             def open_edit_popup(current_band=b_data, update_label=mem_lbl):
                 popup = ctk.CTkToplevel(self.master)
                 popup.title(f"メンバー手動修正: {current_band['band_name']}")
-                icon_path = self.app.get_config_path('rock_icon.ico')
+                icon_path = self.app.get_config_path('assets\\icons\\rock_icon.ico')
                 popup.after(200, lambda: popup.iconbitmap(icon_path))
                 popup.resizable(False, False)
                 popup.geometry("600x480")
