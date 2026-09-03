@@ -5,11 +5,11 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 import customtkinter as ctk
-from tkinter import messagebox, Button, Label, Tk
+from tkinter import messagebox
 from tkcalendar import Calendar
-from PIL import Image, ImageTk
 
 import config
+from views.show_gif_animation import AnimatedGifCTkLabel
 
 # フォーム作成・編集用スコープ
 SCOPES = ['https://www.googleapis.com/auth/forms.body']
@@ -170,7 +170,7 @@ class FormCreator(ctk.CTkFrame):
             try:
                 cal_win = ctk.CTkToplevel(self.master)
                 cal_win.title("日付を選択")
-                icon_path = self.app.get_config_path('rock_icon.ico')
+                icon_path = self.app.get_config_path('assets\\icons\\rock_icon.ico')
                 cal_win.after(200, lambda: cal_win.iconbitmap(icon_path))
                 cal_win.grab_set()
                 cal = Calendar(cal_win, selectmode='day', date_pattern='yyyy-mm-dd', font=(config.FONT_NAME, 12))
@@ -494,7 +494,7 @@ class FormCreator(ctk.CTkFrame):
         
         # アイコン設定（エラー回避のためtry-except推奨）
         try:
-            icon_path = self.app.get_config_path('rock_icon.ico')
+            icon_path = self.app.get_config_path('assets\\icons\\rock_icon.ico')
             popup.after(200, lambda: popup.iconbitmap(icon_path))
         except Exception as e:
             print(f"アイコンの読み込みに失敗しました: {e}")
@@ -666,9 +666,24 @@ class FormCreator(ctk.CTkFrame):
         import webbrowser
         form_url = f"https://docs.google.com/forms/d/{form_id}/edit"
         webbrowser.open(form_url)
+        self.start_gif()  # GIFアニメーションを開始する
 
     def start_gif(self):
         """GIFアニメーションを開始する"""
+        # 新しいウィンドウ
+        gif_window = ctk.CTkToplevel(self.master)
+        gif_window.title("フォーム設定のヒント")
+        # gif_window.geometry("400x300")
+        gif_window.grab_set()
+        try:
+            icon_path = self.app.get_config_path("assets\\icons\\rock_icon.ico")
+            gif_window.after(200, lambda: gif_window.iconbitmap(icon_path))
+        except Exception as e:
+            print(f"アイコンの読み込みに失敗しました: {e}")
+        ctk.CTkLabel(gif_window, text="ヒント：メールアドレスを収集し\n編集を許可するように設定を変更してください。", font=config.FONT_TITLE, justify="left").pack(padx=10, pady=10, anchor="w")
+        AnimatedGifCTkLabel(gif_window, gif_path="assets\\images\\form_setting_tips.gif", delay=1000).pack(padx=10, pady=10)
+        ctk.CTkButton(gif_window, text="閉じる", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color='black', width=120, height=20, command=gif_window.destroy).pack(pady=10)
+        
         
 
 if __name__ == '__main__':
