@@ -1,5 +1,5 @@
 """定数・設定値をまとめたファイル"""
-VERSION = '2.2.2'
+VERSION = '2.3.0'
 
 FILE_PATH = 'attend_data.xlsx'
 SHEET_NAME = '出欠状況'
