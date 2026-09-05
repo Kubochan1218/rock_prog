@@ -91,13 +91,13 @@ class FormCreator(ctk.CTkFrame):
             if self.creds and self.creds.expired and self.creds.refresh_token:
                 self.creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(self.app.get_config_path('credentials.json'), SCOPES)
                 self.creds = flow.run_local_server(port=0)
             with open(token_path, 'w') as token:
                 token.write(self.creds.to_json())
 
         # Forms APIサービスのビルド
-        self.form_service = build('forms', 'v1', credentials=self.creds)
+        self.form_service = build('forms', 'v1', credentials=self.creds, static_discovery=False)
 
     def clear_frame(self):
         """フレーム内のウィジェットをすべて削除"""
@@ -460,7 +460,7 @@ class FormCreator(ctk.CTkFrame):
 
     def check_login_status(self):
         """Googleアカウントが連携済みかどうかをチェックする関数"""
-        token_path = 'token.json'
+        token_path = self.app.get_config_path('token.json')
         
         # 1. token.json が存在しない場合は「未連携」
         if not os.path.exists(token_path):
@@ -653,7 +653,7 @@ class FormCreator(ctk.CTkFrame):
 
     def unconnect_account(self):
         """Googleアカウントの連携を解除する関数"""
-        token_path = 'token.json'
+        token_path = self.app.get_config_path('token.json')
         if os.path.exists(token_path):
             os.remove(token_path)
             messagebox.showinfo("お知らせ", "Googleアカウントの連携を解除しました。")

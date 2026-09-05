@@ -20,7 +20,6 @@ class TimetableView(ctk.CTkFrame):
         self.order_area = None
         self.top_widgets = []  # トップ画面ウィジェットを管理
         self.filter_options = {'オプション1': '', 'オプション2': '', 'オプション3': ''}  # フィルタ条件
-        self._last_font_copied = False
         
         # 既存のJSONデータが存在すれば読み込む
         if os.path.exists(LIVE_JSON_PATH):
@@ -36,43 +35,6 @@ class TimetableView(ctk.CTkFrame):
 
         self.load_band_infos()
         self.create_widgets()
-
-    def _ensure_font_file(self, filename, friendly_name="フォント"):
-        if hasattr(sys, '_MEIPASS'):
-            # PyInstallerでexe化した場合も、常にexeのある場所を参照
-            app_dir = os.path.dirname(sys.executable)
-        else:
-            # スクリプト実行時はtop.pyのあるディレクトリ
-            app_dir = os.path.dirname(os.path.abspath(__file__))
-        target_path = os.path.join(app_dir, "..", filename)
-        if os.path.exists(target_path):
-            self._last_font_copied = False
-            return target_path
-
-        windir = os.environ.get("WINDIR", "C:\\Windows")
-        fonts_dir = os.path.join(windir, "Fonts")
-        candidates = []
-        try:
-            for f in os.listdir(fonts_dir):
-                if f.lower() == filename.lower() or filename.split('.')[0].lower() in f.lower():
-                    candidates.append(os.path.join(fonts_dir, f))
-        except Exception:
-            candidates = []
-
-        if not candidates:
-            messagebox.showerror(f"{friendly_name} コピー失敗", f"{filename} が見つかりません。\nシステムフォントフォルダに {filename} が存在しないようです。", parent=self)
-            return None
-
-        for src in candidates:
-            try:
-                shutil.copy2(src, target_path)
-                self._last_font_copied = True
-                return target_path
-            except Exception:
-                continue
-
-        messagebox.showerror(f"{friendly_name} コピー失敗", f"{filename} のコピーに失敗しました。手動で {filename} をアプリフォルダに置いてください。", parent=self)
-        return None
 
     def create_widgets(self):
         title_label = ctk.CTkLabel(self, text="🕑 タイムテーブル作成", font=config.FONT_TITLE)
@@ -581,10 +543,10 @@ class TimetableView(ctk.CTkFrame):
         except ImportError:
             messagebox.showerror("Excel出力エラー", "openpyxlライブラリが必要です。\npip install openpyxl でインストールしてください。", parent=self)
             return
-        font_file = os.path.join(os.path.dirname(__file__), "meiryo.ttc")
+        """font_file = os.path.join(os.path.dirname(__file__), "meiryo.ttc")
         if not os.path.exists(font_file):
             if not self._ensure_font_file("meiryo.ttc", "Meiryo"):
-                return
+                return"""
 
         raw_live_name = self.live_name_combo.get()
         safe_live_name = re.sub(r'[\\/*?:"<>|]', '_', raw_live_name)
@@ -648,14 +610,11 @@ class TimetableView(ctk.CTkFrame):
         try:
             wb.save(save_path)
             msg = f"デスクトップに{file_name} を出力しました。"
-            if getattr(self, '_last_font_copied', False):
-                msg += "\n※フォントファイルコピー済み"
             messagebox.showinfo("Excel出力", msg, parent=self)
-            self._last_font_copied = False
         except Exception as e:
             messagebox.showerror("Excel出力エラー", str(e), parent=self)
 
-    def get_windows_desktop_path():
+    def get_windows_desktop_path(self):
         """Windowsのレジストリから現在の正確なデスクトップパスを取得する"""
         key_path = (
             r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
