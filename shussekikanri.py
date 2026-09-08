@@ -71,7 +71,7 @@ class AttendanceApp:
         
         # 右側：メインコンテンツ表示用フレーム
         self.main_frame = ctk.CTkFrame(self.master, fg_color="transparent")
-        self.main_frame.grid(row=0, column=1, padx=25, pady=25, sticky="nsew")
+        self.main_frame.grid(row=0, column=1, padx=15, pady=15, sticky="nsew")
         
         self.change_screen("top")
 
@@ -416,27 +416,38 @@ class AttendanceApp:
             self.show_top()  # トップ画面を再表示してクイックアクセスを更新
 
     def bind_pin_menu(self, widget, name, fg_color, hover_color, command_str):
-        """ウィジェットに右クリックメニュー（ピン止め）を付与する汎用メソッド"""
+        """ウィジェット（およびその子要素）に右クリックメニュー（ピン止め）を付与する汎用メソッド"""
         def show_menu(event):
-            # tkinterの標準メニューを作成
-            menu = tk.Menu(widget, tearoff=0, font=(FONT_NAME, 11))
+            # 参照保持のため self にメニューを持たせる
+            self._context_menu = tk.Menu(widget, tearoff=0, font=(FONT_NAME, 11))
+
             if self.is_pinned(name):
-                # 既にピン止めされている場合 → 「解除」メニューを表示
-                menu.add_command(
-                    label="ピン止めを解除", 
-                    command=lambda: self.delete_from_quick_access(widget, name)
+                self._context_menu.add_command(
+                    label="ピン止めを解除",
+                    command=lambda: self.delete_from_quick_access(widget, name),
                 )
             else:
-                # まだピン止めされていない場合 → 「ピン止め」メニューを表示
-                menu.add_command(
-                    label="クイックアクセスにピン止め", 
-                    command=lambda: self.pin_to_quick_access(widget, name, fg_color, hover_color, command_str)
+                self._context_menu.add_command(
+                    label="クイックアクセスにピン止め",
+                    command=lambda: self.pin_to_quick_access(widget, name, fg_color, hover_color, command_str),
                 )
-            
-            menu.tk_popup(event.x_root, event.y_root)
+            try:
+                self._context_menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                self._context_menu.grab_release()
 
-        # Windows/Linux の右クリック (<Button-3>) にバインド
-        widget.bind("<Button-3>", show_menu)
+        # OSごとの右クリックイベントの判定
+        right_click_event = ("<Button-2>" if sys.platform == "darwin" else "<Button-3>")
+
+        # 自作ボタン等で _widgets 属性を持っている場合は全子要素にバインド
+        target_widgets = (
+            getattr(widget, "_widgets", None) or [widget]
+            if hasattr(widget, "_widgets")
+            else [widget]
+        )
+
+        for w in target_widgets:
+            w.bind(right_click_event, show_menu)
     
 
 if __name__ == '__main__':

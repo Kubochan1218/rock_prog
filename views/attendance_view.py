@@ -2,6 +2,8 @@ import datetime, re, math, openpyxl
 import pandas as pd
 import customtkinter as ctk
 from tkinter import messagebox
+from datetime import datetime
+from tkcalendar import Calendar
 import config
 import attendance_calculation as ac
 
@@ -20,47 +22,65 @@ class AttendanceView(ctk.CTkFrame):
 
     def show_attendance_date_select(self):
         self.clear_frame()
-        
-        ctk.CTkLabel(self, text='👥 出欠管理', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
-        ctk.CTkLabel(self, text='出席をとる日付を選択します。\n過去・別日の出席をとる場合は、月・日を選択してください。', font=config.FONT_SUBTITLE, anchor="w", justify="left", text_color='gray50').pack(pady=(0, 5), anchor="w")
 
-        btn_today = ctk.CTkButton(
-            self, text='📅 今日の出席をとる', width=200, height=45, 
-            fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color='black', font=config.FONT_LABEL_BUTTON, 
-            command=self.start_attendance_today)
-        btn_today.pack(pady=10)
-        
-        btn_other = ctk.CTkButton(
-            self, text='📆 過去・別日の出席をとる', width=200, height=45, 
-            fg_color=config.COLOR_BUTTON_ORANGE, hover_color=config.HOVER_COLOR_BUTTON_ORANGE, text_color='black', font=config.FONT_LABEL_BUTTON, 
-            command=self.start_attendance_otherday)
-        btn_other.pack(pady=10)
-        
-        month_day_frame = ctk.CTkFrame(self, height=2)
-        month_day_frame.pack(padx=0, pady=0)
-        month_day_frame.rowconfigure(0, weight=1)
-        month_day_frame.columnconfigure(0, weight=1, uniform="col")
-        month_day_frame.columnconfigure(1, weight=1, uniform="col")
-        
-        month_frame = ctk.CTkFrame(month_day_frame, width=100, fg_color=('gray70', 'gray30'))
-        month_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        ctk.CTkLabel(month_frame, text='月', font=config.FONT_LABEL_BUTTON).pack(pady=5)        
-        self.month_entry = ctk.CTkComboBox(month_frame, font=config.FONT_LABEL_BUTTON, dropdown_font=(config.FONT_NAME, 12), width=80, values=[str(i) for i in range(1, 13)], state='readonly')
-        self.month_entry.pack(padx=5, pady=5)
-        self.month_entry.set('選択')
-        
-        day_frame = ctk.CTkFrame(month_day_frame, width=100, fg_color=('gray70', 'gray30'))
-        day_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
-        ctk.CTkLabel(day_frame, text='日', font=config.FONT_LABEL_BUTTON).pack(pady=5)
-        self.day_entry = ctk.CTkComboBox(day_frame, font=config.FONT_LABEL_BUTTON, dropdown_font=(config.FONT_NAME, 12), width=80, values=[str(i) for i in range(1, 32)], state='readonly')
-        self.day_entry.pack(padx=5, pady=5)
-        self.day_entry.set('選択')
-        
-        ctk.CTkLabel(self, text='', font=config.FONT_TITLE).pack(pady=15, anchor="w")
-        ctk.CTkLabel(self, text='👥 出欠状況の確認', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
-        ctk.CTkLabel(self, text='出欠状況をテキストファイルで出力します。', font=config.FONT_SUBTITLE, text_color='gray50').pack(pady=(0, 5), anchor="w")
-        date_frame = ctk.CTkFrame(self)
-        date_frame.pack(pady=15, fill="x", padx=10)
+        title_frame = ctk.CTkFrame(self, fg_color="transparent")
+        title_frame.pack(padx=0, pady=0, fill='x')
+        ctk.CTkLabel(title_frame, text='', font=config.FONT_ICON_TITLE).pack(side='left', pady=(17, 13), anchor="w")
+        ctk.CTkLabel(title_frame, text='出欠管理・確認', font=config.FONT_TITLE).pack(side='left', padx=10, pady=15, anchor="w")
+
+        entry_attendance_frame = ctk.CTkFrame(self)
+        entry_attendance_frame.pack(padx=0, pady=(25, 0), fill="x")
+        ctk.CTkLabel(entry_attendance_frame, text='', font=config.FONT_ICON_TITLE).pack(padx=(20, 10), pady=20, side='left', anchor="n")
+        ctk.CTkLabel(entry_attendance_frame, text='', font=config.FONT_ICON_LABEL).pack(padx=(10, 20), pady=20, side='right', anchor="n")
+
+        ctk.CTkLabel(entry_attendance_frame, text='出席をとる', font=config.FONT_BOLD_TEXT).pack(padx=10, pady=(10, 0), anchor="w")
+        ctk.CTkLabel(entry_attendance_frame, text='出席をとる日付を選択します。過去・別日の出席をとる場合は、日付を変更してください。', font=config.FONT_SUBTITLE, anchor="nw",text_color='gray50').pack(padx=10, pady=0, anchor="w")
+
+        date_entry_frame = ctk.CTkFrame(entry_attendance_frame, fg_color="transparent")
+        date_entry_frame.pack(padx=10, pady=(0, 15), fill="x")
+        ctk.CTkLabel(date_entry_frame, text='出席をとる日付', font=(config.FONT_NAME, 16)).pack(side='left', padx=0, pady=5)
+        date_entry = ctk.CTkEntry(date_entry_frame, font=(config.FONT_NAME, 16), width=150)
+        date_entry.pack(side='left', padx=5, pady=5)
+        now = datetime.now()
+        date_entry.insert(0, now.strftime("%#m/%#d"))
+        # カレンダー機能
+        def open_calendar():
+            try:
+                cal_win = ctk.CTkToplevel(self.master)
+                cal_win.title("日付を選択")
+                icon_path = self.app.get_config_path('assets\\icons\\rock_icon.ico')
+                cal_win.after(200, lambda: cal_win.iconbitmap(icon_path))
+                cal_win.grab_set()
+                cal = Calendar(cal_win, selectmode='day', date_pattern='yyyy-mm-dd', font=(config.FONT_NAME, 12))
+                cal.pack(padx=15, pady=15)
+                
+                def set_date():
+                    date_input = cal.get_date()
+                    date_input = datetime.strptime(date_input, "%Y-%m-%d").date()
+                    date_str = f"{date_input.strftime('%#m/%#d')}"  # m/d形式に変換
+                    date_entry.delete(0, 'end')
+                    date_entry.insert(0, date_str)
+
+                    cal_win.destroy()
+                    
+                ctk.CTkButton(cal_win, text='決定', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_YELLOWGREEN, hover_color=config.HOVER_COLOR_BUTTON_YELLOWGREEN, text_color="black", command=set_date).pack(side='bottom', pady=10)
+            except Exception:
+                pass
+        btn_calendar = ctk.CTkButton(date_entry_frame, text='', font=config.FONT_ICON_TITLE, width=40, height=30, fg_color=config.COLOR_BUTTON_GRAY, hover_color=config.HOVER_COLOR_BUTTON_GRAY, text_color=("black", "white"), command=open_calendar)
+        btn_calendar.pack(side='left', padx=5, pady=5)
+        btn_start = ctk.CTkButton(date_entry_frame, text='出席をとる', width=140, height=30, fg_color=config.COLOR_BUTTON_BLUE, hover_color=config.HOVER_COLOR_BUTTON_BLUE, text_color=("white", "black"), font=(config.FONT_NAME, 14), command=lambda: self.start_attendance(date_entry.get().strip()))
+        btn_start.pack(padx=0, pady=5, side='right')
+
+        check_attendance_frame = ctk.CTkFrame(self)
+        check_attendance_frame.pack(padx=0, pady=(5, 0), fill="x")
+        ctk.CTkLabel(check_attendance_frame, text='', font=config.FONT_ICON_TITLE).pack(padx=(20, 10), pady=20, side='left', anchor="n")
+        ctk.CTkLabel(check_attendance_frame, text='', font=config.FONT_ICON_LABEL).pack(padx=(10, 20), pady=20, side='right', anchor="n")
+
+        ctk.CTkLabel(check_attendance_frame, text='出欠状況を確認する', font=config.FONT_BOLD_TEXT).pack(padx=10, pady=(10, 0), anchor="w")
+        ctk.CTkLabel(check_attendance_frame, text='期間を選択して出欠状況をテキストファイルで出力します。', font=config.FONT_SUBTITLE, anchor="nw", text_color='gray50').pack(padx=10, pady=0, anchor="w")
+
+        date_frame = ctk.CTkFrame(check_attendance_frame)
+        date_frame.pack(padx=10, pady=10, fill="x")
         date_candidates_start = self.app.get_available_dates()
         date_candidates_end = self.app.get_available_dates()
 
@@ -74,47 +94,22 @@ class AttendanceView(ctk.CTkFrame):
                 if end_combo.get() not in new_end_dates:
                     end_combo.set(new_end_dates[0] if new_end_dates else '')
 
-        ctk.CTkLabel(date_frame, text='開始日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=10)
-        start_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=130, values=date_candidates_start, command=update_end_dates)
-        start_combo.pack(side='left', padx=5, pady=10)
-        
-        ctk.CTkLabel(date_frame, text='終了日:', font=(config.FONT_NAME, 16)).pack(side='left', padx=10, pady=10)
-        end_combo = ctk.CTkComboBox(date_frame, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=130, values=date_candidates_end)
-        end_combo.pack(side='left', padx=5, pady=10)
-        
-        ctk.CTkLabel(date_frame, text='ⓘ', font=(config.FONT_NAME, 18)).pack(side='left', anchor="w", padx=(15, 5))
-        ctk.CTkLabel(date_frame, text='開始日と終了日を同じ日付に設定すると\nその日の出欠状況のみを確認できます。', font=(config.FONT_NAME, 14), anchor="w", justify="left").pack(side='left', padx=0)
-        
-        btn_check = ctk.CTkButton(self, text='📥 出欠状況を出力(.txt)', width=200, height=45, fg_color=config.COLOR_BUTTON_BLUE, hover_color=config.HOVER_COLOR_BUTTON_BLUE, text_color='black', font=config.FONT_LABEL_BUTTON, command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), self.file_path, config.SHEET_NAME))
-        btn_check.pack(pady=10)
+        period_entry_frame = ctk.CTkFrame(date_frame, fg_color="transparent")
+        period_entry_frame.pack(padx=0, pady=(5, 0), fill="x")
+        ctk.CTkLabel(period_entry_frame, text='開始日:', font=(config.FONT_NAME, 16)).pack(padx=10, pady=5, side='left')
+        start_combo = ctk.CTkComboBox(period_entry_frame, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=130, values=date_candidates_start, command=update_end_dates)
+        start_combo.pack(padx=5, pady=5, side='left')
+        ctk.CTkLabel(period_entry_frame, text='終了日:', font=(config.FONT_NAME, 16)).pack(padx=10, pady=5, side='left')
+        end_combo = ctk.CTkComboBox(period_entry_frame, font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 12), width=130, values=date_candidates_end)
+        end_combo.pack(padx=5, pady=5, side='left')
 
-    def start_attendance_today(self):
-        today = datetime.datetime.now().strftime('%m/%d').lstrip('0').replace('/0', '/')
-        self.start_attendance(date=today)
+        info_frame = ctk.CTkFrame(date_frame, fg_color="transparent")
+        info_frame.pack(pady=(0, 5), anchor="w")
+        ctk.CTkLabel(info_frame, text='', font=config.FONT_ICON_TITLE).pack(padx=(10, 5), side='left', anchor="w")
+        ctk.CTkLabel(info_frame, text='開始日と終了日を同じ日付に設定すると、その日の出欠状況のみを確認できます。', font=(config.FONT_NAME, 14), anchor="w", justify="left").pack(padx=0, pady=0, side='left')
 
-    def start_attendance_otherday(self):
-        month = self.month_entry.get()
-        day = self.day_entry.get()
-        if month is None or day is None:
-            messagebox.showerror('入力エラー', '月と日を選択してください。')
-            return
-        elif month == '選択' or day == '選択':
-            messagebox.showerror('入力エラー', '月と日を選択してください。')
-            return
-        if month in ('4', '6', '9', '11') and day == '31':
-            messagebox.showerror('入力エラー', f'{month}月は30日までです。正しい日付を選択してください。')
-            return
-        elif month == '2' and day in ('30', '31'):
-            messagebox.showerror('入力エラー', '2月は29日までです。正しい日付を選択してください。')
-            return
-        else:
-            try:
-                date = f"{month}/{day}"
-                self.start_attendance(date=date.strip())
-                return
-            except Exception as e:
-                messagebox.showerror('エラー', f'出欠登録の開始に失敗しました: {e}')
-                return
+        btn_check = ctk.CTkButton(check_attendance_frame, text='出欠状況を出力', width=140, height=30, fg_color=config.COLOR_BUTTON_GRAY, hover_color=config.HOVER_COLOR_BUTTON_GRAY, text_color=("black", "white"), font=(config.FONT_NAME, 14), command=lambda: ac.calculate_rate_and_export(start_combo.get(), end_combo.get(), self.file_path, config.SHEET_NAME))
+        btn_check.pack(padx=10, pady=(0, 20), side='right')
 
     def start_attendance(self, date):
         self.df = pd.read_excel(self.file_path, sheet_name=config.SHEET_NAME, header=1, index_col=None)

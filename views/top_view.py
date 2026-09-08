@@ -3,6 +3,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 
 import config
+from views.my_parts import MultiFontButton
 
 class MainView(ctk.CTkFrame):
     def __init__(self, master, app, **kwargs):
@@ -22,7 +23,8 @@ class MainView(ctk.CTkFrame):
 
         title_frame = ctk.CTkFrame(self, fg_color="transparent")
         title_frame.pack(padx=0, pady=0, fill='x')
-        ctk.CTkLabel(title_frame, text='🏠 ホーム', font=config.FONT_TITLE).pack(side='left', pady=15, anchor="w")
+        ctk.CTkLabel(title_frame, text='', font=config.FONT_ICON_TITLE).pack(side='left', pady=(17, 13), anchor="w")
+        ctk.CTkLabel(title_frame, text='ホーム', font=config.FONT_TITLE).pack(side='left', padx=10, pady=15, anchor="w")
         message_label = ctk.CTkLabel(title_frame, text='', font=config.FONT_TITLE, text_color='gray50')
         message_label.pack(side='left', padx=10, pady=15, anchor="w")
         
@@ -121,7 +123,7 @@ class MainView(ctk.CTkFrame):
                 text='ライブ情報編集', 
                 font=config.FONT_LABEL_BUTTON,
                 fg_color='transparent',
-                text_color=("#3e909b", "#65e1f1"),
+                text_color=config.COLOR_TEXT_BUTTON,
                 command=lambda: self.app.register_live(default_live_name=next_live["name"])
                 ).pack(pady=10, padx=2, side="left")
             ctk.CTkButton(
@@ -129,7 +131,7 @@ class MainView(ctk.CTkFrame):
                 text='バンド登録・編集',
                 font=config.FONT_LABEL_BUTTON,
                 fg_color='transparent',
-                text_color=("#3e909b", "#65e1f1"),
+                text_color=config.COLOR_TEXT_BUTTON,
                 command=lambda: self.app.register_band(default_tab="📝 登録済みバンドの管理", default_live_name=next_live["name"])
                 ).pack(pady=10, padx=2, side="left")
             ctk.CTkButton(
@@ -137,7 +139,7 @@ class MainView(ctk.CTkFrame):
                 text='バンド選出',
                 font=config.FONT_LABEL_BUTTON,
                 fg_color='transparent',
-                text_color=("#3e909b", "#65e1f1"),
+                text_color=config.COLOR_TEXT_BUTTON,
                 command=lambda: self.app.register_band(default_tab="バンド選出", default_live_name=next_live["name"])
                 ).pack(pady=10, padx=2, side="left")
         else:
@@ -147,7 +149,7 @@ class MainView(ctk.CTkFrame):
                 text='ライブ情報を登録する',
                 font=config.FONT_LABEL_BUTTON,
                 fg_color='transparent',
-                text_color=("#3e909b", "#65e1f1"),
+                text_color=config.COLOR_TEXT_BUTTON,
                 command=lambda: self.app.register_live()
                 ).pack(pady=10, padx=10, fill="x")
 
@@ -162,7 +164,7 @@ class MainView(ctk.CTkFrame):
             text='出欠管理・確認',
             font=config.FONT_LABEL_BUTTON,
             fg_color='transparent',
-            text_color=("#3e909b", "#65e1f1"),
+            text_color=config.COLOR_TEXT_BUTTON,
             command=lambda: self.app.show_attendance_date_select()
             ).pack(side="right", padx=10, pady=5)
         ctk.CTkLabel(atteendance_frame, text='登録されている最近の出席情報', font=config.FONT_SUBTITLE, text_color='gray50').pack(padx=10, pady=(0, 5), anchor="w")

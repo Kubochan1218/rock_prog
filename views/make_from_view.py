@@ -210,7 +210,7 @@ class FormCreator(ctk.CTkFrame):
         button_frame.grid_columnconfigure(1, weight=1, uniform="button")
         button_frame.grid_columnconfigure(2, weight=1, uniform="button")
         button_frame.grid_rowconfigure(0, weight=1)
-        self.custom_button = ctk.CTkButton(button_frame, text="カスタム設定", font=config.FONT_LABEL_BUTTON, fg_color='transparent', text_color=("#3e909b", "#65e1f1"), width=120, height=16, command=self.open_custom_form_window)
+        self.custom_button = ctk.CTkButton(button_frame, text="カスタム設定", font=config.FONT_LABEL_BUTTON, fg_color='transparent', text_color=config.COLOR_TEXT_BUTTON, width=120, height=16, command=self.open_custom_form_window)
         self.custom_button.grid(column=0, row=0, stick='w')
         self.create_button = ctk.CTkButton(button_frame, text="Google Formを作成", font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_PURPLE, hover_color=config.HOVER_COLOR_BUTTON_PURPLE, width=300, height=50, command=self.start_create_form)
         self.create_button.grid(column=1, row=0)
