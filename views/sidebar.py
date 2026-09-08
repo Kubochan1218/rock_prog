@@ -42,3 +42,21 @@ class SidebarFrame(ctk.CTkFrame):
         self.app.bind_pin_menu(widget=self.btn_nav_form, name="📋 バンド募集フォーム作成", fg_color=config.COLOR_BUTTON_PINK, hover_color=config.HOVER_COLOR_BUTTON_PINK, command_str="create_form")
         self.app.bind_pin_menu(widget=self.btn_nav_band, name="🎤 バンド登録・選出", fg_color=config.COLOR_BUTTON_YELLOW, hover_color=config.HOVER_COLOR_BUTTON_YELLOW, command_str="register_band")
         self.app.bind_pin_menu(widget=self.btn_nav_select, name="🕑 タイムテーブル", fg_color=config.COLOR_BUTTON_PURPLE, hover_color=config.HOVER_COLOR_BUTTON_PURPLE, command_str="make_timetable")
+
+    def update_button_states(self, selected_menu):
+        # 全てのボタンをデフォルト色に戻す
+        buttons = {
+            "top": self.btn_nav_top,
+            "attendance": self.btn_nav_attend,
+            "live": self.btn_nav_check,
+            "form": self.btn_nav_form,
+            "band": self.btn_nav_band,
+            "timetable": self.btn_nav_select,
+            "settings": self.btn_nav_settings
+        }
+
+        for btn in [self.btn_nav_top, self.btn_nav_attend, self.btn_nav_check, self.btn_nav_form, self.btn_nav_band, self.btn_nav_select, self.btn_nav_settings]:
+            if buttons[selected_menu] == btn:
+                btn.configure_state(state="disabled")  # 選択されたボタンを無効化
+            else:
+                btn.configure_state(state="normal")  # 選択バーを透明にする

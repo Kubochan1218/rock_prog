@@ -35,6 +35,7 @@ class AttendanceApp:
 
         self.settings = {}
         self.top_showen = True
+        self.last_selected_menu = None  # 最後に選択されたメニューを保持する変数
         
         # ウィンドウの×ボタンに確認ダイアログを設定
         try:
@@ -111,10 +112,15 @@ class AttendanceApp:
             widget.destroy()
 
     def show_top(self):
+        """トップ画面を表示"""
+        if self.last_selected_menu == "top":
+            return  # すでにトップ画面が表示されている場合は何もしない
         self.clear()
         self.top_view = MainView(self.main_frame, app=self)
         self.top_view.pack(fill='both', expand=True)
         self.top_showen = True
+        self.last_selected_menu = "top"  # 最後に選択されたメニューを更新
+        # self.sidebar.update_button_states("top")
 
     def get_available_dates(self):
         """Excelシートから有効な日付列を取得"""
@@ -143,42 +149,66 @@ class AttendanceApp:
 
     def show_attendance_date_select(self):
         """出席日付選択画面を表示"""
+        if self.last_selected_menu == "attendance":
+            return  # すでに出席日付選択画面が表示されている場合は何もしない
         self.clear()
         self.attendance_view = AttendanceView(self.main_frame, app=self)
         self.attendance_view.pack(fill='both', expand=True)
         self.top_showen = False
+        self.last_selected_menu = "attendance"  # 最後に選択されたメニューを更新
+        # self.sidebar.update_button_states("attendance")
 
     def register_live(self, default_live_name=None):
         """ライブ情報の登録・編集画面を表示 (JSON保存・時刻選択版)"""
+        if self.last_selected_menu == "live":
+            return  # すでにライブ情報登録画面が表示されている場合は何もしない
         self.clear()
         self.live_view = LiveView(self.main_frame, app=self, default_live_name=default_live_name)
         self.live_view.pack(fill='both', expand=True)
         self.top_showen = False
+        self.last_selected_menu = "live"  # 最後に選択されたメニューを更新
+        # self.sidebar.update_button_states("live")
 
     def create_form(self):
         """Google Formの新規作成画面を表示"""
+        if self.last_selected_menu == "form":
+            return  # すでにフォーム作成画面が表示されている場合は何もしない
         self.clear()
         self.form_view = FormCreator(self.main_frame, app=self)
         self.form_view.pack(fill='both', expand=True)
         self.top_showen = False
+        self.last_selected_menu = "form"  # 最後に選択されたメニューを更新
+        # self.sidebar.update_button_states("form")
 
     def register_band(self, default_tab=None, default_live_name=None):
         """バンド登録画面を表示 (タブ切り替え・一括一覧表示＆ライブ名紐付け版)"""
+        if self.last_selected_menu == "band":
+            return  # すでにバンド登録画面が表示されている場合は何もしない
         self.clear()
         self.band_view = BandView(self.main_frame, app=self, default_tab=default_tab, default_live_name=default_live_name)
         self.band_view.pack(fill='both', expand=True)
         self.top_showen = False
+        self.last_selected_menu = "band"  # 最後に選択されたメニューを更新
+        # self.sidebar.update_button_states("band")
 
     def make_timetable(self, default_live_name=None):
         """タイムテーブル作成画面を表示"""
+        if self.last_selected_menu == "timetable":
+            return  # すでにタイムテーブル作成画面が表示されている場合は何もしない
         self.clear()
         self.timetable_view = TimetableView(self.main_frame, app=self, default_live_name=default_live_name)
         self.timetable_view.pack(fill='both', expand=True)
         self.top_showen = False
+        self.last_selected_menu = "timetable"  # 最後に選択されたメニューを更新
+        # self.sidebar.update_button_states("timetable")
 
     def show_settings(self):
         """システム設定画面を表示"""
+        if self.last_selected_menu == "settings":
+            return  # すでにシステム設定画面が表示されている場合は何もしない
         self.clear()
+        self.last_selected_menu = "settings"  # 最後に選択されたメニューを更新
+        # self.sidebar.update_button_states("settings")
         ctk.CTkLabel(self.main_frame, text='システム環境設定', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
         settings_frame = ctk.CTkScrollableFrame(self.main_frame, corner_radius=0, fg_color="transparent")
         settings_frame.pack(fill='both', expand=True)
@@ -375,7 +405,7 @@ class AttendanceApp:
         except Exception as e:
             messagebox.showerror("エラー", f"ピン止めの保存に失敗しました:\n{e}")
         if self.top_showen:
-            self.show_top()  # トップ画面を再表示してクイックアクセスを更新
+            self.top_view.show_quick_access_buttons()  # トップ画面を再表示してクイックアクセスを更新
 
     def delete_from_quick_access(self, widget, name):
         """指定された機能をクイックアクセスから削除"""
@@ -413,7 +443,7 @@ class AttendanceApp:
         except Exception as e:
             messagebox.showerror("エラー", f"削除の保存に失敗しました:\n{e}")
         if self.top_showen:
-            self.show_top()  # トップ画面を再表示してクイックアクセスを更新
+            self.top_view.show_quick_access_buttons()  # トップ画面を再表示してクイックアクセスを更新
 
     def bind_pin_menu(self, widget, name, fg_color, hover_color, command_str):
         """ウィジェット（およびその子要素）に右クリックメニュー（ピン止め）を付与する汎用メソッド"""

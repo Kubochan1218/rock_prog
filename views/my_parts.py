@@ -10,6 +10,8 @@ FONT_SUBTITLE = (FONT_NAME, 14)
 FONT_ICON_TITLE = (FONT_ICON_NAME, 20)
 FONT_ICON_LABEL = (FONT_ICON_NAME, 16)
 
+COLOR_BUTTON_BLUE = ("#0067C0", "#4CC2FF")
+
 # 色指定の型定義: 単一の文字列または (ライトモード色, ダークモード色) のタプル
 ColorType = Union[str, Tuple[str, str]]
 
@@ -26,7 +28,7 @@ class MultiFontButton(ctk.CTkFrame):
         icon_font: Optional[tuple|ctk.CTkFont] = (FONT_ICON_NAME, 16),
         label_font: Optional[tuple|ctk.CTkFont] = (FONT_NAME, 16),
         corner_radius: int = 5,
-        height: int = 30,
+        height: int = 36,
         width: Optional[int] = 160,
         command: Optional[Callable] = None,
         state: str = "normal",  # "normal" または "disabled"
@@ -38,7 +40,7 @@ class MultiFontButton(ctk.CTkFrame):
         self._hover_color = hover_color
         self._pressed_color = fg_color
         self._text_color = text_color
-        self._disabled_color = ("#9CA3AF", "#4B5563")  # disabled時の背景色
+        self._disabled_color = ("#F4F5F2", "#323232")  # disabled時の背景色
 
         # 初期状態の設定
         current_fg = (
@@ -67,9 +69,13 @@ class MultiFontButton(ctk.CTkFrame):
         self._icon_font = icon_font or (FONT_ICON_NAME, 16)
         self._label_font = label_font or (FONT_NAME, 16)
 
+        # 選択状態表示バー
+        self._selection_bar = ctk.CTkFrame(self, height=int(height * 0.45), width=3, fg_color="transparent", corner_radius=2)
+        self._selection_bar.pack(padx=0, side="left")
+
         # --- 内部レイアウト ---
         self._container = ctk.CTkFrame(self, fg_color="transparent")
-        self._container.pack(expand=True, anchor=self._anchor, padx=10)
+        self._container.pack(expand=True, anchor=self._anchor, padx=5)
 
         # アイコン用ラベル
         self._icon_label = ctk.CTkLabel(
@@ -148,8 +154,10 @@ class MultiFontButton(ctk.CTkFrame):
         self._state = state
         if state == "disabled":
             self.configure(fg_color=self._disabled_color)
+            # self._selection_bar.configure(fg_color=COLOR_BUTTON_BLUE)  # 選択バーの色を変更
         else:
             self.configure(fg_color=self._fg_color)
+            # self._selection_bar.configure(fg_color="transparent")  # 選択バーの色を元に戻す
         self._update_cursor()
 
 
