@@ -28,6 +28,7 @@ except ImportError:
     HAS_TKCALENDAR = False
 
 class MultiFontButton(ctk.CTkFrame):
+    """アイコンとテキストを同時に表示できるカスタムボタン"""
     def __init__(
         self,
         master: any,
@@ -173,6 +174,7 @@ class MultiFontButton(ctk.CTkFrame):
         self._update_cursor()
 
 class CalendarInput(ctk.CTkFrame):
+    """カレンダー入力用のカスタムコンポーネントクラス"""
     def __init__(
         self,
         master: any,
