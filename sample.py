@@ -113,3 +113,6 @@ if __name__ == "__main__":
     print("【入力】公園の大きな椅子")
     print("英語:", translator.translate("公園の大きな椅子", lang='en'))
     print("中国語:", translator.translate("公園の大きな椅子", lang='zh'))
+
+# nuitkaコマンド例（Windows用）:
+# nuitka --standalone --plugin-enable=tk-inter --windows-console-mode=disable --windows-icon-from-ico=assets\icons\rock_icon.ico --include-data-files=assets\icons\rock_icon.ico=assets\icons\rock_icon.ico --include-data-dir=%CONDA_PREFIX%/Lib/site-packages/customtkinter=customtkinter shussekikanri.py
