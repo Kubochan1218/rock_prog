@@ -16,6 +16,7 @@ from views.live_view import LiveView
 from views.make_from_view import FormCreator
 from views.band_view import BandView
 from views.timetable_view import TimetableView
+from views.my_parts import MultiFontButton, ModernTile
 
 FILE_PATH = config.FILE_PATH
 SHEET_NAME = config.SHEET_NAME
@@ -209,25 +210,30 @@ class AttendanceApp:
         self.clear()
         self.last_selected_menu = "settings"  # 最後に選択されたメニューを更新
         # self.sidebar.update_button_states("settings")
-        ctk.CTkLabel(self.main_frame, text='システム環境設定', font=config.FONT_TITLE).pack(pady=(15, 5), anchor="w")
+        title_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        title_frame.pack(padx=0, pady=0, fill='x')
+        ctk.CTkLabel(title_frame, text='', font=config.FONT_ICON_TITLE).pack(side='left', pady=(17, 13), anchor="w")
+        ctk.CTkLabel(title_frame, text='設定', font=config.FONT_TITLE).pack(side='left', padx=10, pady=15, anchor="w")
         settings_frame = ctk.CTkScrollableFrame(self.main_frame, corner_radius=0, fg_color="transparent")
         settings_frame.pack(fill='both', expand=True)
-        
-        excel_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
-        excel_frame.pack(pady=10, fill='x')
-        ctk.CTkLabel(excel_frame, text='Excelデータソースの設定', font=config.FONT_LABEL_BUTTON).pack(pady=(5, 0), anchor="w")
-        ctk.CTkLabel(excel_frame, text='出欠情報が格納されたExcelファイルを指定します。', font=config.FONT_SUBTITLE, text_color='gray').pack(pady=(0, 5), anchor="w")
-        
+
+        excel_frame = ModernTile(
+            settings_frame, 
+            title='Excelデータソースの設定', 
+            description='出欠情報が格納されたExcelファイルを指定します。', 
+            left_icon=''
+            )
+        excel_frame.pack(padx=0, pady=(25, 0), fill='x')
+                
         if FILE_PATH:
             file_path_var = tk.StringVar(value=FILE_PATH)
         else:
             file_path_var = tk.StringVar()
-            
-        file_frame = ctk.CTkFrame(excel_frame, fg_color="transparent")
-        file_frame.pack(anchor='w', fill='x')
-            
-        file_entry = ctk.CTkEntry(file_frame, textvariable=file_path_var, width=350, font=(config.FONT_NAME, 16), state='disabled')
-        file_entry.pack(side='left', padx=(0, 10))
+
+        ctk.CTkLabel(excel_frame.container(), text='Excelファイル：', font=(config.FONT_NAME, 16)).pack(side='left', padx=(0, 5))
+        file_path = self.settings.get('excel_file_path', "未設定")
+        file_path_label = ctk.CTkLabel(excel_frame.container(), text=file_path, width=350, font=(config.FONT_NAME, 16))
+        file_path_label.pack(padx=0, pady=5, side='left')
 
         def select_file():
             f_path = filedialog.askopenfilename(title='出欠情報が格納されたExcelを選択', filetypes=[('Excelファイル', '*.xlsx;*.xls')])
@@ -236,13 +242,18 @@ class AttendanceApp:
                 globals()['FILE_PATH'] = f_path
                 self.settings['excel_file_path'] = f_path
                 self.save_settings()
+                file_path_label.configure(text=f_path)
             
-        btn_file = ctk.CTkButton(file_frame, text='ファイルを選択', width=120, fg_color=config.COLOR_BUTTON_LIGHTBLUE, hover_color=config.HOVER_COLOR_BUTTON_LIGHTBLUE, text_color='black', font=(config.FONT_NAME, 16), command=select_file)
-        btn_file.pack(side='left')
+        btn_file = ctk.CTkButton(excel_frame.container(), text='ファイルを参照', width=120, fg_color=config.COLOR_BUTTON_GRAY, hover_color=config.HOVER_COLOR_BUTTON_GRAY, text_color=("black", "white"), font=(config.FONT_NAME, 14), command=select_file)
+        btn_file.pack(padx=0, pady=5, side='right')
         
-        appearance_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
-        appearance_frame.pack(pady=10, fill='x')
-        ctk.CTkLabel(appearance_frame, text='外観設定', font=config.FONT_LABEL_BUTTON).pack(pady=5, anchor="w")
+        appearance_frame = ModernTile(
+            settings_frame,
+            title='外観設定',
+            description='アプリの外観モードを変更します。',
+            left_icon=''
+        )
+        appearance_frame.pack(padx=0, pady=(5, 0), fill='x')
         
         mode = {"システム": "System", "ダーク": "Dark", "ライト": "Light"}
         def change_appearance(choice):
@@ -255,31 +266,51 @@ class AttendanceApp:
         
         appearance_mode = self.settings.get('appearance_mode', config.APP_MODE)
         appearance_key = [k for k, v in mode.items() if v == appearance_mode]
-        appearance_combo = ctk.CTkComboBox(appearance_frame, values=list(mode.keys()), font=(config.FONT_NAME, 16), dropdown_font=(config.FONT_NAME, 14), width=120, command=change_appearance)
+        appearance_combo = ctk.CTkComboBox(
+            appearance_frame.container(), 
+            values=list(mode.keys()), 
+            font=(config.FONT_NAME, 16), 
+            dropdown_font=(config.FONT_NAME, 14), 
+            width=120,
+            state="readonly", 
+            command=change_appearance)
         appearance_combo.set(appearance_key[0] if appearance_key else "")
-        appearance_combo.pack(pady=5, anchor="w")
+        appearance_combo.pack(padx=0, pady=5, side="right")
         
-        check_close_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
-        check_close_frame.pack(pady=10, fill='x')
+        check_close_frame = ModernTile(
+            settings_frame,
+            title='アプリ終了時の確認',
+            description='アプリ終了時に確認ダイアログを表示するかどうかを設定します。',
+            left_icon=''
+        )
+        check_close_frame.pack(padx=0, pady=(5, 0), fill='x')
         def change_check_close(choice):
             self.settings['check_close'] = choice
             self.save_settings()
         
-        ctk.CTkLabel(check_close_frame, text='アプリ終了時の確認', font=config.FONT_LABEL_BUTTON).pack(pady=5, anchor="w")
         check_close_var = tk.BooleanVar(value=self.settings.get('check_close', True))
-        check_close_checkbox = ctk.CTkCheckBox(check_close_frame, text='アプリ終了時に確認ダイアログを表示する', variable=check_close_var, onvalue=True, offvalue=False, font=(config.FONT_NAME, 16), command=lambda: change_check_close(check_close_var.get()))
-        check_close_checkbox.pack(pady=5, anchor="w")
+        check_close_checkbox = ctk.CTkCheckBox(check_close_frame.container(), text='アプリ終了時に確認ダイアログを表示する', variable=check_close_var, onvalue=True, offvalue=False, font=(config.FONT_NAME, 16), command=lambda: change_check_close(check_close_var.get()))
+        check_close_checkbox.pack(padx=0, pady=5, side="right")
         
-        form_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
-        form_frame.pack(pady=10, fill='x')
-        ctk.CTkLabel(form_frame, text='バンド募集フォームの設定', font=config.FONT_LABEL_BUTTON).pack(pady=5, anchor="w")
+        form_frame = ModernTile(
+            settings_frame,
+            title='バンド募集フォームの設定',
+            description='バンド名の例を設定します。フォーム作成時に自動で入力されます。',
+            left_icon=''
+        )
+        form_frame.pack(padx=0, pady=(5, 0), fill='x')
         
-        example_band_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
-        example_band_frame.pack(anchor='w', fill='x')
-        ctk.CTkLabel(example_band_frame, text='バンド名の例', font=(config.FONT_NAME, 16), text_color='gray').pack(side='left', padx=(0, 5))
-        ex_band_entry = ctk.CTkEntry(example_band_frame, width=200, font=(config.FONT_NAME, 16), state='normal')
-        ex_band_entry.pack(side='left', padx=(5, 0))
-        ex_band_entry.insert(0, self.settings.get('example_band_name', ''))
+        ctk.CTkLabel(form_frame.container(), text='バンド名の例', font=(config.FONT_NAME, 16)).pack(side='left', padx=(0, 5))
+        example_band_name = self.settings.get('example_band_name', 'ロック部バンド（コピー元）')
+        ex_band_entry = ctk.CTkEntry(
+            form_frame.container(), 
+            width=200, 
+            font=(config.FONT_NAME, 14), 
+            state='normal', 
+            placeholder_text=example_band_name,
+            placeholder_text_color='gray'
+        )
+        ex_band_entry.pack(padx=0, pady=5, side='left')
         
         def save_example_band_name():
             band_name = ex_band_entry.get().strip()
@@ -290,8 +321,7 @@ class AttendanceApp:
             self.save_settings()
             messagebox.showinfo("保存完了", "バンド名の例を保存しました。", parent=self.master)
 
-        ctk.CTkButton(example_band_frame, text='保存', font=config.FONT_LABEL_BUTTON, fg_color=config.COLOR_BUTTON_GREEN, hover_color=config.HOVER_COLOR_BUTTON_GREEN, text_color='black', width=80, command=save_example_band_name).pack(side='left', padx=(5, 0))
-        ctk.CTkLabel(example_band_frame, text='既定：ロック部バンド（コピー元）', font=config.FONT_SUBTITLE, text_color='gray').pack(side='left', padx=5)
+        ctk.CTkButton(form_frame.container(), text='保存', font=(config.FONT_NAME, 14), fg_color=config.COLOR_BUTTON_GRAY, hover_color=config.HOVER_COLOR_BUTTON_GRAY, text_color=("black", "white"), width=120, command=save_example_band_name).pack(padx=0, pady=5, side="right")
 
         # バージョン情報
         version_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")

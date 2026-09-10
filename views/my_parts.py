@@ -361,7 +361,7 @@ class ModernTile(ctk.CTkFrame):
 
         # --- 4. 任意ウィジェット追加用エリア（widgets_frame） ---
         self.widgets_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.widgets_frame.pack(fill="x", expand=True, padx=10, pady=(5, 15))
+        self.widgets_frame.pack(fill="x", expand=True, padx=10, pady=(0, 10))
 
     def container(self) -> ctk.CTkFrame:
         """子ウィジェットを追加するためのフレームを取得"""
