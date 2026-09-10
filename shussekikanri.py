@@ -232,7 +232,7 @@ class AttendanceApp:
 
         ctk.CTkLabel(excel_frame.container(), text='Excelファイル：', font=(config.FONT_NAME, 16)).pack(side='left', padx=(0, 5))
         file_path = self.settings.get('excel_file_path', "未設定")
-        file_path_label = ctk.CTkLabel(excel_frame.container(), text=file_path, width=350, font=(config.FONT_NAME, 16))
+        file_path_label = ctk.CTkLabel(excel_frame.container(), text=file_path, width=350, font=(config.FONT_NAME, 16), anchor="w")
         file_path_label.pack(padx=0, pady=5, side='left')
 
         def select_file():
@@ -284,13 +284,31 @@ class AttendanceApp:
             left_icon=''
         )
         check_close_frame.pack(padx=0, pady=(5, 0), fill='x')
+
+        check_close_var = tk.BooleanVar(value=self.settings.get('check_close', True))
+        status_label = ctk.CTkLabel(
+            check_close_frame.container(), 
+            text='オン' if check_close_var.get() else 'オフ', 
+            font=(config.FONT_NAME, 16),
+            width=30,
+            anchor="w"
+        )
         def change_check_close(choice):
             self.settings['check_close'] = choice
+            status_label.configure(text='オン' if choice else 'オフ')
             self.save_settings()
-        
-        check_close_var = tk.BooleanVar(value=self.settings.get('check_close', True))
-        check_close_checkbox = ctk.CTkCheckBox(check_close_frame.container(), text='アプリ終了時に確認ダイアログを表示する', variable=check_close_var, onvalue=True, offvalue=False, font=(config.FONT_NAME, 16), command=lambda: change_check_close(check_close_var.get()))
-        check_close_checkbox.pack(padx=0, pady=5, side="right")
+        switch_close = ctk.CTkSwitch(
+            check_close_frame.container(), 
+            text='',
+            width=0,
+            variable=check_close_var, 
+            onvalue=True, 
+            offvalue=False, 
+            command=lambda: change_check_close(check_close_var.get())
+        )
+        switch_close.pack(padx=0, pady=5, side="right")
+        status_label.pack(padx=10, pady=5, side="right")
+        ctk.CTkLabel(check_close_frame.container(), text='終了時に確認ダイアログを表示する', font=(config.FONT_NAME, 16)).pack(padx=0, pady=5, side="left")
         
         form_frame = ModernTile(
             settings_frame,

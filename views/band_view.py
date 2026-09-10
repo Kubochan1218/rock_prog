@@ -4,6 +4,8 @@ import customtkinter as ctk
 from customtkinter import filedialog
 from tkinter import messagebox
 import pandas as pd
+
+from views.my_parts import ModernTile, MultiFontButton
 import config
 import attendance_calculation as ac
 import band_selection as bs
@@ -387,6 +389,8 @@ class BandView(ctk.CTkFrame):
             command=self.execute_band_selection
         )
         btn_select.pack(pady=20, padx=10, fill="x")
+        
+        # ここにバンド選出アルゴリズムの説明を表示するためのボタンを追加
         
         # 結果表示エリア
         result_header_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
